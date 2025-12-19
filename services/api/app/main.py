@@ -7,8 +7,10 @@ from urllib.parse import urlparse
 
 import httpx
 import trafilatura
+import nltk
+from nltk.tokenize import sent_tokenize
 
-app = FastAPI(title="Fact Validator API", version="0.2.0")
+app = FastAPI(title="Fact Validator API", version="0.3.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,8 +45,6 @@ class ClaimResult(BaseModel):
 class AnalyzeResponse(BaseModel):
     input_type: Literal["url", "text"]
     domain: Optional[str] = None
-
-    # NEW: show live extraction results
     extracted_text_chars: int
     extracted_text_preview: str
 
@@ -80,12 +80,9 @@ def extract_domain(url: str) -> Optional[str]:
 
 
 async def fetch_html(url: str) -> Tuple[str, str]:
-    """
-    Returns (final_url, html) or ("", "") if failed.
-    """
     try:
         headers = {
-            "User-Agent": "FactValidatorBot/0.2 (thesis demo; contact: none)",
+            "User-Agent": "FactValidatorBot/0.3 (thesis demo; contact: none)",
             "Accept": "text/html,application/xhtml+xml",
         }
         timeout = httpx.Timeout(15.0, connect=10.0)
@@ -99,10 +96,6 @@ async def fetch_html(url: str) -> Tuple[str, str]:
 
 
 def extract_readable_text_from_html(html: str, url: str = "") -> str:
-    """
-    Uses trafilatura to extract main article text.
-    Returns "" if extraction fails.
-    """
     try:
         downloaded = trafilatura.extract(
             html,
@@ -116,6 +109,63 @@ def extract_readable_text_from_html(html: str, url: str = "") -> str:
         return ""
 
 
+def heuristic_claim_score(s: str) -> float:
+    """
+    Simple heuristic for ranking claim candidates.
+    Not a model — just a baseline that we will replace later.
+    """
+    s = s.strip()
+    if not s:
+        return 0.0
+
+    length = len(s)
+    # Prefer mid-length sentences for claim-likeness
+    length_score = 1.0 - min(abs(length - 160) / 160.0, 1.0)
+
+    has_number = any(ch.isdigit() for ch in s)
+    number_bonus = 0.15 if has_number else 0.0
+
+    has_entity_hint = any(tok in s.lower() for tok in [" is ", " are ", " was ", " were ", " has ", " have ", " with "])
+    entity_bonus = 0.10 if has_entity_hint else 0.0
+
+    score = 0.55 * length_score + number_bonus + entity_bonus
+    return max(0.05, min(score, 0.95))
+
+
+def extract_claim_candidates(text: str, max_claims: int = 6) -> List[str]:
+    """
+    Extract sentences as claim candidates with simple filtering.
+    """
+    text = (text or "").strip()
+    if not text:
+        return []
+
+    # NLTK sentence split
+    sents = sent_tokenize(text)
+
+    cleaned: List[str] = []
+    seen = set()
+
+    for s in sents:
+        s2 = " ".join(s.split()).strip()
+        if len(s2) < 50:
+            continue
+        if len(s2) > 350:
+            continue
+        key = s2.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        cleaned.append(s2)
+
+        if len(cleaned) >= 60:
+            break  # cap processing
+
+    # Rank by heuristic score
+    ranked = sorted(cleaned, key=heuristic_claim_score, reverse=True)
+    return ranked[:max_claims]
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
@@ -127,10 +177,8 @@ async def analyze(req: AnalyzeRequest):
     has_text = bool(req.text and req.text.strip())
 
     input_type: Literal["url", "text"] = "url" if has_url else "text"
-
     domain = extract_domain(req.url) if has_url else None
 
-    # --- NEW: live URL -> text extraction ---
     extracted_text = ""
     final_url = None
 
@@ -146,21 +194,21 @@ async def analyze(req: AnalyzeRequest):
     preview = extracted_text[:400].replace("\n", " ").strip()
     chars = len(extracted_text)
 
-    # Mock claim output for now (next steps will replace this with real claim extraction)
-    mock_claim = ClaimResult(
-        claim_text="Example claim extracted from the input.",
-        verdict="NEI",
-        confidence=0.55,
-        evidence=[
-            EvidenceItem(
-                url="https://example.com",
-                snippet="Example evidence snippet. (Mock)",
-                domain="example.com",
-                domain_score=70,
+    # NEW: real claim candidates
+    claim_texts = extract_claim_candidates(extracted_text, max_claims=6)
+
+    # For now: verdict is NEI for all claims (evidence retrieval comes next)
+    claims: List[ClaimResult] = []
+    for ct in claim_texts:
+        claims.append(
+            ClaimResult(
+                claim_text=ct,
+                verdict="NEI",
+                confidence=round(heuristic_claim_score(ct), 2),
+                evidence=[],
+                debate_summary="Claim extracted from article text. Evidence retrieval not enabled yet.",
             )
-        ],
-        debate_summary="Prover: insufficient proof. Skeptic: no reliable sources. Judge: NEI.",
-    )
+        )
 
     return AnalyzeResponse(
         input_type=input_type,
@@ -170,14 +218,13 @@ async def analyze(req: AnalyzeRequest):
         domain_score=70,
         domain_label="MEDIUM",
         final_misinformation_likelihood=0.42,
-        claims=[mock_claim],
+        claims=claims,
         timestamp_utc=datetime.utcnow().isoformat() + "Z",
         metadata={
             "mode": req.mode,
-            "note": "mock response (now includes live url->text extraction)",
-            "input_url": req.url if has_url else None,
             "final_url": final_url,
-            "has_text": has_text,
             "extraction_success": bool(extracted_text) and chars > 0,
+            "claims_extracted": len(claims),
+            "note": "Step 3.3: sentence-based claim extraction baseline",
         },
     )

@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List, Literal, Dict, Any, Tuple
@@ -15,11 +15,16 @@ from nltk.tokenize import sent_tokenize
 from dotenv import load_dotenv
 import tldextract
 
+# --- Step 5 DB ---
+from sqlmodel import select
+from app.db.database import init_db, get_session
+from app.db.models import Run
+
 # Load env from services/api/.env
 load_dotenv()
 SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY", "").strip()
 
-app = FastAPI(title="Fact Validator API", version="0.4.2")
+app = FastAPI(title="Fact Validator API", version="0.5.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,6 +33,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.on_event("startup")
+def _startup():
+    init_db()
 
 
 class AnalyzeRequest(BaseModel):
@@ -103,9 +112,6 @@ def base_domain(domain: str) -> str:
 
 
 def score_domain(domain: str) -> int:
-    """
-    Baseline credibility score (0-100). Deterministic heuristic.
-    """
     d = (domain or "").lower().strip()
     bd = base_domain(d)
 
@@ -148,18 +154,9 @@ def label_from_score(score: int) -> Literal["HIGH", "MEDIUM", "LOW"]:
 def is_blocked_domain(domain: str) -> bool:
     bd = base_domain((domain or "").lower())
     blocked = {
-        # social / user-generated
-        "facebook.com",
-        "x.com",
-        "twitter.com",
-        "tiktok.com",
-        "instagram.com",
-        "reddit.com",
-        "pinterest.com",
-
-        # low-quality aggregators / mirrors (extend as you observe)
-        "worldarticledatabase.com",
-        "wecanfigurethisout.org",
+        "facebook.com", "x.com", "twitter.com", "tiktok.com",
+        "instagram.com", "reddit.com", "pinterest.com",
+        "worldarticledatabase.com", "wecanfigurethisout.org",
     }
     return bd in blocked
 
@@ -167,7 +164,7 @@ def is_blocked_domain(domain: str) -> bool:
 async def fetch_html(url: str) -> Tuple[str, str]:
     try:
         headers = {
-            "User-Agent": "FactValidatorBot/0.4.2 (thesis demo)",
+            "User-Agent": "FactValidatorBot/0.5.0 (thesis demo)",
             "Accept": "text/html,application/xhtml+xml",
         }
         timeout = httpx.Timeout(20.0, connect=10.0)
@@ -199,53 +196,36 @@ def heuristic_claim_score(s: str) -> float:
     if not s:
         return 0.0
     length = len(s)
-
-    # Prefer mid-length sentences for claims
     length_score = 1.0 - min(abs(length - 160) / 160.0, 1.0)
-
     has_number = any(ch.isdigit() for ch in s)
     number_bonus = 0.15 if has_number else 0.0
-
     has_relation = any(tok in s.lower() for tok in [" is ", " are ", " was ", " were ", " has ", " have ", " with "])
     relation_bonus = 0.10 if has_relation else 0.0
-
     score = 0.55 * length_score + number_bonus + relation_bonus
     return max(0.05, min(score, 0.95))
 
 
-# -------- Step 4.8 + 4.9: Better claim extraction --------
-
 def clean_text_for_claims(text: str) -> str:
     t = (text or "").strip()
-
-    # Remove navigation-ish patterns
     t = re.sub(r"\bExplore Data\b", " ", t, flags=re.IGNORECASE)
     t = re.sub(r"\bResearch\s*&\s*Writing\b", " ", t, flags=re.IGNORECASE)
-
-    # Remove month-day-year date stamps e.g. "February 04, 2020"
     t = re.sub(
         r"\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}\b",
         " ",
         t,
         flags=re.IGNORECASE,
     )
-
-    # Normalize whitespace/newlines
     t = re.sub(r"[ \t]+", " ", t)
     t = re.sub(r"\n{2,}", "\n", t)
     return t.strip()
 
 
 def extract_claim_candidates(text: str, max_claims: int = 6) -> List[str]:
-    """
-    Split by blocks then sentence-tokenize, with filters to remove boilerplate.
-    """
     text = clean_text_for_claims(text)
     if not text:
         return []
 
     blocks = [b.strip() for b in text.split("\n") if b.strip()]
-
     candidates: List[str] = []
     seen = set()
 
@@ -255,6 +235,8 @@ def extract_claim_candidates(text: str, max_claims: int = 6) -> List[str]:
         "cite this work",
         "reuse this work",
         "license terms",
+        "creative commons",
+        "open access",
         "data produced by third parties",
         "the underlying data for this chart",
     ]
@@ -283,8 +265,6 @@ def extract_claim_candidates(text: str, max_claims: int = 6) -> List[str]:
     ranked = sorted(candidates, key=heuristic_claim_score, reverse=True)
     return ranked[:max_claims]
 
-
-# -------- SerpAPI Retrieval --------
 
 async def serpapi_search(query: str, num: int = 5) -> List[Dict[str, Any]]:
     if not SERPAPI_API_KEY:
@@ -322,13 +302,10 @@ async def serpapi_search(query: str, num: int = 5) -> List[Dict[str, Any]]:
         return []
 
 
-# -------- Baseline Verifier (improved, still conservative) --------
-
 def tokenize_for_overlap(s: str) -> List[str]:
     s = (s or "").lower()
     s = re.sub(r"[^a-z0-9\s]", " ", s)
     toks = [t for t in s.split() if len(t) >= 4]
-
     stop = {
         "this", "that", "with", "from", "were", "have", "has", "been", "into", "also",
         "their", "they", "them", "than", "more", "most", "such", "some", "many"
@@ -338,12 +315,6 @@ def tokenize_for_overlap(s: str) -> List[str]:
 
 
 def baseline_verdict(claim: str, evidence: List[EvidenceItem]) -> Tuple[Literal["SUPPORTED", "REFUTED", "NEI"], float, str]:
-    """
-    Better baseline:
-    - REFUTED if medium/high sources explicitly call it false/hoax/debunk.
-    - SUPPORTED if >=2 distinct domains (score>=65) have strong overlap.
-    - Else NEI.
-    """
     if not evidence:
         return "NEI", 0.55, "No evidence retrieved."
 
@@ -359,17 +330,14 @@ def baseline_verdict(claim: str, evidence: List[EvidenceItem]) -> Tuple[Literal[
         overlap = len(claim_toks.intersection(ev_toks))
         overlaps.append((overlap, e.domain_score, base_domain(e.domain), (e.snippet or "").lower()))
 
-    # Refutation cue check
-    for overlap, dscore, bd, snip_low in overlaps:
-        if dscore >= 65 and any(cue in snip_low for cue in neg_cues):
+    for ov, ds, bd, snip_low in overlaps:
+        if ds >= 65 and any(cue in snip_low for cue in neg_cues):
             return "REFUTED", 0.70, "Evidence snippet contains refutation cue from a medium/high source."
 
-    # Support check: 2 distinct domains, medium/high, good overlap
     strong_support_domains = {bd for (ov, ds, bd, _) in overlaps if ds >= 65 and ov >= 6}
     if len(strong_support_domains) >= 2:
         return "SUPPORTED", 0.75, "At least two distinct medium/high domains have strong keyword overlap."
 
-    # Single high-domain support
     best = max(overlaps, key=lambda x: (x[0], x[1]))
     if best[1] >= 90 and best[0] >= 7:
         return "SUPPORTED", 0.72, "Single high-score domain has strong keyword overlap."
@@ -392,6 +360,33 @@ def estimate_misinformation_likelihood(claims: List[ClaimResult]) -> float:
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+# --- Step 5 endpoints: history ---
+@app.get("/runs")
+def list_runs(limit: int = 20):
+    with get_session() as session:
+        rows = session.exec(select(Run).order_by(Run.id.desc()).limit(limit)).all()
+        return [
+            {
+                "id": r.id,
+                "created_utc": r.created_utc,
+                "input_type": r.input_type,
+                "input_url": r.input_url,
+                "input_domain": r.input_domain,
+                "extracted_text_chars": r.extracted_text_chars,
+            }
+            for r in rows
+        ]
+
+
+@app.get("/runs/{run_id}")
+def get_run(run_id: int):
+    with get_session() as session:
+        r = session.get(Run, run_id)
+        if not r:
+            raise HTTPException(status_code=404, detail="Run not found")
+        return r.get_result()
 
 
 @app.post("/analyze", response_model=AnalyzeResponse)
@@ -420,9 +415,8 @@ async def analyze(req: AnalyzeRequest):
     claim_texts = extract_claim_candidates(extracted_text, max_claims=req.max_claims)
 
     claims: List[ClaimResult] = []
-
     for ct in claim_texts:
-        query = ct[:220]  # Step 4.9: shorter query improves recall
+        query = ct[:220]
         raw_results = await serpapi_search(query, num=req.max_evidence_per_claim)
 
         ev_items: List[EvidenceItem] = []
@@ -474,7 +468,7 @@ async def analyze(req: AnalyzeRequest):
 
     final_like = estimate_misinformation_likelihood(claims)
 
-    return AnalyzeResponse(
+    response = AnalyzeResponse(
         input_type=input_type,
         domain=domain,
         extracted_text_chars=chars,
@@ -490,6 +484,25 @@ async def analyze(req: AnalyzeRequest):
             "extraction_success": bool(extracted_text) and chars > 0,
             "claims_extracted": len(claims),
             "serpapi_enabled": bool(SERPAPI_API_KEY),
-            "note": "Step 4.8+4.9: cleaner claims + boilerplate filter + evidence dedup + blocked domains + better baseline verdict",
+            "note": "Step 5 enabled: snapshot saves runs; /runs and /runs/{id} endpoints added",
         },
     )
+
+    # --- Snapshot saving ---
+    if req.mode == "snapshot":
+        with get_session() as session:
+            run = Run(
+                input_type=input_type,
+                input_url=req.url if has_url else None,
+                input_domain=domain,
+                extracted_text_chars=chars,
+                extracted_text_preview=preview,
+                result_json="{}",
+            )
+            run.set_result(response.dict())
+            session.add(run)
+            session.commit()
+            session.refresh(run)
+            response.metadata["run_id"] = run.id
+
+    return response

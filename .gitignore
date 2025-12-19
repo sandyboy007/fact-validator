@@ -24,3 +24,9 @@ dist/
 .env
 services/api/.env
 
+# secrets
+.env
+services/api/.env
+
+# local DB
+services/api/data/*.db

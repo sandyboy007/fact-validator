@@ -56,8 +56,7 @@ export default function Home() {
     <main style={{ padding: 24, maxWidth: 980, margin: "0 auto", fontFamily: "Arial, sans-serif" }}>
       <h1 style={{ fontSize: 22, fontWeight: 700 }}>Fact Validator (Working Demo)</h1>
       <p style={{ marginTop: 8, opacity: 0.8 }}>
-        Paste a URL or text and click Analyze. Right now the backend returns a mock report, but it should correctly
-        detect the domain from your URL (Step 3.1).
+        Paste a URL or text and click Analyze. This now performs live URL → text extraction (Step 3.2).
       </p>
 
       {/* URL input */}
@@ -82,7 +81,7 @@ export default function Home() {
         />
       </div>
 
-      {/* Mode */}
+      {/* Mode + Analyze */}
       <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center" }}>
         <div style={{ fontSize: 13, fontWeight: 600 }}>Mode</div>
         <select value={mode} onChange={(e) => setMode(e.target.value as any)} style={{ padding: 8 }}>
@@ -110,8 +109,18 @@ export default function Home() {
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             <Card title="Input Type" value={String(result.input_type)} />
             <Card title="Domain" value={String(result.domain ?? "-")} />
+            <Card title="Extracted Text Chars" value={String(result.extracted_text_chars ?? "-")} />
             <Card title="Domain Score" value={`${result.domain_score} (${result.domain_label})`} />
             <Card title="Misinformation Likelihood" value={String(result.final_misinformation_likelihood)} />
+          </div>
+
+          <h2 style={{ marginTop: 18, fontSize: 18, fontWeight: 700 }}>Extracted Text Preview</h2>
+          <div style={{ marginTop: 8, border: "1px solid #ddd", borderRadius: 8, padding: 12, background: "#fafafa" }}>
+            {result.extracted_text_preview ? (
+              <div style={{ lineHeight: 1.4 }}>{String(result.extracted_text_preview)}</div>
+            ) : (
+              <div style={{ opacity: 0.75 }}>No preview available.</div>
+            )}
           </div>
 
           <h2 style={{ marginTop: 18, fontSize: 18, fontWeight: 700 }}>Claims</h2>

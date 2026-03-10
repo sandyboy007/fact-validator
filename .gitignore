@@ -1,32 +1,53 @@
-# Python
+# ── Python ────────────────────────────────────────────────────────────────────
+# Virtual environments (any depth)
 .venv/
+venv/
+env/
+.env/
+ENV/
+*/.venv/
+*/venv/
+*/env/
+
+# Bytecode / cache
 __pycache__/
-*.pyc
+*/__pycache__/
+**/__pycache__/
+*.py[cod]
 *.pyo
 *.pyd
-*.log
+*.pdb
 
-# Node
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+site-packages/
+
+# Misc Python artefacts
+*.log
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Node ──────────────────────────────────────────────────────────────────────
 node_modules/
 .next/
 out/
-dist/
 
-# Env
+# ── Environment / secrets ─────────────────────────────────────────────────────
 .env
 .env.*
+services/api/.env
 
-# OS/Editor
+# ── Local database ────────────────────────────────────────────────────────────
+services/api/data/*.db
+services/api/data/*.json
+
+# ── OS / Editor ───────────────────────────────────────────────────────────────
 .DS_Store
+Thumbs.db
 .vscode/
 
-# secrets
-.env
-services/api/.env
-
-# secrets
-.env
-services/api/.env
-
-# local DB
-services/api/data/*.db

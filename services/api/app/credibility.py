@@ -7,10 +7,15 @@ import time
 import tldextract
 
 
-CACHE_PATH = os.getenv(
-    "FACTVALIDATOR_DOMAIN_CACHE",
-    r"C:\Fact_Validator\services\api\data\domain_cache.json"
+# Default cache path is relative to this file so it works on any OS.
+# Override via the FACTVALIDATOR_DOMAIN_CACHE environment variable.
+_DEFAULT_CACHE_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..",
+    "data",
+    "domain_cache.json",
 )
+CACHE_PATH = os.getenv("FACTVALIDATOR_DOMAIN_CACHE", _DEFAULT_CACHE_PATH)
 CACHE_TTL_SECONDS = 60 * 60 * 24 * 14  # 14 days
 
 
@@ -39,7 +44,8 @@ def _load_cache() -> Dict[str, Dict]:
 
 
 def _save_cache(cache: Dict[str, Dict]) -> None:
-    os.makedirs(os.path.dirname(CACHE_PATH), exist_ok=True)
+    cache_dir = os.path.dirname(os.path.abspath(CACHE_PATH))
+    os.makedirs(cache_dir, exist_ok=True)
     with open(CACHE_PATH, "w", encoding="utf-8") as f:
         json.dump(cache, f, ensure_ascii=False, indent=2)
 

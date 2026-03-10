@@ -1,0 +1,80 @@
+name: CI
+
+# Run on every push to main only
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  # ────────────────────────────────────────────────────────────────────────────
+  # Job 1: Python API — install deps, lint, run smoke tests
+  # ────────────────────────────────────────────────────────────────────────────
+  api-test:
+    name: API (Python)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/api
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: services/api/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio
+
+      - name: Lint with Ruff (non-blocking)
+        run: |
+          pip install ruff
+          ruff check app/ --exit-zero
+
+      - name: Run smoke tests
+        env:
+          # Prevent any accidental real HTTP calls during tests
+          SERPAPI_API_KEY: ""
+          OLLAMA_BASE_URL: "http://127.0.0.1:11434"
+        run: pytest tests/ -v --tb=short
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Job 2: Next.js frontend — install, lint, type-check, production build
+  # ────────────────────────────────────────────────────────────────────────────
+  web-build:
+    name: Web (Next.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: Production build
+        run: npm run build

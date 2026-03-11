@@ -2,8 +2,36 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 
-function downloadJson(filename: string, obj: any) {
+type EvidenceItem = {
+  url?: string;
+  domain?: string;
+  domain_score?: number;
+  snippet?: string;
+};
+
+type ClaimItem = {
+  claim_text?: string;
+  verdict?: string;
+  confidence?: number;
+  debate_summary?: string;
+  evidence?: EvidenceItem[];
+};
+
+type RunResult = {
+  input_type?: string;
+  domain?: string;
+  extracted_text_chars?: number;
+  extracted_text_preview?: string;
+  domain_score?: number;
+  domain_label?: string;
+  final_misinformation_likelihood?: number;
+  claims?: ClaimItem[];
+  timestamp_utc?: string;
+};
+
+function downloadJson(filename: string, obj: unknown) {
   const json = JSON.stringify(obj, null, 2);
   const blob = new Blob([json], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -23,7 +51,7 @@ export default function RunPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<RunResult | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -32,10 +60,10 @@ export default function RunPage() {
       try {
         const res = await fetch(`${API_BASE}/runs/${id}`);
         if (!res.ok) throw new Error(`Run load error: ${res.status}`);
-        const data = await res.json();
+        const data = (await res.json()) as RunResult;
         setResult(data);
-      } catch (e: any) {
-        setError(e?.message ?? "Failed to load run");
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "Failed to load run");
       } finally {
         setLoading(false);
       }
@@ -60,9 +88,9 @@ export default function RunPage() {
         </div>
 
         <div className="no-print flex gap-2">
-          <a className="px-3 py-2 border rounded text-sm underline" href="/">
+          <Link className="px-3 py-2 border rounded text-sm underline" href="/">
             Back
-          </a>
+          </Link>
           <button className="px-3 py-2 border rounded text-sm" onClick={() => window.print()}>
             Print / Save PDF
           </button>
@@ -115,7 +143,7 @@ export default function RunPage() {
           <div className="mt-6">
             <div className="text-gray-800 font-semibold">Claims</div>
             <div className="mt-2 space-y-3">
-              {(result.claims ?? []).map((c: any, idx: number) => (
+              {(result.claims ?? []).map((c: ClaimItem, idx: number) => (
                 <div key={idx} className="p-3 border rounded">
                   <div className="text-sm">{c.claim_text}</div>
                   <div className="mt-2 text-sm">
@@ -131,7 +159,7 @@ export default function RunPage() {
 
                   <div className="mt-3 text-sm text-gray-800 font-medium">Evidence</div>
                   <ul className="mt-1 space-y-2">
-                    {(c.evidence ?? []).map((e: any, j: number) => (
+                    {(c.evidence ?? []).map((e: EvidenceItem, j: number) => (
                       <li key={j} className="text-sm">
                         <div className="font-medium">
                           {e.domain} <span className="text-gray-500">(score: {e.domain_score})</span>

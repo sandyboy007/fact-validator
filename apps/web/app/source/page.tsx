@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, Card, Divider, cx } from "../../components/ui";
+import { Button, Card, Divider } from "../../components/ui";
+import Link from "next/link";
 
 type SourceScore = {
   domain: string;
@@ -39,8 +40,8 @@ export default function SourcePage() {
 
       const json = (await res.json()) as SourceScore;
       setData(json);
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to fetch");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to fetch");
     } finally {
       setLoading(false);
     }
@@ -54,9 +55,9 @@ export default function SourcePage() {
             <h1 className="text-xl font-semibold tracking-tight">Source Credibility Checker</h1>
             <p className="text-sm text-zinc-600">Enter a domain to get a heuristic credibility score and reasons</p>
           </div>
-          <a className="text-sm px-3 py-2 rounded-lg border hover:bg-zinc-50" href="/">
+          <Link className="text-sm px-3 py-2 rounded-lg border hover:bg-zinc-50" href="/">
             ← Back
-          </a>
+          </Link>
         </div>
       </div>
 

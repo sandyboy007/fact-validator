@@ -7,7 +7,8 @@ type EvidenceItem = {
   url: string;
   snippet?: string;
   domain?: string;
-  score?: number;
+  domain_score?: number;
+  score?: number; // legacy alias
   title?: string;
 };
 
@@ -29,7 +30,7 @@ type AnalyzeResponse = {
   final_misinformation_likelihood?: number;
   claims?: ClaimItem[];
   timestamp_utc?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 };
 
 type RunRow = {
@@ -57,10 +58,16 @@ function safeHostFromUrl(u?: string) {
   }
 }
 
+function evScore(ev: EvidenceItem): number {
+  if (typeof ev.domain_score === "number") return ev.domain_score;
+  if (typeof ev.score === "number") return ev.score;
+  return 0;
+}
+
 function sortEvidence(evs: EvidenceItem[]) {
   return [...(evs || [])].sort((a, b) => {
-    const sa = typeof a.score === "number" ? a.score : 0;
-    const sb = typeof b.score === "number" ? b.score : 0;
+    const sa = evScore(a);
+    const sb = evScore(b);
     if (sb !== sa) return sb - sa;
     const da = (a.domain ?? safeHostFromUrl(a.url)).length;
     const db = (b.domain ?? safeHostFromUrl(b.url)).length;
@@ -103,7 +110,14 @@ export default function Page() {
     setResult(null);
 
     try {
-      const payload: any = {
+      const payload: {
+        mode: "live" | "snapshot";
+        verifier: "baseline" | "debate";
+        max_claims: number;
+        max_evidence_per_claim: number;
+        url?: string;
+        text?: string;
+      } = {
         mode,
         verifier,
         max_claims: maxClaims,
@@ -131,8 +145,8 @@ export default function Page() {
       setOpenClaimIdx(0);
 
       fetchRuns();
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to fetch");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to fetch");
     } finally {
       setLoading(false);
     }
@@ -151,9 +165,9 @@ export default function Page() {
       const json = await res.json();
       const items: RunRow[] = Array.isArray(json) ? json : (json?.items ?? []);
       setRuns(items);
-    } catch (e: any) {
+    } catch (e: unknown) {
       setRuns([]);
-      setRunsError(e?.message ?? "Could not load run history.");
+      setRunsError(e instanceof Error ? e.message : "Could not load run history.");
     } finally {
       setRunsLoading(false);
     }
@@ -169,7 +183,6 @@ export default function Page() {
 
   useEffect(() => {
     fetchRuns();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const examples = [
@@ -282,7 +295,7 @@ export default function Page() {
                     <select
                       className="mt-1 w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-sm outline-none"
                       value={mode}
-                      onChange={(e) => setMode(e.target.value as any)}
+                      onChange={(e) => setMode(e.target.value as "live" | "snapshot")}
                     >
                       <option value="live">live</option>
                       <option value="snapshot">snapshot</option>
@@ -294,7 +307,7 @@ export default function Page() {
                     <select
                       className="mt-1 w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-sm outline-none"
                       value={verifier}
-                      onChange={(e) => setVerifier(e.target.value as any)}
+                      onChange={(e) => setVerifier(e.target.value as "baseline" | "debate")}
                     >
                       <option value="baseline">baseline</option>
                       <option value="debate">debate</option>
@@ -494,7 +507,9 @@ export default function Page() {
                             <ul className="mt-2 grid gap-2">
                               {sortEvidence(c.evidence || []).map((ev, j) => {
                                 const d = ev.domain ?? safeHostFromUrl(ev.url);
-                                const s = typeof ev.score === "number" ? ev.score : undefined;
+                                const sVal = typeof ev.domain_score === "number" ? ev.domain_score
+                                           : typeof ev.score === "number" ? ev.score
+                                           : undefined;
 
                                 return (
                                   <li key={j} className="rounded-2xl border border-white/10 bg-white/5 p-3">
@@ -502,18 +517,18 @@ export default function Page() {
                                       <div className="min-w-0">
                                         <div className="flex items-center gap-2 flex-wrap">
                                           <span className="text-sm font-semibold truncate">{d}</span>
-                                          {typeof s === "number" && (
+                                          {typeof sVal === "number" && (
                                             <span
                                               className={cx(
                                                 "px-2 py-1 rounded-full text-xs font-semibold border",
-                                                s >= 80
+                                                sVal >= 80
                                                   ? "bg-emerald-400/15 border-emerald-300/30 text-emerald-200"
-                                                  : s >= 60
+                                                  : sVal >= 60
                                                   ? "bg-amber-400/15 border-amber-300/30 text-amber-200"
                                                   : "bg-rose-400/15 border-rose-300/30 text-rose-200"
                                               )}
                                             >
-                                              {s}
+                                              {sVal}
                                             </span>
                                           )}
                                         </div>

@@ -45,6 +45,9 @@ services/api/.env
 # ── Local database ────────────────────────────────────────────────────────────
 services/api/data/*.db
 services/api/data/*.json
+# But track the curated credibility datasets (not runtime caches)
+!services/api/data/opensources.json
+!services/api/data/iffy_index.json
 
 # ── OS / Editor ───────────────────────────────────────────────────────────────
 .DS_Store

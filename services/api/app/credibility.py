@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, Tuple
 import json
 import os
 import time
@@ -18,6 +18,103 @@ _DEFAULT_CACHE_PATH = os.path.join(
 CACHE_PATH = os.getenv("FACTVALIDATOR_DOMAIN_CACHE", _DEFAULT_CACHE_PATH)
 CACHE_TTL_SECONDS = 60 * 60 * 24 * 14  # 14 days
 
+_DEFAULT_OPENSOURCES_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..",
+    "data",
+    "opensources.json",
+)
+_DEFAULT_IFFY_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..",
+    "data",
+    "iffy_index.json",
+)
+
+# OpenSources type label → score delta (most-negative wins when multiple types present)
+_OS_TYPE_DELTA: Dict[str, int] = {
+    "reliable": 10,
+    "political": 0,
+    "bias": -5,
+    "satire": -10,
+    "clickbait": -10,
+    "rumor": -15,
+    "state": -15,
+    "unreliable": -15,
+    "junksci": -20,
+    "conspiracy": -20,
+    "fake news": -30,
+    "fake": -30,
+    "hate": -30,
+}
+
+# Iffy Index MBFC factual-reporting level → score delta
+_IFFY_LEVEL_DELTA: Dict[str, int] = {
+    "VL": -25,  # Very Low
+    "L": -15,   # Low
+    "M": -5,    # Mixed
+}
+
+
+def _load_opensources() -> Dict[str, Dict]:
+    try:
+        if not os.path.exists(_DEFAULT_OPENSOURCES_PATH):
+            return {}
+        with open(_DEFAULT_OPENSOURCES_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _load_iffy() -> Dict[str, Dict]:
+    try:
+        if not os.path.exists(_DEFAULT_IFFY_PATH):
+            return {}
+        with open(_DEFAULT_IFFY_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        data.pop("_meta", None)
+        return data
+    except Exception:
+        return {}
+
+
+def _build_os_lookup(raw: Dict[str, Dict]) -> Dict[str, int]:
+    """Map base_domain -> worst-type delta from OpenSources data."""
+    lookup: Dict[str, int] = {}
+    for domain_key, info in raw.items():
+        bd = base_domain(domain_key.strip())
+        if not bd:
+            continue
+        types = [
+            str(info.get("type", "")).lower().strip(),
+            str(info.get("2nd type", "")).lower().strip(),
+            str(info.get("3rd type", "")).lower().strip(),
+        ]
+        worst_delta = 0
+        for t in types:
+            d = _OS_TYPE_DELTA.get(t, 0)
+            if d < worst_delta:
+                worst_delta = d
+        if worst_delta != 0:
+            if bd not in lookup or worst_delta < lookup[bd]:
+                lookup[bd] = worst_delta
+    return lookup
+
+
+def _build_iffy_lookup(raw: Dict[str, Dict]) -> Dict[str, Tuple[int, str]]:
+    """Map base_domain -> (delta, level_label) from Iffy Index data."""
+    lookup: Dict[str, Tuple[int, str]] = {}
+    for domain_key, info in raw.items():
+        bd = base_domain(domain_key.strip())
+        if not bd:
+            continue
+        level = str(info.get("level", "")).upper().strip()
+        delta = _IFFY_LEVEL_DELTA.get(level, 0)
+        if delta != 0:
+            if bd not in lookup or delta < lookup[bd][0]:
+                lookup[bd] = (delta, level)
+    return lookup
+
 
 @dataclass
 class CredibilityScore:
@@ -31,6 +128,11 @@ def base_domain(domain: str) -> str:
     if not ext.domain or not ext.suffix:
         return (domain or "").lower()
     return f"{ext.domain}.{ext.suffix}".lower()
+
+
+# Module-level lookups — built once at import time (after base_domain is defined)
+_OS_LOOKUP: Dict[str, int] = _build_os_lookup(_load_opensources())
+_IFFY_LOOKUP: Dict[str, Tuple[int, str]] = _build_iffy_lookup(_load_iffy())
 
 
 def _load_cache() -> Dict[str, Dict]:
@@ -224,6 +326,25 @@ def score_domain_rubric(domain: str) -> CredibilityScore:
             score += delta
             reasons["platform_risk"] = msg
             break
+
+    # --- OpenSources dataset signal ---
+    if bd in _OS_LOOKUP:
+        delta = _OS_LOOKUP[bd]
+        score += delta
+        sign = "+" if delta >= 0 else ""
+        reasons["opensources"] = (
+            f"Domain found in OpenSources unreliable-news dataset ({sign}{delta})."
+        )
+
+    # --- Iffy Index (MBFC-backed) signal ---
+    if bd in _IFFY_LOOKUP:
+        delta, level = _IFFY_LOOKUP[bd]
+        level_label = {"VL": "Very Low", "L": "Low", "M": "Mixed"}.get(level, level)
+        score += delta
+        sign = "+" if delta >= 0 else ""
+        reasons["iffy_index"] = (
+            f"Domain flagged by Iffy Index (MBFC factual rating: {level_label}, {sign}{delta})."
+        )
 
     # Obvious spammy/low-quality keyword markers
     low_markers = [

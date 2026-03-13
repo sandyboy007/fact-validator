@@ -32,6 +32,15 @@ def init_db() -> None:
             )
             """
         )
+        con.execute(
+            """
+            CREATE TABLE IF NOT EXISTS claim_memory (
+              claim_key TEXT PRIMARY KEY,
+              updated_utc TEXT NOT NULL,
+              result_json TEXT NOT NULL
+            )
+            """
+        )
         con.commit()
 
 
@@ -115,3 +124,42 @@ def export_runs(limit: int = 500) -> List[Dict[str, Any]]:
                 d["response"] = {}
             out.append(d)
         return out
+
+
+def get_claim_memory(claim_key: str) -> Optional[Dict[str, Any]]:
+    init_db()
+    with sqlite3.connect(DB_PATH) as con:
+        row = con.execute(
+            "SELECT updated_utc, result_json FROM claim_memory WHERE claim_key = ?",
+            (claim_key,),
+        ).fetchone()
+        if not row:
+            return None
+        updated_utc, result_json = row
+        try:
+            payload = json.loads(result_json or "{}")
+        except Exception:
+            payload = {}
+        return {
+            "claim_key": claim_key,
+            "updated_utc": updated_utc,
+            "payload": payload,
+        }
+
+
+def save_claim_memory(claim_key: str, payload: Dict[str, Any]) -> None:
+    init_db()
+    updated_utc = datetime.utcnow().isoformat() + "Z"
+    result_json = json.dumps(payload, ensure_ascii=False)
+    with sqlite3.connect(DB_PATH) as con:
+        con.execute(
+            """
+            INSERT INTO claim_memory (claim_key, updated_utc, result_json)
+            VALUES (?, ?, ?)
+            ON CONFLICT(claim_key)
+            DO UPDATE SET updated_utc = excluded.updated_utc,
+                          result_json = excluded.result_json
+            """,
+            (claim_key, updated_utc, result_json),
+        )
+        con.commit()

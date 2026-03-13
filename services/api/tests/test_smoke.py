@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
 from app.credibility import score_domain_rubric, base_domain, CredibilityScore
+from app.analysis_features import decompose_claim, determine_verdict, enrich_evidence
 
 
 # ---------------------------------------------------------------------------
@@ -225,3 +226,71 @@ class TestHeuristicClaimScore:
         plain = heuristic_claim_score("Global temperatures have risen in recent decades")
         numbered = heuristic_claim_score("Global temperatures have risen by 1.5 degrees in recent decades")
         assert numbered >= plain
+
+
+class TestClaimDecomposition:
+    def test_extracts_numbers_entities_and_profile(self):
+        profile = decompose_claim("WHO said in 2020 that COVID-19 affected more than 100 countries")
+        assert profile["expertise_profile"] == "health"
+        assert "2020" in profile["numbers"] or 2020 in profile["years"]
+        assert any("WHO" in ent for ent in profile["entities"])
+        assert len(profile["atomic_claims"]) >= 1
+
+
+class TestStructuredVerdict:
+    def test_supported_with_primary_source(self):
+        claim = "WHO declared COVID-19 a pandemic in March 2020"
+        profile = decompose_claim(claim)
+        evidence = [
+            enrich_evidence(
+                claim,
+                profile,
+                {
+                    "url": "https://www.who.int/news/item/11-03-2020-who-characterizes-covid-19-as-a-pandemic",
+                    "title": "WHO Director-General's opening remarks at the media briefing on COVID-19 - 11 March 2020",
+                    "snippet": "The WHO characterized COVID-19 as a pandemic on 11 March 2020 according to the official briefing.",
+                    "domain": "who.int",
+                    "domain_score": 85,
+                    "overlap": 8,
+                    "base_domain": "who.int",
+                },
+            )
+        ]
+        result = determine_verdict(claim, profile, evidence)
+        assert result["structured_verdict"] in ("Supported", "Likely supported")
+        assert result["legacy_verdict"] == "SUPPORTED"
+
+    def test_mixed_when_support_and_refute_compete(self):
+        claim = "Remote work always increases productivity"
+        profile = decompose_claim(claim)
+        evidence = [
+            enrich_evidence(
+                claim,
+                profile,
+                {
+                    "url": "https://example.com/support",
+                    "title": "Study finds remote work can boost productivity",
+                    "snippet": "A study found remote work can increase productivity in some teams according to researchers.",
+                    "domain": "example.com",
+                    "domain_score": 70,
+                    "overlap": 6,
+                    "base_domain": "example.com",
+                },
+            ),
+            enrich_evidence(
+                claim,
+                profile,
+                {
+                    "url": "https://example.org/refute",
+                    "title": "Report says remote work does not always improve output",
+                    "snippet": "Another report says the claim is misleading and not true for many roles.",
+                    "domain": "example.org",
+                    "domain_score": 74,
+                    "overlap": 5,
+                    "base_domain": "example.org",
+                },
+            ),
+        ]
+        result = determine_verdict(claim, profile, evidence)
+        assert result["structured_verdict"] == "Mixed / disputed"
+        assert result["needs_human_review"] is True

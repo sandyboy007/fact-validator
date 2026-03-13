@@ -10,6 +10,19 @@ type EvidenceItem = {
   domain_score?: number;
   score?: number; // legacy alias
   title?: string;
+  quality_score?: number;
+  stance?: "support" | "refute" | "neutral" | string;
+  source_type?: string;
+  primary_source?: boolean;
+  primary_source_reason?: string;
+  published_year?: number;
+  recency_score?: number;
+  directness_score?: number;
+  quote_grounded?: boolean;
+  expertise_match?: number;
+  numeric_match?: boolean;
+  entity_match?: boolean;
+  manipulation_flags?: string[];
 };
 
 type ClaimItem = {
@@ -18,6 +31,31 @@ type ClaimItem = {
   confidence: number;
   debate_summary?: string;
   evidence: EvidenceItem[];
+  structured_verdict?: string;
+  uncertainty_reasons?: string[];
+  needs_human_review?: boolean;
+  human_review_reason?: string;
+  claim_profile?: {
+    atomic_claims?: string[];
+    entities?: string[];
+    numbers?: string[];
+    years?: number[];
+    expertise_profile?: string;
+    loaded_language_terms?: string[];
+  };
+  evidence_summary?: {
+    evidence_count?: number;
+    high_credibility_sources?: number;
+    primary_source_count?: number;
+    primary_source_present?: boolean;
+    supporting_items?: number;
+    refuting_items?: number;
+    conflict_level?: string;
+    distinct_domains?: number;
+    oldest_citation_year?: number;
+    newest_citation_year?: number;
+    average_quality_score?: number;
+  };
 };
 
 type AnalyzeResponse = {
@@ -64,8 +102,16 @@ function evScore(ev: EvidenceItem): number {
   return 0;
 }
 
+function evQuality(ev: EvidenceItem): number {
+  if (typeof ev.quality_score === "number") return ev.quality_score;
+  return evScore(ev);
+}
+
 function sortEvidence(evs: EvidenceItem[]) {
   return [...(evs || [])].sort((a, b) => {
+    const qa = evQuality(a);
+    const qb = evQuality(b);
+    if (qb !== qa) return qb - qa;
     const sa = evScore(a);
     const sb = evScore(b);
     if (sb !== sa) return sb - sa;
@@ -244,6 +290,14 @@ export default function Page() {
                   rel="noreferrer"
                 >
                   API Docs
+                </a>
+                <a
+                  className="text-sm px-3 py-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10"
+                  href={`${API_BASE}/evaluation/benchmark`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Benchmark Set
                 </a>
                 <button
                   className="text-sm px-3 py-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10"
@@ -484,7 +538,22 @@ export default function Page() {
                               >
                                 {(c.verdict || "NEI").toUpperCase()} • {fmtPct(c.confidence)}
                               </span>
+                              {c.structured_verdict && (
+                                <span className="px-3 py-1 rounded-full text-xs font-semibold border border-cyan-300/30 bg-cyan-400/10 text-cyan-100">
+                                  {c.structured_verdict}
+                                </span>
+                              )}
                               <span className="text-xs text-white/60">Evidence: {(c.evidence || []).length}</span>
+                              {c.evidence_summary?.primary_source_present && (
+                                <span className="text-xs px-2 py-1 rounded-full border border-emerald-300/30 bg-emerald-400/10 text-emerald-100">
+                                  Primary source present
+                                </span>
+                              )}
+                              {c.needs_human_review && (
+                                <span className="text-xs px-2 py-1 rounded-full border border-amber-300/30 bg-amber-400/10 text-amber-100">
+                                  Manual review suggested
+                                </span>
+                              )}
                             </div>
                           </div>
                           <div className="text-xs text-white/60">{open ? "▲" : "▼"}</div>
@@ -496,6 +565,48 @@ export default function Page() {
                           {c.debate_summary && (
                             <div className="text-sm text-white/80">
                               <span className="text-white/60">Explanation:</span> {c.debate_summary}
+                            </div>
+                          )}
+
+                          {(c.claim_profile || c.evidence_summary) && (
+                            <div className="mt-4 grid md:grid-cols-2 gap-3">
+                              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                                <div className="text-xs text-white/60">Claim profile</div>
+                                <div className="mt-2 text-sm text-white/85 space-y-1">
+                                  <div>Expertise: <span className="text-cyan-100">{c.claim_profile?.expertise_profile ?? "general"}</span></div>
+                                  <div>Entities: {(c.claim_profile?.entities || []).join(", ") || "—"}</div>
+                                  <div>Numbers: {(c.claim_profile?.numbers || []).join(", ") || "—"}</div>
+                                  <div>Atomic claims: {(c.claim_profile?.atomic_claims || []).length || 0}</div>
+                                </div>
+                              </div>
+
+                              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                                <div className="text-xs text-white/60">Trust signals</div>
+                                <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-white/85">
+                                  <div>High-cred: {c.evidence_summary?.high_credibility_sources ?? 0}</div>
+                                  <div>Primary: {c.evidence_summary?.primary_source_count ?? 0}</div>
+                                  <div>Support: {c.evidence_summary?.supporting_items ?? 0}</div>
+                                  <div>Refute: {c.evidence_summary?.refuting_items ?? 0}</div>
+                                  <div>Conflict: {c.evidence_summary?.conflict_level ?? "low"}</div>
+                                  <div>Avg quality: {c.evidence_summary?.average_quality_score ?? "—"}</div>
+                                  <div>Oldest cite: {c.evidence_summary?.oldest_citation_year ?? "—"}</div>
+                                  <div>Newest cite: {c.evidence_summary?.newest_citation_year ?? "—"}</div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {!!(c.uncertainty_reasons && c.uncertainty_reasons.length) && (
+                            <div className="mt-4 rounded-xl border border-amber-300/20 bg-amber-400/10 p-3">
+                              <div className="text-xs text-amber-100/80">Uncertainty</div>
+                              <ul className="mt-2 list-disc pl-5 text-sm text-amber-50/90 space-y-1">
+                                {c.uncertainty_reasons?.map((reason, k) => (
+                                  <li key={k}>{reason}</li>
+                                ))}
+                              </ul>
+                              {c.human_review_reason && (
+                                <div className="mt-2 text-xs text-amber-100/80">Review note: {c.human_review_reason}</div>
+                              )}
                             </div>
                           )}
 
@@ -531,6 +642,21 @@ export default function Page() {
                                               {sVal}
                                             </span>
                                           )}
+                                          {typeof ev.quality_score === "number" && (
+                                            <span className="px-2 py-1 rounded-full text-xs font-semibold border border-cyan-300/30 bg-cyan-400/10 text-cyan-100">
+                                              Q {Math.round(ev.quality_score)}
+                                            </span>
+                                          )}
+                                          {ev.primary_source && (
+                                            <span className="px-2 py-1 rounded-full text-xs font-semibold border border-emerald-300/30 bg-emerald-400/10 text-emerald-100">
+                                              Primary
+                                            </span>
+                                          )}
+                                          {ev.stance && (
+                                            <span className="px-2 py-1 rounded-full text-xs font-semibold border border-white/15 bg-white/5 text-white/80 uppercase">
+                                              {ev.stance}
+                                            </span>
+                                          )}
                                         </div>
                                       </div>
 
@@ -545,6 +671,27 @@ export default function Page() {
                                     </div>
 
                                     {ev.snippet && <div className="mt-2 text-sm text-white/80 leading-snug">{ev.snippet}</div>}
+
+                                    <div className="mt-3 grid sm:grid-cols-2 gap-2 text-xs text-white/60">
+                                      <div>Type: {ev.source_type ?? "news"}</div>
+                                      <div>Year: {ev.published_year ?? "—"}</div>
+                                      <div>Directness: {typeof ev.directness_score === "number" ? Math.round(ev.directness_score * 100) + "%" : "—"}</div>
+                                      <div>Recency: {typeof ev.recency_score === "number" ? Math.round(ev.recency_score * 100) + "%" : "—"}</div>
+                                      <div>Quote-grounded: {ev.quote_grounded ? "yes" : "no"}</div>
+                                      <div>Expertise match: {typeof ev.expertise_match === "number" ? Math.round(ev.expertise_match * 100) + "%" : "—"}</div>
+                                      <div>Numeric match: {typeof ev.numeric_match === "boolean" ? (ev.numeric_match ? "yes" : "no") : "—"}</div>
+                                      <div>Entity match: {typeof ev.entity_match === "boolean" ? (ev.entity_match ? "yes" : "no") : "—"}</div>
+                                    </div>
+
+                                    {!!(ev.manipulation_flags && ev.manipulation_flags.length) && (
+                                      <div className="mt-2 flex flex-wrap gap-2">
+                                        {ev.manipulation_flags?.map((flag, fIdx) => (
+                                          <span key={fIdx} className="px-2 py-1 rounded-full text-[11px] border border-amber-300/25 bg-amber-400/10 text-amber-100">
+                                            {flag}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
                                   </li>
                                 );
                               })}

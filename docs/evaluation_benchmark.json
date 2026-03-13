@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "updated_utc": "2026-03-13T00:00:00Z",
+  "description": "Seed evaluation set for benchmarking verdict accuracy, citation quality, uncertainty handling, and human-review escalation.",
+  "claims": [
+    {"id": "climate-001", "claim": "Global average temperature has risen by about 1.1°C since the late 19th century.", "label": "Supported", "category": "climate", "difficulty": "medium"},
+    {"id": "health-001", "claim": "Vaccines cause autism in children.", "label": "False", "category": "health", "difficulty": "easy"},
+    {"id": "health-002", "claim": "WHO declared COVID-19 a pandemic in March 2020.", "label": "Supported", "category": "health", "difficulty": "easy"},
+    {"id": "finance-001", "claim": "The U.S. inflation rate was above 9% in mid-2022.", "label": "Supported", "category": "finance", "difficulty": "medium"},
+    {"id": "finance-002", "claim": "Bitcoin is backed by the U.S. government.", "label": "False", "category": "finance", "difficulty": "easy"},
+    {"id": "politics-001", "claim": "The U.S. president serves a six-year term.", "label": "False", "category": "politics", "difficulty": "easy"},
+    {"id": "politics-002", "claim": "The UK held a general election in 2019.", "label": "Supported", "category": "politics", "difficulty": "easy"},
+    {"id": "science-001", "claim": "Water boils at 100 degrees Celsius at standard atmospheric pressure.", "label": "Supported", "category": "science", "difficulty": "easy"},
+    {"id": "science-002", "claim": "Humans use only 10% of their brains.", "label": "False", "category": "science", "difficulty": "medium"},
+    {"id": "history-001", "claim": "Napoleon died on Saint Helena.", "label": "Supported", "category": "history", "difficulty": "easy"},
+    {"id": "history-002", "claim": "The Roman Empire fell in 476 CE in the West.", "label": "Supported", "category": "history", "difficulty": "medium"},
+    {"id": "conflict-001", "claim": "A ceasefire was reached in every major conflict in 2024.", "label": "Insufficient evidence", "category": "conflict", "difficulty": "hard"},
+    {"id": "media-001", "claim": "The Onion is a satire publication.", "label": "Supported", "category": "general", "difficulty": "easy"},
+    {"id": "media-002", "claim": "Every viral image online is authentic if it appears on multiple accounts.", "label": "False", "category": "general", "difficulty": "medium"},
+    {"id": "numbers-001", "claim": "The Earth is 6,000 years old.", "label": "False", "category": "science", "difficulty": "medium"},
+    {"id": "numbers-002", "claim": "India became the world’s most populous country in 2023.", "label": "Supported", "category": "demographics", "difficulty": "medium"},
+    {"id": "mixed-001", "claim": "Remote work always increases productivity.", "label": "Mixed / disputed", "category": "work", "difficulty": "hard"},
+    {"id": "mixed-002", "claim": "Coffee is bad for everyone’s health.", "label": "Mixed / disputed", "category": "health", "difficulty": "hard"},
+    {"id": "unverifiable-001", "claim": "A secret committee controls all global elections.", "label": "Likely false", "category": "politics", "difficulty": "hard"},
+    {"id": "unverifiable-002", "claim": "An undisclosed alien signal was intercepted in 2025.", "label": "Insufficient evidence", "category": "science", "difficulty": "hard"}
+  ]
+}

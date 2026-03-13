@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional, List, Literal, Dict, Any, Tuple
 from datetime import datetime
+import json
 from urllib.parse import urlparse
 import os
 import re
@@ -16,8 +17,21 @@ import tldextract
 import nltk
 from nltk.tokenize import sent_tokenize
 
+from app.analysis_features import (
+    decompose_claim,
+    determine_verdict,
+    enrich_evidence,
+    normalize_claim_key,
+)
 from app.credibility import score_domain_rubric
-from app.storage import save_run, list_runs, get_run, export_runs
+from app.storage import (
+    save_run,
+    list_runs,
+    get_run,
+    export_runs,
+    get_claim_memory,
+    save_claim_memory,
+)
 
  
 
@@ -93,6 +107,19 @@ class EvidenceItem(BaseModel):
     domain: str
     domain_score: int
     overlap: int = 0
+    quality_score: Optional[float] = None
+    stance: Optional[Literal["support", "refute", "neutral"]] = None
+    source_type: Optional[str] = None
+    primary_source: Optional[bool] = None
+    primary_source_reason: Optional[str] = None
+    published_year: Optional[int] = None
+    recency_score: Optional[float] = None
+    directness_score: Optional[float] = None
+    quote_grounded: Optional[bool] = None
+    expertise_match: Optional[float] = None
+    numeric_match: Optional[bool] = None
+    entity_match: Optional[bool] = None
+    manipulation_flags: Optional[List[str]] = None
 
 
 class ClaimResult(BaseModel):
@@ -101,6 +128,11 @@ class ClaimResult(BaseModel):
     confidence: float
     evidence: List[EvidenceItem]
     debate_summary: Optional[str] = None
+    structured_verdict: Optional[str] = None
+    uncertainty_reasons: Optional[List[str]] = None
+    needs_human_review: Optional[bool] = None
+    human_review_reason: Optional[str] = None
+    claim_profile: Optional[Dict[str, Any]] = None
 
     # optional Step 11 outputs
     adjusted_verdict: Optional[Literal["SUPPORTED", "REFUTED", "NEI"]] = None
@@ -464,6 +496,24 @@ def health():
     return {"status": "ok"}
 
 
+@app.get("/evaluation/benchmark")
+def evaluation_benchmark():
+    benchmark_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "..",
+        "..",
+        "docs",
+        "evaluation_benchmark.json",
+    )
+    try:
+        with open(benchmark_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        data = {"claims": []}
+    return data
+
+
 # Step 9: Source credibility endpoint
 @app.get("/source/{domain}")
 def source_report(domain: str):
@@ -525,13 +575,39 @@ async def analyze(req: AnalyzeRequest):
     claim_texts = extract_claim_candidates(extracted_text, max_claims=req.max_claims)
 
     claims: List[Dict[str, Any]] = []
-    debate_meta: Dict[str, Any] = {"enabled": req.verifier == "debate", "claims_debated": 0, "items": []}
+    debate_meta: Dict[str, Any] = {
+        "enabled": req.verifier == "debate",
+        "claims_debated": 0,
+        "items": [],
+        "memory_hits": 0,
+    }
 
     for ct in claim_texts:
+        claim_profile = decompose_claim(ct)
+        claim_key = normalize_claim_key(ct)
+        memory_entry = get_claim_memory(claim_key)
+        memory_hit = bool(memory_entry)
+
+        if req.mode == "snapshot" and memory_entry and memory_entry.get("payload"):
+            cached = dict(memory_entry["payload"])
+            cached.setdefault("claim_profile", claim_profile)
+            cached.setdefault("debate_summary", "Loaded from fact-check memory cache.")
+            cached.setdefault("memory", {})
+            cached["memory"].update(
+                {
+                    "hit": True,
+                    "mode": "snapshot",
+                    "updated_utc": memory_entry.get("updated_utc"),
+                }
+            )
+            claims.append(cached)
+            debate_meta["memory_hits"] += 1
+            continue
+
         raw_results = await serpapi_search(ct[:220], num=req.max_evidence_per_claim)
 
         ev_items: List[Dict[str, Any]] = []
-        seen_base_domains = {}
+        seen_base_domains: Dict[str, int] = {}
         for rr in raw_results:
             link = rr.get("link") or ""
             dom = domain_from_any_url(link)
@@ -542,7 +618,6 @@ async def analyze(req: AnalyzeRequest):
             if is_blocked_domain(dom):
                 continue
 
-            # limit per base domain
             seen_base_domains.setdefault(bd, 0)
             if seen_base_domains[bd] >= max(1, int(req.max_sources_per_base_domain)):
                 continue
@@ -567,21 +642,35 @@ async def analyze(req: AnalyzeRequest):
                 }
             )
 
-        # credibility-first sorting
-        ev_items.sort(key=lambda e: (e["domain_score"], e["overlap"]), reverse=True)
+        enriched_items = [enrich_evidence(ct, claim_profile, e) for e in ev_items]
+        enriched_items.sort(
+            key=lambda e: (float(e.get("quality_score") or 0.0), int(e.get("domain_score") or 0), int(e.get("overlap") or 0)),
+            reverse=True,
+        )
 
-        # baseline verdict uses all evidence
-        ev_for_baseline = [EvidenceItem(**{k: v for k, v in e.items() if k in EvidenceItem.model_fields}) for e in ev_items]
-        verdict, conf, summary = baseline_verdict(ct, ev_for_baseline)
+        ev_for_baseline = [
+            EvidenceItem(**{k: v for k, v in e.items() if k in EvidenceItem.model_fields})
+            for e in enriched_items
+        ]
+        baseline_verdict_value, baseline_conf, baseline_summary = baseline_verdict(ct, ev_for_baseline)
+        structured = determine_verdict(ct, claim_profile, enriched_items)
 
-        # Step 11: adjusted verdict (optional)
+        verdict = structured["legacy_verdict"]
+        conf = structured["confidence"]
+        summary = structured["explanation"]
+        if baseline_verdict_value != verdict:
+            summary = summary + f" | baseline={baseline_verdict_value} ({baseline_conf:.2f})"
+        if memory_hit:
+            summary = summary + " | prior run found in claim memory; result refreshed with current evidence."
+            debate_meta["memory_hits"] += 1
+
         adjusted_verdict = None
         adjusted_conf = None
-        evidence_summary = None
+        evidence_summary = dict(structured["evidence_summary"])
 
         if req.enable_weighted_confidence:
             filtered = [
-                e for e in ev_items
+                e for e in enriched_items
                 if int(e["domain_score"]) >= int(req.min_source_score) and int(e["overlap"]) >= int(req.min_overlap)
             ]
             strong_domains = sorted({e["base_domain"] for e in filtered})
@@ -593,11 +682,12 @@ async def analyze(req: AnalyzeRequest):
             if req.require_independent_domains and distinct_domains < 2:
                 reason = "insufficient_independent_domains"
 
-            # re-run baseline decision on filtered list
-            ev_for_adjusted = [EvidenceItem(**{k: v for k, v in e.items() if k in EvidenceItem.model_fields}) for e in filtered]
+            ev_for_adjusted = [
+                EvidenceItem(**{k: v for k, v in e.items() if k in EvidenceItem.model_fields})
+                for e in filtered
+            ]
             av, ac, atext = baseline_verdict(ct, ev_for_adjusted)
 
-            # enforce independence if requested
             if req.require_independent_domains and distinct_domains < 2:
                 av = "NEI"
                 ac = max(0.50, float(ac))
@@ -605,32 +695,43 @@ async def analyze(req: AnalyzeRequest):
 
             adjusted_verdict = av
             adjusted_conf = round(float(ac), 2)
-            evidence_summary = {
-                "min_source_score": int(req.min_source_score),
-                "min_overlap": int(req.min_overlap),
-                "require_independent_domains": bool(req.require_independent_domains),
-                "distinct_base_domains": distinct_domains,
-                "strong_base_domains": strong_domains,
-                "reason": reason,
-                "note": atext,
-            }
+            evidence_summary.update(
+                {
+                    "min_source_score": int(req.min_source_score),
+                    "min_overlap": int(req.min_overlap),
+                    "require_independent_domains": bool(req.require_independent_domains),
+                    "distinct_base_domains": distinct_domains,
+                    "strong_base_domains": strong_domains,
+                    "filter_reason": reason,
+                    "filter_note": atext,
+                }
+            )
 
         if req.verifier == "debate":
-            summary = summary + " | Debate skipped/fallback; baseline verifier active."
+            summary = summary + " | Debate mode currently uses enriched counter-evidence scoring before optional LLM debate."
 
-        claims.append(
-            {
-                "claim_text": ct,
-                "verdict": verdict,
-                "confidence": round(float(conf), 2),
-                "evidence": [{k: v for k, v in e.items() if k != "base_domain"} for e in ev_items],
-                "debate_summary": summary,
-
-                "adjusted_verdict": adjusted_verdict,
-                "adjusted_confidence": adjusted_conf,
-                "evidence_summary": evidence_summary,
-            }
-        )
+        claim_output = {
+            "claim_text": ct,
+            "verdict": verdict,
+            "confidence": round(float(conf), 2),
+            "structured_verdict": structured["structured_verdict"],
+            "uncertainty_reasons": structured["uncertainty_reasons"],
+            "needs_human_review": structured["needs_human_review"],
+            "human_review_reason": structured["human_review_reason"],
+            "claim_profile": claim_profile,
+            "evidence": [{k: v for k, v in e.items() if k != "base_domain"} for e in enriched_items],
+            "debate_summary": summary,
+            "adjusted_verdict": adjusted_verdict,
+            "adjusted_confidence": adjusted_conf,
+            "evidence_summary": evidence_summary,
+            "memory": {
+                "hit": memory_hit,
+                "mode": "live" if req.mode == "live" else "snapshot-refresh",
+                "updated_utc": memory_entry.get("updated_utc") if memory_entry else None,
+            },
+        }
+        claims.append(claim_output)
+        save_claim_memory(claim_key, claim_output)
 
     # input domain score
     if domain:
@@ -667,6 +768,22 @@ async def analyze(req: AnalyzeRequest):
             "domain_score_reasons": input_domain_reasons,
             "verifier": req.verifier,
             "debate": debate_meta,
+            "claim_memory_enabled": True,
+            "trust_features": [
+                "claim_decomposition",
+                "evidence_quality_ranking",
+                "primary_source_detection",
+                "recency_scoring",
+                "structured_verdicts",
+                "counter_evidence_requirement",
+                "quote_grounding",
+                "uncertainty_explanations",
+                "entity_and_number_checks",
+                "anti_manipulation_flags",
+                "expertise_profiles",
+                "human_review_mode",
+            ],
+            "benchmark_endpoint": "/evaluation/benchmark",
             "note": "Runs are saved to SQLite; list at GET /runs and export at GET /runs-export.",
         },
     }

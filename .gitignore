@@ -43,6 +43,7 @@ out/
 services/api/.env
 
 # ── Local database ────────────────────────────────────────────────────────────
+data/*.db
 services/api/data/*.db
 services/api/data/*.json
 # But track the curated credibility datasets (not runtime caches)

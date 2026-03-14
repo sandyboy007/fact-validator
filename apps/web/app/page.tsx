@@ -8,7 +8,7 @@ type EvidenceItem = {
   snippet?: string;
   domain?: string;
   domain_score?: number;
-  score?: number; // legacy alias
+  score?: number;
   title?: string;
   quality_score?: number;
   stance?: "support" | "refute" | "neutral" | string;
@@ -82,17 +82,17 @@ type RunRow = {
 };
 
 function fmtPct(x?: number) {
-  if (typeof x !== "number") return "—";
+  if (typeof x !== "number") return "-";
   const v = Math.max(0, Math.min(1, x));
   return `${Math.round(v * 100)}%`;
 }
 
 function safeHostFromUrl(u?: string) {
   try {
-    if (!u) return "—";
+    if (!u) return "-";
     return new URL(u).hostname;
   } catch {
-    return "—";
+    return "-";
   }
 }
 
@@ -115,10 +115,19 @@ function sortEvidence(evs: EvidenceItem[]) {
     const sa = evScore(a);
     const sb = evScore(b);
     if (sb !== sa) return sb - sa;
-    const da = (a.domain ?? safeHostFromUrl(a.url)).length;
-    const db = (b.domain ?? safeHostFromUrl(b.url)).length;
-    return da - db;
+    return (a.domain ?? "").localeCompare(b.domain ?? "");
   });
+}
+
+function sentimentColor(v?: string) {
+  const verdict = (v || "").toUpperCase();
+  if (verdict === "SUPPORTED") return "text-emerald-300 border-emerald-300/35 bg-emerald-400/10";
+  if (verdict === "REFUTED") return "text-rose-300 border-rose-300/35 bg-rose-400/10";
+  return "text-amber-200 border-amber-300/30 bg-amber-300/10";
+}
+
+function staggerStyle(index: number, stepMs = 70) {
+  return { animationDelay: `${index * stepMs}ms` };
 }
 
 export default function Page() {
@@ -189,7 +198,6 @@ export default function Page() {
       }
       setResult(json);
       setOpenClaimIdx(0);
-
       fetchRuns();
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to fetch");
@@ -219,14 +227,6 @@ export default function Page() {
     }
   }
 
-  function exportCSV() {
-    window.open(`${API_BASE}/runs-export?limit=500`, "_blank", "noreferrer");
-  }
-
-  function exportPDF() {
-    window.print();
-  }
-
   useEffect(() => {
     fetchRuns();
   }, []);
@@ -238,573 +238,286 @@ export default function Page() {
     "https://www.who.int",
   ];
 
+  const showResultSkeleton = loading && !result;
+
   return (
-    <main className="min-h-screen bg-[#070A15] text-white">
-      {/* Background glow */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-24 -left-24 h-[360px] w-[360px] rounded-full blur-3xl opacity-40 bg-fuchsia-500" />
-        <div className="absolute top-24 right-0 h-[420px] w-[420px] rounded-full blur-3xl opacity-35 bg-cyan-400" />
-        <div className="absolute bottom-0 left-1/3 h-[420px] w-[420px] rounded-full blur-3xl opacity-25 bg-emerald-400" />
-      </div>
+    <main className="min-h-screen text-slate-100 relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 grid-overlay opacity-30" />
+      <div className="pointer-events-none absolute -top-24 left-[-5rem] h-80 w-80 rounded-full bg-cyan-400/20 blur-3xl" />
+      <div className="pointer-events-none absolute top-10 right-0 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-emerald-400/10 blur-3xl" />
 
-      {/* Hero */}
-      <div className="relative border-b border-white/10">
-        <div className="mx-auto max-w-6xl px-4 py-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs text-white/80">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_18px_#34d399]" />
-            Live credibility-aware fact checking
-          </div>
-
-          <div className="mt-5 grid lg:grid-cols-2 gap-8 items-start">
+      <div className="relative mx-auto max-w-7xl px-4 py-8 md:py-10 section-fade-in">
+        <header className="glass-panel rounded-3xl p-5 md:p-7 border mb-6">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="text-3xl md:text-4xl font-semibold leading-tight">
-                Fact Validator
-                <span className="block text-white/70 text-lg md:text-xl mt-3">
-                  Rate sources • extract claims • retrieve evidence • produce verdicts
-                </span>
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3 py-1 text-[11px] uppercase tracking-wider text-cyan-200">
+                <span className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_12px_#42d9ff]" />
+                AI Verification Console
+              </div>
+              <h1 className="mt-4 text-3xl md:text-4xl font-semibold leading-tight text-white">
+                Fact Validator AI
               </h1>
+              <p className="mt-2 max-w-2xl text-sm md:text-base text-slate-300">
+                Professional-grade claim intelligence with credibility scoring, counter-evidence analysis, uncertainty disclosure, and explainable verdicts.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-sm w-full sm:w-auto">
+              <a href="/source" className="glass-panel rounded-xl px-4 py-3 text-slate-100 hover:border-cyan-300/40 transition border">Source Checker</a>
+              <a href={`${API_BASE}/docs`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-4 py-3 text-slate-100 hover:border-cyan-300/40 transition border">API Docs</a>
+              <a href={`${API_BASE}/evaluation/benchmark`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-4 py-3 text-slate-100 hover:border-cyan-300/40 transition border col-span-2">Benchmark Dataset</a>
+            </div>
+          </div>
+        </header>
 
-              <div className="mt-6 grid sm:grid-cols-3 gap-3">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="text-sm font-semibold">Source Credibility</div>
-                  <div className="text-xs text-white/70 mt-1">Domain score + reasons</div>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="text-sm font-semibold">Evidence Retrieval</div>
-                  <div className="text-xs text-white/70 mt-1">SERP-based lookup</div>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="text-sm font-semibold">Verification</div>
-                  <div className="text-xs text-white/70 mt-1">Baseline / Debate mode</div>
+        <section className="grid xl:grid-cols-[1.05fr_1.4fr] gap-6">
+          <div className="glass-panel rounded-3xl border p-5 md:p-6 section-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-sm uppercase tracking-wider text-slate-300">Input</div>
+              <button className="text-xs px-3 py-1.5 rounded-lg border border-slate-300/20 hover:border-cyan-300/40" onClick={() => setShowAdvanced((v) => !v)}>
+                {showAdvanced ? "Hide advanced" : "Advanced"}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <button className={cx("rounded-xl py-2.5 text-sm border transition", tab === "url" ? "bg-cyan-400/15 border-cyan-300/40 text-cyan-100" : "border-slate-300/20 hover:border-slate-300/40")} onClick={() => setTab("url")}>URL analysis</button>
+              <button className={cx("rounded-xl py-2.5 text-sm border transition", tab === "text" ? "bg-cyan-400/15 border-cyan-300/40 text-cyan-100" : "border-slate-300/20 hover:border-slate-300/40")} onClick={() => setTab("text")}>Text analysis</button>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3">
+              <label className="text-xs text-slate-300">Mode
+                <select className="mt-1 w-full rounded-xl border border-slate-300/20 bg-slate-900/60 px-3 py-2 text-sm" value={mode} onChange={(e) => setMode(e.target.value as "live" | "snapshot")}>
+                  <option value="live">Live</option>
+                  <option value="snapshot">Snapshot</option>
+                </select>
+              </label>
+              <label className="text-xs text-slate-300">Verifier
+                <select className="mt-1 w-full rounded-xl border border-slate-300/20 bg-slate-900/60 px-3 py-2 text-sm" value={verifier} onChange={(e) => setVerifier(e.target.value as "baseline" | "debate")}>
+                  <option value="baseline">Baseline</option>
+                  <option value="debate">Debate</option>
+                </select>
+              </label>
+            </div>
+
+            {showAdvanced && (
+              <div className="grid sm:grid-cols-2 gap-3 mt-3">
+                <label className="text-xs text-slate-300">Max claims
+                  <input type="number" min={1} max={12} className="mt-1 w-full rounded-xl border border-slate-300/20 bg-slate-900/60 px-3 py-2 text-sm" value={maxClaims} onChange={(e) => setMaxClaims(parseInt(e.target.value || "6", 10))} />
+                </label>
+                <label className="text-xs text-slate-300">Evidence per claim
+                  <input type="number" min={1} max={10} className="mt-1 w-full rounded-xl border border-slate-300/20 bg-slate-900/60 px-3 py-2 text-sm" value={maxEvidence} onChange={(e) => setMaxEvidence(parseInt(e.target.value || "5", 10))} />
+                </label>
+              </div>
+            )}
+
+            {tab === "url" ? (
+              <div className="mt-3">
+                <label className="text-xs text-slate-300">Target URL</label>
+                <input className="mt-1 w-full rounded-xl border border-slate-300/20 bg-slate-900/60 px-3 py-3 text-sm" placeholder="https://example.com/article" value={url} onChange={(e) => setUrl(e.target.value)} />
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {examples.map((x) => (
+                    <button key={x} className="rounded-full border border-slate-300/20 px-3 py-1 text-xs text-slate-200 hover:border-cyan-300/40" onClick={() => setUrl(x)}>
+                      Use sample
+                    </button>
+                  ))}
                 </div>
               </div>
+            ) : (
+              <div className="mt-3">
+                <label className="text-xs text-slate-300">Claim or paragraph</label>
+                <textarea className="mt-1 w-full min-h-[140px] rounded-xl border border-slate-300/20 bg-slate-900/60 px-3 py-3 text-sm" placeholder="Paste a claim to verify" value={text} onChange={(e) => setText(e.target.value)} />
+              </div>
+            )}
 
-              <div className="mt-6 flex gap-2 flex-wrap">
-                <a className="text-sm px-3 py-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10" href="/source">
-                  Source Credibility Checker →
-                </a>
-                <a
-                  className="text-sm px-3 py-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10"
-                  href={`${API_BASE}/docs`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  API Docs
-                </a>
-                <a
-                  className="text-sm px-3 py-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10"
-                  href={`${API_BASE}/evaluation/benchmark`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Benchmark Set
-                </a>
-                <button
-                  className="text-sm px-3 py-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10"
-                  onClick={exportPDF}
-                  disabled={!result}
-                  title="Print / Save as PDF"
-                >
-                  Export PDF
-                </button>
+            <button className={cx("mt-4 w-full rounded-xl px-4 py-3 text-sm font-semibold transition", !canAnalyze || loading ? "bg-slate-700/60 text-slate-400 cursor-not-allowed" : "bg-gradient-to-r from-cyan-300 to-blue-400 text-slate-950 hover:brightness-110")} onClick={analyze} disabled={!canAnalyze || loading}>
+              {loading ? "Running AI verification..." : "Run verification"}
+            </button>
+
+            {error && (
+              <div className="mt-4 rounded-xl border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-100">
+                {error}
+              </div>
+            )}
+          </div>
+
+          <div className="grid gap-6 section-fade-in">
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="glass-panel rounded-2xl border p-4 stagger-card hover-lift" style={staggerStyle(0)}>
+                <div className="text-xs uppercase tracking-wide text-slate-300">Input domain</div>
+                <div className="mt-2 font-mono text-lg text-white">{result?.domain ?? "-"}</div>
+                <div className="mt-2 text-xs text-slate-400">{result?.timestamp_utc ?? "Ready"}</div>
+              </div>
+              <div className="glass-panel rounded-2xl border p-4 stagger-card hover-lift" style={staggerStyle(1)}>
+                <div className="text-xs uppercase tracking-wide text-slate-300">Credibility score</div>
+                <div className="mt-2 text-2xl font-semibold text-white">{typeof result?.domain_score === "number" ? result.domain_score : "-"}</div>
+                <div className="text-xs text-slate-300">{result?.domain_label ?? "No label"}</div>
+              </div>
+              <div className="glass-panel rounded-2xl border p-4 stagger-card hover-lift" style={staggerStyle(2)}>
+                <div className="text-xs uppercase tracking-wide text-slate-300">Misinformation risk</div>
+                <div className="mt-2 text-2xl font-semibold text-white">{fmtPct(result?.final_misinformation_likelihood)}</div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-700/80">
+                  <div className="h-2 meter-fill bg-gradient-to-r from-emerald-300 via-amber-300 to-rose-400" style={{ width: typeof result?.final_misinformation_likelihood === "number" ? `${Math.round(result.final_misinformation_likelihood * 100)}%` : "0%" }} />
+                </div>
               </div>
             </div>
 
-            {/* Analyze panel */}
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-[0_0_40px_rgba(0,0,0,0.4)]">
-              <div className="flex items-center gap-2">
-                <button
-                  className={cx(
-                    "px-4 py-2 rounded-xl text-sm font-medium border transition",
-                    tab === "url" ? "bg-white text-black border-white" : "bg-white/0 border-white/15 hover:bg-white/10"
-                  )}
-                  onClick={() => setTab("url")}
-                >
-                  URL
-                </button>
-                <button
-                  className={cx(
-                    "px-4 py-2 rounded-xl text-sm font-medium border transition",
-                    tab === "text" ? "bg-white text-black border-white" : "bg-white/0 border-white/15 hover:bg-white/10"
-                  )}
-                  onClick={() => setTab("text")}
-                >
-                  Text
-                </button>
+            <div className="glass-panel rounded-2xl border p-4 md:p-5 stagger-card hover-lift" style={staggerStyle(3)}>
+              <div className="text-sm font-semibold text-white">Extracted context</div>
+              <div className="mt-1 text-xs text-slate-400">Characters: {result?.extracted_text_chars ?? 0}</div>
+              <p className="mt-3 text-sm leading-relaxed text-slate-200">{result?.extracted_text_preview ?? "Run a verification to see extraction preview."}</p>
+            </div>
 
-                <div className="flex-1" />
-
-                <button
-                  className="text-xs px-3 py-2 rounded-xl border border-white/15 hover:bg-white/10"
-                  onClick={() => setShowAdvanced((v) => !v)}
-                >
-                  {showAdvanced ? "Hide Advanced" : "Advanced"}
-                </button>
+            <div className="glass-panel rounded-2xl border p-4 md:p-5 stagger-card" style={staggerStyle(4)}>
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-semibold text-white">Claim intelligence</h2>
+                <span className="text-xs text-slate-300">{(result?.claims || []).length} claims</span>
               </div>
 
               <div className="mt-4 grid gap-3">
-                <div className="grid sm:grid-cols-2 gap-3">
-                  <label className="text-xs text-white/70">
-                    Mode
-                    <select
-                      className="mt-1 w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-sm outline-none"
-                      value={mode}
-                      onChange={(e) => setMode(e.target.value as "live" | "snapshot")}
-                    >
-                      <option value="live">live</option>
-                      <option value="snapshot">snapshot</option>
-                    </select>
-                  </label>
-
-                  <label className="text-xs text-white/70">
-                    Verifier
-                    <select
-                      className="mt-1 w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-sm outline-none"
-                      value={verifier}
-                      onChange={(e) => setVerifier(e.target.value as "baseline" | "debate")}
-                    >
-                      <option value="baseline">baseline</option>
-                      <option value="debate">debate</option>
-                    </select>
-                  </label>
-                </div>
-
-                {showAdvanced && (
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <label className="text-xs text-white/70">
-                      Max Claims
-                      <input
-                        type="number"
-                        min={1}
-                        max={12}
-                        className="mt-1 w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-sm outline-none"
-                        value={maxClaims}
-                        onChange={(e) => setMaxClaims(parseInt(e.target.value || "6", 10))}
-                      />
-                    </label>
-                    <label className="text-xs text-white/70">
-                      Max Evidence / Claim
-                      <input
-                        type="number"
-                        min={1}
-                        max={10}
-                        className="mt-1 w-full bg-black/30 border border-white/15 rounded-xl px-3 py-2 text-sm outline-none"
-                        value={maxEvidence}
-                        onChange={(e) => setMaxEvidence(parseInt(e.target.value || "5", 10))}
-                      />
-                    </label>
+                {showResultSkeleton && (
+                  <div className="grid gap-3">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={`claim-skeleton-${i}`} className="rounded-xl border border-slate-300/20 bg-slate-900/45 p-4">
+                        <div className="skeleton h-3 w-24 rounded" />
+                        <div className="skeleton mt-3 h-4 w-full rounded" />
+                        <div className="skeleton mt-2 h-4 w-11/12 rounded" />
+                        <div className="mt-3 flex gap-2">
+                          <div className="skeleton h-6 w-28 rounded-full" />
+                          <div className="skeleton h-6 w-36 rounded-full" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
 
-                {tab === "url" ? (
-                  <div>
-                    <div className="text-xs text-white/70">URL</div>
-                    <input
-                      className="mt-1 w-full bg-black/30 border border-white/15 rounded-xl px-3 py-3 text-sm outline-none"
-                      placeholder="https://example.com/article"
-                      value={url}
-                      onChange={(e) => setUrl(e.target.value)}
-                    />
-                    <div className="mt-2 flex gap-2 flex-wrap">
-                      {examples.map((x) => (
-                        <button
-                          key={x}
-                          className="text-xs px-3 py-1.5 rounded-full border border-white/15 hover:bg-white/10"
-                          onClick={() => setUrl(x)}
-                        >
-                          Use example
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="text-xs text-white/70">Text</div>
-                    <textarea
-                      className="mt-1 w-full bg-black/30 border border-white/15 rounded-xl px-3 py-3 text-sm min-h-[140px] outline-none"
-                      placeholder="Paste a claim or paragraph..."
-                      value={text}
-                      onChange={(e) => setText(e.target.value)}
-                    />
-                  </div>
-                )}
-
-                <button
-                  className={cx(
-                    "w-full rounded-xl px-4 py-3 text-sm font-semibold transition",
-                    !canAnalyze || loading
-                      ? "bg-white/15 text-white/50 cursor-not-allowed"
-                      : "bg-gradient-to-r from-fuchsia-500 to-cyan-400 text-black hover:opacity-95"
-                  )}
-                  onClick={analyze}
-                  disabled={!canAnalyze || loading}
-                >
-                  {loading ? "Analyzing…" : "Analyze"}
-                </button>
-
-                {error && (
-                  <div className="rounded-xl border border-rose-300/30 bg-rose-500/10 text-rose-200 p-3 text-sm">
-                    <b>Error:</b> {error}
-                    <div className="mt-2 text-xs text-rose-200/80">
-                      If “Failed to fetch”, check backend is running at <span className="font-mono">127.0.0.1:8000</span>.
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Results */}
-      <div className="relative mx-auto max-w-6xl px-4 py-8 grid gap-6">
-        {result && (
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="text-xs text-white/70">Input</div>
-              <div className="mt-2 text-sm">
-                Type: <span className="font-mono">{String(result.input_type).toUpperCase()}</span>
-              </div>
-              <div className="mt-1 text-sm">
-                Domain: <span className="font-mono">{result.domain ?? "—"}</span>
-              </div>
-              <div className="mt-2 text-xs text-white/50">{result.timestamp_utc ? `UTC: ${result.timestamp_utc}` : ""}</div>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="text-xs text-white/70">Source Credibility</div>
-              <div className="mt-3 inline-flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full text-xs font-semibold border border-white/10 bg-white/10">
-                  {typeof result.domain_score === "number" ? result.domain_score : "—"} {result.domain_label ?? ""}
-                </span>
-              </div>
-              <div className="mt-3 text-xs text-white/60">Heuristic score — a risk signal, not ground truth.</div>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="text-xs text-white/70">Misinformation Likelihood</div>
-              <div className="mt-2 text-3xl font-semibold">{fmtPct(result.final_misinformation_likelihood)}</div>
-              <div className="mt-3 h-2 rounded-full bg-white/10 overflow-hidden">
-                <div
-                  className="h-2 bg-gradient-to-r from-emerald-400 via-amber-300 to-rose-400"
-                  style={{
-                    width:
-                      typeof result.final_misinformation_likelihood === "number"
-                        ? `${Math.round(Math.max(0, Math.min(1, result.final_misinformation_likelihood)) * 100)}%`
-                        : "0%",
-                  }}
-                />
-              </div>
-              <div className="mt-3 text-xs text-white/60">Anchored to source credibility, adjusted by claim verdicts and evidence quality.</div>
-            </div>
-          </div>
-        )}
-
-        {result && (
-          <div className="grid lg:grid-cols-3 gap-4">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="text-sm font-semibold">Extracted Text Preview</div>
-              <div className="mt-2 text-xs text-white/60">chars: {result.extracted_text_chars ?? "—"}</div>
-              <div className="mt-3 text-sm text-white/80 leading-relaxed">{result.extracted_text_preview ?? "—"}</div>
-            </div>
-
-            <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="text-sm font-semibold">Claims</div>
-              <div className="mt-2 text-xs text-white/60">Click a claim to expand evidence.</div>
-
-              <div className="mt-4 grid gap-3">
-                {(result.claims ?? []).map((c, idx) => {
+                {(result?.claims || []).map((c, idx) => {
                   const open = openClaimIdx === idx;
                   return (
-                    <div key={idx} className="rounded-2xl border border-white/10 overflow-hidden bg-black/20">
-                      <button
-                        className="w-full text-left p-4 hover:bg-white/5 transition"
-                        onClick={() => setOpenClaimIdx(open ? null : idx)}
-                      >
+                    <article key={idx} className="rounded-xl border border-slate-300/20 bg-slate-900/45 stagger-card hover-lift" style={staggerStyle(idx, 64)}>
+                      <button className="w-full p-4 text-left" onClick={() => setOpenClaimIdx(open ? null : idx)}>
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <div className="text-xs text-white/60">Claim #{idx + 1}</div>
-                            <div className="mt-1 text-sm font-medium text-white">{c.claim_text}</div>
-                            <div className="mt-2 flex items-center gap-2 flex-wrap">
-                              <span
-                                className={cx(
-                                  "px-3 py-1 rounded-full text-xs font-semibold border",
-                                  c.verdict?.toUpperCase() === "SUPPORTED"
-                                    ? "bg-emerald-400/15 border-emerald-300/30 text-emerald-200"
-                                    : c.verdict?.toUpperCase() === "REFUTED"
-                                    ? "bg-rose-400/15 border-rose-300/30 text-rose-200"
-                                    : "bg-amber-400/15 border-amber-300/30 text-amber-200"
-                                )}
-                              >
-                                {(c.verdict || "NEI").toUpperCase()} • {fmtPct(c.confidence)}
-                              </span>
-                              {c.structured_verdict && (
-                                <span className="px-3 py-1 rounded-full text-xs font-semibold border border-cyan-300/30 bg-cyan-400/10 text-cyan-100">
-                                  {c.structured_verdict}
-                                </span>
-                              )}
-                              <span className="text-xs text-white/60">Evidence: {(c.evidence || []).length}</span>
-                              {c.evidence_summary?.primary_source_present && (
-                                <span className="text-xs px-2 py-1 rounded-full border border-emerald-300/30 bg-emerald-400/10 text-emerald-100">
-                                  Primary source present
-                                </span>
-                              )}
-                              {c.needs_human_review && (
-                                <span className="text-xs px-2 py-1 rounded-full border border-amber-300/30 bg-amber-400/10 text-amber-100">
-                                  Manual review suggested
-                                </span>
-                              )}
+                            <div className="text-xs uppercase tracking-wider text-slate-400">Claim #{idx + 1}</div>
+                            <div className="mt-1 text-sm text-white leading-relaxed">{c.claim_text}</div>
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                              <span className={cx("rounded-full border px-3 py-1 text-xs", sentimentColor(c.verdict))}>{(c.verdict || "NEI").toUpperCase()} {fmtPct(c.confidence)}</span>
+                              {c.structured_verdict && <span className="rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-100">{c.structured_verdict}</span>}
+                              {c.needs_human_review && <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs text-amber-100">Human review</span>}
                             </div>
                           </div>
-                          <div className="text-xs text-white/60">{open ? "▲" : "▼"}</div>
+                          <div className="text-slate-400 text-xs">{open ? "Hide" : "Details"}</div>
                         </div>
                       </button>
 
                       {open && (
-                        <div className="p-4 border-t border-white/10 bg-black/10">
-                          {c.debate_summary && (
-                            <div className="text-sm text-white/80">
-                              <span className="text-white/60">Explanation:</span> {c.debate_summary}
-                            </div>
-                          )}
+                        <div className="border-t border-slate-300/20 p-4">
+                          {c.debate_summary && <p className="text-sm text-slate-200">{c.debate_summary}</p>}
 
-                          {(c.claim_profile || c.evidence_summary) && (
-                            <div className="mt-4 grid md:grid-cols-2 gap-3">
-                              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                                <div className="text-xs text-white/60">Claim profile</div>
-                                <div className="mt-2 text-sm text-white/85 space-y-1">
-                                  <div>Expertise: <span className="text-cyan-100">{c.claim_profile?.expertise_profile ?? "general"}</span></div>
-                                  <div>Entities: {(c.claim_profile?.entities || []).join(", ") || "—"}</div>
-                                  <div>Numbers: {(c.claim_profile?.numbers || []).join(", ") || "—"}</div>
-                                  <div>Atomic claims: {(c.claim_profile?.atomic_claims || []).length || 0}</div>
-                                </div>
-                              </div>
-
-                              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                                <div className="text-xs text-white/60">Trust signals</div>
-                                <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-white/85">
-                                  <div>High-cred: {c.evidence_summary?.high_credibility_sources ?? 0}</div>
-                                  <div>Primary: {c.evidence_summary?.primary_source_count ?? 0}</div>
-                                  <div>Support: {c.evidence_summary?.supporting_items ?? 0}</div>
-                                  <div>Refute: {c.evidence_summary?.refuting_items ?? 0}</div>
-                                  <div>Conflict: {c.evidence_summary?.conflict_level ?? "low"}</div>
-                                  <div>Avg quality: {c.evidence_summary?.average_quality_score ?? "—"}</div>
-                                  <div>Oldest cite: {c.evidence_summary?.oldest_citation_year ?? "—"}</div>
-                                  <div>Newest cite: {c.evidence_summary?.newest_citation_year ?? "—"}</div>
-                                </div>
-                              </div>
+                          <div className="mt-3 grid md:grid-cols-2 gap-3 text-xs text-slate-300">
+                            <div className="rounded-lg border border-slate-300/20 bg-slate-800/40 p-3">
+                              <div className="font-semibold text-slate-100">Claim profile</div>
+                              <div className="mt-2">Expertise: {c.claim_profile?.expertise_profile ?? "general"}</div>
+                              <div>Entities: {(c.claim_profile?.entities || []).join(", ") || "-"}</div>
+                              <div>Numbers: {(c.claim_profile?.numbers || []).join(", ") || "-"}</div>
                             </div>
-                          )}
+                            <div className="rounded-lg border border-slate-300/20 bg-slate-800/40 p-3">
+                              <div className="font-semibold text-slate-100">Trust diagnostics</div>
+                              <div className="mt-2">High credibility: {c.evidence_summary?.high_credibility_sources ?? 0}</div>
+                              <div>Primary sources: {c.evidence_summary?.primary_source_count ?? 0}</div>
+                              <div>Conflict level: {c.evidence_summary?.conflict_level ?? "low"}</div>
+                              <div>Average quality: {c.evidence_summary?.average_quality_score ?? "-"}</div>
+                            </div>
+                          </div>
 
                           {!!(c.uncertainty_reasons && c.uncertainty_reasons.length) && (
-                            <div className="mt-4 rounded-xl border border-amber-300/20 bg-amber-400/10 p-3">
-                              <div className="text-xs text-amber-100/80">Uncertainty</div>
-                              <ul className="mt-2 list-disc pl-5 text-sm text-amber-50/90 space-y-1">
-                                {c.uncertainty_reasons?.map((reason, k) => (
-                                  <li key={k}>{reason}</li>
-                                ))}
+                            <div className="mt-3 rounded-lg border border-amber-300/30 bg-amber-300/10 p-3 text-xs text-amber-100">
+                              <div className="font-semibold">Uncertainty signals</div>
+                              <ul className="mt-1 list-disc pl-5 space-y-1">
+                                {c.uncertainty_reasons?.map((reason, i) => <li key={i}>{reason}</li>)}
                               </ul>
-                              {c.human_review_reason && (
-                                <div className="mt-2 text-xs text-amber-100/80">Review note: {c.human_review_reason}</div>
-                              )}
                             </div>
                           )}
 
-                          <div className="mt-4 text-sm font-semibold">Evidence</div>
-
-                          {(c.evidence || []).length === 0 ? (
-                            <div className="mt-2 text-sm text-white/60">No evidence items returned.</div>
-                          ) : (
-                            <ul className="mt-2 grid gap-2">
-                              {sortEvidence(c.evidence || []).map((ev, j) => {
-                                const d = ev.domain ?? safeHostFromUrl(ev.url);
-                                const sVal = typeof ev.domain_score === "number" ? ev.domain_score
-                                           : typeof ev.score === "number" ? ev.score
-                                           : undefined;
-
-                                return (
-                                  <li key={j} className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                                    <div className="flex items-center justify-between gap-3">
-                                      <div className="min-w-0">
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                          <span className="text-sm font-semibold truncate">{d}</span>
-                                          {typeof sVal === "number" && (
-                                            <span
-                                              className={cx(
-                                                "px-2 py-1 rounded-full text-xs font-semibold border",
-                                                sVal >= 80
-                                                  ? "bg-emerald-400/15 border-emerald-300/30 text-emerald-200"
-                                                  : sVal >= 60
-                                                  ? "bg-amber-400/15 border-amber-300/30 text-amber-200"
-                                                  : "bg-rose-400/15 border-rose-300/30 text-rose-200"
-                                              )}
-                                            >
-                                              {sVal}
-                                            </span>
-                                          )}
-                                          {typeof ev.quality_score === "number" && (
-                                            <span className="px-2 py-1 rounded-full text-xs font-semibold border border-cyan-300/30 bg-cyan-400/10 text-cyan-100">
-                                              Q {Math.round(ev.quality_score)}
-                                            </span>
-                                          )}
-                                          {ev.primary_source && (
-                                            <span className="px-2 py-1 rounded-full text-xs font-semibold border border-emerald-300/30 bg-emerald-400/10 text-emerald-100">
-                                              Primary
-                                            </span>
-                                          )}
-                                          {ev.stance && (
-                                            <span className="px-2 py-1 rounded-full text-xs font-semibold border border-white/15 bg-white/5 text-white/80 uppercase">
-                                              {ev.stance}
-                                            </span>
-                                          )}
-                                        </div>
-                                      </div>
-
-                                      <a
-                                        className="text-xs px-3 py-1.5 rounded-full border border-white/15 hover:bg-white/10"
-                                        href={ev.url}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                      >
-                                        Open
-                                      </a>
+                          <div className="mt-4 grid gap-2">
+                            {sortEvidence(c.evidence || []).map((ev, j) => {
+                              const score = evScore(ev);
+                              return (
+                                <div key={j} className="rounded-lg border border-slate-300/20 bg-slate-900/60 p-3 stagger-card hover-lift" style={staggerStyle(j, 42)}>
+                                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <span className="text-sm font-semibold text-slate-100">{ev.domain ?? safeHostFromUrl(ev.url)}</span>
+                                      <span className="rounded-full border border-slate-300/25 px-2 py-0.5 text-[11px] text-slate-200">Score {score}</span>
+                                      {typeof ev.quality_score === "number" && <span className="rounded-full border border-cyan-300/30 px-2 py-0.5 text-[11px] text-cyan-100">Q {Math.round(ev.quality_score)}</span>}
+                                      {ev.primary_source && <span className="rounded-full border border-emerald-300/30 px-2 py-0.5 text-[11px] text-emerald-100">Primary</span>}
                                     </div>
-
-                                    {ev.snippet && <div className="mt-2 text-sm text-white/80 leading-snug">{ev.snippet}</div>}
-
-                                    <div className="mt-3 grid sm:grid-cols-2 gap-2 text-xs text-white/60">
-                                      <div>Type: {ev.source_type ?? "news"}</div>
-                                      <div>Year: {ev.published_year ?? "—"}</div>
-                                      <div>Directness: {typeof ev.directness_score === "number" ? Math.round(ev.directness_score * 100) + "%" : "—"}</div>
-                                      <div>Recency: {typeof ev.recency_score === "number" ? Math.round(ev.recency_score * 100) + "%" : "—"}</div>
-                                      <div>Quote-grounded: {ev.quote_grounded ? "yes" : "no"}</div>
-                                      <div>Expertise match: {typeof ev.expertise_match === "number" ? Math.round(ev.expertise_match * 100) + "%" : "—"}</div>
-                                      <div>Numeric match: {typeof ev.numeric_match === "boolean" ? (ev.numeric_match ? "yes" : "no") : "—"}</div>
-                                      <div>Entity match: {typeof ev.entity_match === "boolean" ? (ev.entity_match ? "yes" : "no") : "—"}</div>
-                                    </div>
-
-                                    {!!(ev.manipulation_flags && ev.manipulation_flags.length) && (
-                                      <div className="mt-2 flex flex-wrap gap-2">
-                                        {ev.manipulation_flags?.map((flag, fIdx) => (
-                                          <span key={fIdx} className="px-2 py-1 rounded-full text-[11px] border border-amber-300/25 bg-amber-400/10 text-amber-100">
-                                            {flag}
-                                          </span>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          )}
+                                    <a href={ev.url} target="_blank" rel="noreferrer" className="rounded-md border border-slate-300/25 px-2 py-1 text-xs text-slate-200 hover:border-cyan-300/40">Open</a>
+                                  </div>
+                                  {ev.snippet && <p className="mt-2 text-sm text-slate-200 leading-relaxed">{ev.snippet}</p>}
+                                  <div className="mt-2 grid sm:grid-cols-3 gap-2 text-[11px] text-slate-400">
+                                    <span>Type: {ev.source_type ?? "news"}</span>
+                                    <span>Recency: {typeof ev.recency_score === "number" ? `${Math.round(ev.recency_score * 100)}%` : "-"}</span>
+                                    <span>Directness: {typeof ev.directness_score === "number" ? `${Math.round(ev.directness_score * 100)}%` : "-"}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       )}
-                    </div>
+                    </article>
                   );
                 })}
               </div>
-
-              <details className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4">
-                <summary className="cursor-pointer text-sm font-semibold text-white/90">Raw JSON (debug)</summary>
-                <pre className="mt-4 text-xs overflow-auto bg-black/50 text-white rounded-xl p-4">
-{JSON.stringify(result, null, 2)}
-                </pre>
-              </details>
             </div>
           </div>
-        )}
+        </section>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div>
-              <div className="text-sm font-semibold">Run History (last 10)</div>
-              <div className="text-xs text-white/60">Stored runs for reproducibility (exportable).</div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                className="text-xs px-3 py-2 rounded-xl border border-white/15 hover:bg-white/10"
-                onClick={fetchRuns}
-                disabled={runsLoading}
-              >
-                {runsLoading ? "Refreshing…" : "Refresh"}
-              </button>
-              <button className="text-xs px-3 py-2 rounded-xl border border-white/15 hover:bg-white/10" onClick={exportCSV}>
-                Export CSV
-              </button>
-            </div>
+        <section className="glass-panel rounded-2xl border p-5 mt-6 section-fade-in">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h3 className="text-sm font-semibold text-white">Recent verification runs</h3>
+            <button className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs hover:border-cyan-300/40" onClick={fetchRuns} disabled={runsLoading}>
+              {runsLoading ? "Refreshing..." : "Refresh"}
+            </button>
           </div>
 
-          {runsError ? (
-            <div className="mt-4 text-sm text-white/70">
-              <b>Run history not available.</b> {runsError}
+          {runsLoading && runs.length === 0 ? (
+            <div className="mt-3 grid gap-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={`run-skeleton-${i}`} className="skeleton h-9 rounded-lg" />
+              ))}
             </div>
+          ) : runsError ? (
+            <div className="mt-3 text-sm text-rose-200">{runsError}</div>
           ) : runs.length === 0 ? (
-            <div className="mt-4 text-sm text-white/70">No runs found yet.</div>
+            <div className="mt-3 text-sm text-slate-300">No runs yet.</div>
           ) : (
-            <div className="mt-4 overflow-auto border border-white/10 rounded-xl">
+            <div className="mt-3 overflow-auto rounded-xl border border-slate-300/20">
               <table className="min-w-full text-sm">
-                <thead className="bg-white/5 text-white/70">
+                <thead className="bg-slate-900/70 text-slate-300">
                   <tr>
-                    <th className="text-left font-medium px-3 py-2">ID</th>
-                    <th className="text-left font-medium px-3 py-2">Time (UTC)</th>
-                    <th className="text-left font-medium px-3 py-2">Type</th>
-                    <th className="text-left font-medium px-3 py-2">Domain</th>
-                    <th className="text-left font-medium px-3 py-2">URL</th>
+                    <th className="px-3 py-2 text-left">ID</th>
+                    <th className="px-3 py-2 text-left">Time</th>
+                    <th className="px-3 py-2 text-left">Type</th>
+                    <th className="px-3 py-2 text-left">Domain</th>
+                    <th className="px-3 py-2 text-left">URL</th>
                   </tr>
                 </thead>
                 <tbody>
                   {runs.map((r, i) => (
-                    <tr key={String(r.id) + "_" + i} className="border-t border-white/10">
-                      <td className="px-3 py-2">{r.id}</td>
-                      <td className="px-3 py-2 font-mono text-xs text-white/70">{r.time_utc ?? r.timestamp_utc ?? "—"}</td>
-                      <td className="px-3 py-2 text-white/80">{r.input_type ?? r.type ?? "—"}</td>
-                      <td className="px-3 py-2 text-white/80">{r.domain ?? safeHostFromUrl(r.url)}</td>
-                      <td className="px-3 py-2">
-                        {r.url ? (
-                          <a
-                            className="text-xs px-3 py-1.5 rounded-full border border-white/15 hover:bg-white/10"
-                            href={r.url}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Open
-                          </a>
-                        ) : (
-                          "—"
-                        )}
-                      </td>
+                    <tr key={`${r.id}_${i}`} className="border-t border-slate-300/15">
+                      <td className="px-3 py-2 text-slate-100">{r.id}</td>
+                      <td className="px-3 py-2 font-mono text-xs text-slate-300">{r.time_utc ?? r.timestamp_utc ?? "-"}</td>
+                      <td className="px-3 py-2 text-slate-200">{r.input_type ?? r.type ?? "-"}</td>
+                      <td className="px-3 py-2 text-slate-200">{r.domain ?? safeHostFromUrl(r.url)}</td>
+                      <td className="px-3 py-2">{r.url ? <a className="rounded-md border border-slate-300/20 px-2 py-1 text-xs text-slate-200 hover:border-cyan-300/40" href={r.url} target="_blank" rel="noreferrer">Open</a> : "-"}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-        </div>
-
-        <div className="text-xs text-white/50 text-center pb-8">
-          Credibility score is heuristic and should be interpreted as a risk signal, not ground truth.
-        </div>
+        </section>
       </div>
-
-      {/* Print styling */}
-      <style jsx global>{`
-        @media print {
-          body {
-            background: white !important;
-            color: black !important;
-          }
-          a {
-            color: black !important;
-          }
-          button,
-          select,
-          input,
-          textarea,
-          summary {
-            display: none !important;
-          }
-        }
-      `}</style>
     </main>
   );
 }

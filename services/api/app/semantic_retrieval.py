@@ -52,9 +52,10 @@ def _get_sentence_transformer_model():
     if _MODEL_LOAD_ERROR is not None:
         return None
 
-    enabled = os.getenv("FACTVALIDATOR_EMBEDDINGS_ENABLED", "true").strip().lower()
+    # Disabled by default - use lexical fallback for speed
+    enabled = os.getenv("FACTVALIDATOR_EMBEDDINGS_ENABLED", "false").strip().lower()
     if enabled not in {"1", "true", "yes", "on"}:
-        _MODEL_LOAD_ERROR = "disabled-by-env"
+        _MODEL_LOAD_ERROR = "disabled-by-default"
         return None
 
     model_name = os.getenv("FACTVALIDATOR_EMBEDDING_MODEL", "all-MiniLM-L6-v2").strip()

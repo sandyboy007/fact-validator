@@ -1,9 +1,161 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 
 export function cx(...xs: Array<string | false | null | undefined>) {
   return xs.filter(Boolean).join(" ");
+}
+
+export function Tooltip({
+  children,
+  content,
+  position = "top",
+}: {
+  children: React.ReactNode;
+  content: string;
+  position?: "top" | "bottom" | "right";
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative inline-flex">
+      <div onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+        {children}
+      </div>
+      {show && (
+        <div
+          className={cx(
+            "absolute z-50 px-3 py-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-100 whitespace-nowrap",
+            position === "right" ? "left-full ml-2 top-0" : position === "bottom" ? "top-full mt-2 left-1/2 -translate-x-1/2" : "bottom-full mb-2 left-1/2 -translate-x-1/2"
+          )}
+        >
+          {content}
+          <div className={cx("absolute w-2 h-2 bg-slate-900 border border-slate-700", position === "right" ? "-left-1 top-2" : position === "bottom" ? "bottom-full -translate-x-1/2 left-1/2 border-t-0 border-l-0" : "top-full -translate-x-1/2 left-1/2 border-b-0 border-l-0")} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function Tabs({
+  tabs,
+  activeTab,
+  onTabChange,
+}: {
+  tabs: { label: string; value: string; icon?: string }[];
+  activeTab: string;
+  onTabChange: (value: string) => void;
+}) {
+  return (
+    <div className="flex gap-2 border-b border-slate-300/20">
+      {tabs.map((tab) => (
+        <button
+          key={tab.value}
+          onClick={() => onTabChange(tab.value)}
+          className={cx(
+            "flex items-center gap-1 px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap",
+            activeTab === tab.value
+              ? "border-cyan-400 text-cyan-100"
+              : "border-transparent text-slate-300 hover:text-slate-100"
+          )}
+        >
+          {tab.icon && <span className="text-base">{tab.icon}</span>}
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function ProgressIndicator({
+  steps,
+  currentStep,
+  estimatedTime,
+}: {
+  steps: { label: string; status: "pending" | "active" | "complete" | "error" }[];
+  currentStep: number;
+  estimatedTime?: string;
+}) {
+  return (
+    <div className="space-y-3">
+      {steps.map((step, idx) => (
+        <div key={idx} className="flex items-center gap-3">
+          <div
+            className={cx(
+              "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
+              step.status === "complete"
+                ? "bg-emerald-400/20 text-emerald-300 border border-emerald-400/40"
+                : step.status === "error"
+                ? "bg-rose-400/20 text-rose-300 border border-rose-400/40"
+                : step.status === "active"
+                ? "bg-cyan-400/20 text-cyan-300 border border-cyan-400/40 animate-pulse"
+                : "bg-slate-700/40 text-slate-400 border border-slate-600/40"
+            )}
+          >
+            {step.status === "complete" ? "✓" : step.status === "error" ? "✕" : idx + 1}
+          </div>
+          <div className="flex-1">
+            <div className="text-sm text-slate-200">{step.label}</div>
+          </div>
+        </div>
+      ))}
+      {estimatedTime && <div className="text-xs text-slate-400 mt-4">Estimated time: {estimatedTime}</div>}
+    </div>
+  );
+}
+
+export function ScoreBadge({
+  score,
+  maxScore = 100,
+  label,
+  variant = "neutral",
+}: {
+  score: number | string;
+  maxScore?: number;
+  label?: string;
+  variant?: "neutral" | "good" | "warn" | "bad";
+}) {
+  const numScore = typeof score === "number" ? score : parseFloat(score as string) || 0;
+  const pct = Math.round((numScore / maxScore) * 100);
+  const colors =
+    variant === "good"
+      ? "bg-emerald-400/15 border-emerald-300/40 text-emerald-100"
+      : variant === "bad"
+      ? "bg-rose-400/15 border-rose-300/40 text-rose-100"
+      : variant === "warn"
+      ? "bg-amber-400/15 border-amber-300/40 text-amber-100"
+      : "bg-cyan-400/15 border-cyan-300/40 text-cyan-100";
+
+  return (
+    <span className={cx("inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium", colors)}>
+      <span>{label || "Score"}</span>
+      <span className="font-bold">{pct}%</span>
+    </span>
+  );
+}
+
+export function VerdictBadge({
+  verdict,
+  confidence,
+}: {
+  verdict: "SUPPORTED" | "REFUTED" | "NEI" | string;
+  confidence?: number;
+}) {
+  const v = (verdict || "NEI").toUpperCase();
+  const icon = v === "SUPPORTED" ? "✓" : v === "REFUTED" ? "✕" : "?";
+  const color =
+    v === "SUPPORTED"
+      ? "bg-emerald-400/15 border-emerald-300/40 text-emerald-100"
+      : v === "REFUTED"
+      ? "bg-rose-400/15 border-rose-300/40 text-rose-100"
+      : "bg-amber-400/15 border-amber-300/40 text-amber-100";
+
+  return (
+    <span className={cx("inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold", color)}>
+      <span className="text-sm">{icon}</span>
+      <span>{v}</span>
+      {typeof confidence === "number" && <span className="opacity-75">{Math.round(confidence * 100)}%</span>}
+    </span>
+  );
 }
 
 export function Badge({
@@ -115,4 +267,80 @@ export function SmallLink({
 
 export function Divider() {
   return <div className="h-px bg-zinc-100 my-4" />;
+}
+
+export function Alert({
+  type = "info",
+  title,
+  message,
+  action,
+}: {
+  type?: "info" | "success" | "warn" | "error";
+  title?: string;
+  message: string;
+  action?: { label: string; onClick: () => void };
+}) {
+  const colors =
+    type === "success"
+      ? "bg-emerald-400/10 border-emerald-300/30 text-emerald-100"
+      : type === "error"
+      ? "bg-rose-400/10 border-rose-300/30 text-rose-100"
+      : type === "warn"
+      ? "bg-amber-400/10 border-amber-300/30 text-amber-100"
+      : "bg-cyan-400/10 border-cyan-300/30 text-cyan-100";
+
+  const icon =
+    type === "success" ? "✓" : type === "error" ? "✕" : type === "warn" ? "!" : "ℹ";
+
+  return (
+    <div className={cx("rounded-lg border p-4 flex items-start justify-between gap-3", colors)}>
+      <div className="flex gap-3">
+        <span className="text-lg">{icon}</span>
+        <div>
+          {title && <div className="font-semibold">{title}</div>}
+          <div className="text-sm">{message}</div>
+        </div>
+      </div>
+      {action && (
+        <button
+          onClick={action.onClick}
+          className="px-2 py-1 text-xs font-medium rounded hover:opacity-75 transition whitespace-nowrap"
+        >
+          {action.label}
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function StatCard({
+  label,
+  value,
+  unit,
+  icon,
+  trend,
+}: {
+  label: string;
+  value: string | number;
+  unit?: string;
+  icon?: string;
+  trend?: "up" | "down" | "neutral";
+}) {
+  return (
+    <div className="glass-panel rounded-xl border p-4 hover-lift transition">
+      <div className="flex items-start justify-between gap-2">
+        <div className="text-xs uppercase tracking-wide text-slate-300">{label}</div>
+        {icon && <span className="text-lg">{icon}</span>}
+      </div>
+      <div className="mt-3 flex items-end gap-2">
+        <div className="text-2xl font-bold text-white">{value}</div>
+        {unit && <div className="text-sm text-slate-400">{unit}</div>}
+      </div>
+      {trend && (
+        <div className={cx("mt-2 text-xs", trend === "up" ? "text-emerald-300" : trend === "down" ? "text-rose-300" : "text-slate-400")}>
+          {trend === "up" ? "↑ Positive" : trend === "down" ? "↓ Negative" : "→ Neutral"}
+        </div>
+      )}
+    </div>
+  );
 }

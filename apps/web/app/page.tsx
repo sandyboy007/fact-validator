@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { cx } from "../components/ui";
+import { cx, Tooltip, Tabs, ProgressIndicator, ScoreBadge, VerdictBadge, Alert, StatCard } from "../components/ui";
 
 type EvidenceItem = {
   url: string;
@@ -119,13 +119,6 @@ function sortEvidence(evs: EvidenceItem[]) {
   });
 }
 
-function sentimentColor(v?: string) {
-  const verdict = (v || "").toUpperCase();
-  if (verdict === "SUPPORTED") return "text-emerald-300 border-emerald-300/35 bg-emerald-400/10";
-  if (verdict === "REFUTED") return "text-rose-300 border-rose-300/35 bg-rose-400/10";
-  return "text-amber-200 border-amber-300/30 bg-amber-300/10";
-}
-
 function staggerStyle(index: number, stepMs = 70) {
   return { animationDelay: `${index * stepMs}ms` };
 }
@@ -139,6 +132,7 @@ export default function Page() {
 
   const [mode, setMode] = useState<"live" | "snapshot">("live");
   const [verifier, setVerifier] = useState<"baseline" | "debate">("baseline");
+  const [debateModeActive, setDebateModeActive] = useState(false);
 
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [maxClaims, setMaxClaims] = useState(6);
@@ -147,22 +141,59 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
+  const [processingTime, setProcessingTime] = useState(0);
 
   const [runs, setRuns] = useState<RunRow[]>([]);
   const [runsError, setRunsError] = useState<string | null>(null);
   const [runsLoading, setRunsLoading] = useState(false);
 
   const [openClaimIdx, setOpenClaimIdx] = useState<number | null>(0);
+  const [resultTab, setResultTab] = useState<"overview" | "claims" | "evidence">("overview");
+
+  const [processingSteps, setProcessingSteps] = useState<
+    { label: string; status: "pending" | "active" | "complete" | "error" }[]
+  >([]);
+
+  // Calculate estimated time based on verifier mode
+  const estimatedTime =
+    verifier === "debate" ? "~60-120s" : verifier === "baseline" ? "~10-30s" : "~5-10s";
+
+  // Validation helpers
+  const isValidUrl = useMemo(() => {
+    if (!url.trim()) return false;
+    try {
+      new URL(url.trim());
+      return true;
+    } catch {
+      return false;
+    }
+  }, [url]);
+
+  const isValidText = useMemo(() => {
+    return text.trim().length > 10;
+  }, [text]);
 
   const canAnalyze = useMemo(() => {
-    if (tab === "url") return url.trim().length > 8;
-    return text.trim().length > 10;
-  }, [tab, url, text]);
+    if (tab === "url") return isValidUrl;
+    return isValidText;
+  }, [tab, isValidUrl, isValidText]);
+
+  const debateEnabled = debateModeActive && verifier === "debate";
 
   async function analyze() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setProcessingTime(0);
+    const startTime = Date.now();
+
+    // Update processing steps
+    setProcessingSteps([
+      { label: "Validating input", status: "active" },
+      { label: "Extracting content", status: "pending" },
+      { label: "Analyzing claims", status: "pending" },
+      { label: debateEnabled ? "Running debate mode" : "Scoring credibility", status: "pending" },
+    ]);
 
     try {
       const payload: {
@@ -174,12 +205,15 @@ export default function Page() {
         text?: string;
       } = {
         mode,
-        verifier,
+        verifier: debateEnabled ? "debate" : "baseline",
         max_claims: maxClaims,
         max_evidence_per_claim: maxEvidence,
       };
       if (tab === "url") payload.url = url.trim();
       else payload.text = text.trim();
+
+      // Step 1: Validate
+      setProcessingSteps((p) => [{ ...p[0], status: "complete" }, { ...p[1], status: "active" }, ...p.slice(2)]);
 
       const res = await fetch(`${API_BASE}/analyze`, {
         method: "POST",
@@ -189,18 +223,30 @@ export default function Page() {
 
       if (!res.ok) {
         const t = await res.text();
+        setProcessingSteps((p) => [...p.slice(0, -1), { ...p[p.length - 1], status: "error" }]);
         throw new Error(`API error ${res.status}: ${t}`);
       }
+
+      // Step 2: Done extracting
+      setProcessingSteps((p) => [{ ...p[0], status: "complete" }, { ...p[1], status: "complete" }, { ...p[2], status: "active" }, ...p.slice(3)]);
 
       const json = (await res.json()) as AnalyzeResponse;
       if (json.claims) {
         json.claims = json.claims.map((c) => ({ ...c, evidence: sortEvidence(c.evidence || []) }));
       }
+
+      // Step 3: Claims analyzed
+      setProcessingSteps((p) => [...p.slice(0, 2), { ...p[2], status: "complete" }, { ...p[3], status: debateEnabled ? "active" : "complete" }]);
+
       setResult(json);
       setOpenClaimIdx(0);
+      setProcessingTime(Date.now() - startTime);
+      setProcessingSteps((p) => [...p.slice(0, -1), { ...p[p.length - 1], status: "complete" }]);
       fetchRuns();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to fetch");
+      const errorMsg = e instanceof Error ? e.message : "Failed to analyze";
+      setError(errorMsg);
+      setProcessingSteps((p) => [...p.slice(0, -1), { ...p[p.length - 1], status: "error" }]);
     } finally {
       setLoading(false);
     }
@@ -221,7 +267,7 @@ export default function Page() {
       setRuns(items);
     } catch (e: unknown) {
       setRuns([]);
-      setRunsError(e instanceof Error ? e.message : "Could not load run history.");
+      setRunsError(e instanceof Error ? e.message : "Could not load run history. Check API connection.");
     } finally {
       setRunsLoading(false);
     }
@@ -248,6 +294,7 @@ export default function Page() {
       <div className="pointer-events-none absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-emerald-400/10 blur-3xl" />
 
       <div className="relative mx-auto max-w-7xl px-4 py-8 md:py-10 section-fade-in">
+        {/* Header */}
         <header className="glass-panel rounded-3xl p-5 md:p-7 border mb-6">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
@@ -262,254 +309,461 @@ export default function Page() {
                 Professional-grade claim intelligence with credibility scoring, counter-evidence analysis, uncertainty disclosure, and explainable verdicts.
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-3 text-sm w-full sm:w-auto">
-              <a href="/source" className="glass-panel rounded-xl px-4 py-3 text-slate-100 hover:border-cyan-300/40 transition border">Source Checker</a>
-              <a href={`${API_BASE}/docs`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-4 py-3 text-slate-100 hover:border-cyan-300/40 transition border">API Docs</a>
-              <a href={`${API_BASE}/evaluation/benchmark`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-4 py-3 text-slate-100 hover:border-cyan-300/40 transition border col-span-2">Benchmark Dataset</a>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs md:text-sm w-full sm:w-auto">
+              <a href="/source" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center">Source Checker</a>
+              <a href={`${API_BASE}/docs`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center">API Docs</a>
+              <a href={`${API_BASE}/evaluation/benchmark`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center md:col-span-1 col-span-2">Benchmark</a>
             </div>
           </div>
         </header>
 
-        <section className="grid xl:grid-cols-[1.05fr_1.4fr] gap-6">
+        {/* Main Layout */}
+        <section className="grid xl:grid-cols-[1.1fr_1.5fr] gap-6">
+          {/* Left: Input Panel */}
           <div className="glass-panel rounded-3xl border p-5 md:p-6 section-fade-in">
             <div className="flex items-center justify-between mb-4">
-              <div className="text-sm uppercase tracking-wider text-slate-300">Input</div>
-              <button className="text-xs px-3 py-1.5 rounded-lg border border-slate-300/20 hover:border-cyan-300/40" onClick={() => setShowAdvanced((v) => !v)}>
-                {showAdvanced ? "Hide advanced" : "Advanced"}
+              <div className="text-sm uppercase tracking-wider text-slate-300 font-semibold">Input Setup</div>
+              <button className="text-xs px-3 py-1.5 rounded-lg border border-slate-300/20 hover:border-cyan-300/40 transition" onClick={() => setShowAdvanced((v) => !v)}>
+                {showAdvanced ? "Hide" : "Show"} advanced
               </button>
             </div>
 
+            {/* Tab Selection */}
             <div className="grid grid-cols-2 gap-2 mb-4">
-              <button className={cx("rounded-xl py-2.5 text-sm border transition", tab === "url" ? "bg-cyan-400/15 border-cyan-300/40 text-cyan-100" : "border-slate-300/20 hover:border-slate-300/40")} onClick={() => setTab("url")}>URL analysis</button>
-              <button className={cx("rounded-xl py-2.5 text-sm border transition", tab === "text" ? "bg-cyan-400/15 border-cyan-300/40 text-cyan-100" : "border-slate-300/20 hover:border-slate-300/40")} onClick={() => setTab("text")}>Text analysis</button>
+              <button className={cx("rounded-xl py-2.5 text-sm border transition font-medium", tab === "url" ? "bg-cyan-400/15 border-cyan-300/40 text-cyan-100" : "border-slate-300/20 hover:border-slate-300/40")} onClick={() => setTab("url")}>
+                🔗 URL
+              </button>
+              <button className={cx("rounded-xl py-2.5 text-sm border transition font-medium", tab === "text" ? "bg-cyan-400/15 border-cyan-300/40 text-cyan-100" : "border-slate-300/20 hover:border-slate-300/40")} onClick={() => setTab("text")}>
+                📝 Text
+              </button>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-3">
-              <label className="text-xs text-slate-300">Mode
+            {/* Verifier Mode with Debate Toggle */}
+            <div className="grid sm:grid-cols-2 gap-3 mb-3">
+              <label className="text-xs text-slate-300">
+                Mode
                 <select className="mt-1 w-full rounded-xl border border-slate-300/20 bg-slate-900/60 px-3 py-2 text-sm" value={mode} onChange={(e) => setMode(e.target.value as "live" | "snapshot")}>
                   <option value="live">Live</option>
                   <option value="snapshot">Snapshot</option>
                 </select>
               </label>
-              <label className="text-xs text-slate-300">Verifier
+              <label className="text-xs text-slate-300">
+                Verifier
                 <select className="mt-1 w-full rounded-xl border border-slate-300/20 bg-slate-900/60 px-3 py-2 text-sm" value={verifier} onChange={(e) => setVerifier(e.target.value as "baseline" | "debate")}>
                   <option value="baseline">Baseline</option>
-                  <option value="debate">Debate</option>
+                  <option value="debate">Debate Mode</option>
                 </select>
               </label>
             </div>
 
+            {/* Debate Mode Banner */}
+            {verifier === "debate" && (
+              <div className="mb-3 p-3 rounded-lg bg-purple-400/10 border border-purple-300/30">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm font-semibold text-purple-100">
+                      <span>⚖️ Debate Mode Active</span>
+                      <Tooltip content="LLMs debate each claim as Prover vs Skeptic with Judge arbiter">
+                        <span className="cursor-help text-purple-300/60 text-xs">[?]</span>
+                      </Tooltip>
+                    </div>
+                    <div className="text-xs text-purple-200/70 mt-1">Estimated time: ~60-120s</div>
+                  </div>
+                  <button
+                    onClick={() => setDebateModeActive(!debateModeActive)}
+                    className={cx(
+                      "px-3 py-1 rounded-lg text-xs font-medium transition",
+                      debateModeActive ? "bg-purple-400/30 text-purple-100 border border-purple-300/40" : "border border-purple-300/20 text-purple-200 hover:border-purple-300/40"
+                    )}
+                  >
+                    {debateModeActive ? "✓ Enabled" : "Enable"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Advanced Options */}
             {showAdvanced && (
-              <div className="grid sm:grid-cols-2 gap-3 mt-3">
-                <label className="text-xs text-slate-300">Max claims
-                  <input type="number" min={1} max={12} className="mt-1 w-full rounded-xl border border-slate-300/20 bg-slate-900/60 px-3 py-2 text-sm" value={maxClaims} onChange={(e) => setMaxClaims(parseInt(e.target.value || "6", 10))} />
+              <div className="grid sm:grid-cols-2 gap-3 mb-4 p-3 rounded-lg bg-slate-800/30 border border-slate-700/30">
+                <label className="text-xs text-slate-300">
+                  Max claims
+                  <input type="number" min={1} max={20} className="mt-1 w-full rounded-xl border border-slate-300/20 bg-slate-900/60 px-3 py-2 text-sm" value={maxClaims} onChange={(e) => setMaxClaims(Math.min(20, Math.max(1, parseInt(e.target.value || "6", 10))))} />
                 </label>
-                <label className="text-xs text-slate-300">Evidence per claim
-                  <input type="number" min={1} max={10} className="mt-1 w-full rounded-xl border border-slate-300/20 bg-slate-900/60 px-3 py-2 text-sm" value={maxEvidence} onChange={(e) => setMaxEvidence(parseInt(e.target.value || "5", 10))} />
+                <label className="text-xs text-slate-300">
+                  Evidence per claim
+                  <input type="number" min={1} max={10} className="mt-1 w-full rounded-xl border border-slate-300/20 bg-slate-900/60 px-3 py-2 text-sm" value={maxEvidence} onChange={(e) => setMaxEvidence(Math.min(10, Math.max(1, parseInt(e.target.value || "5", 10))))} />
                 </label>
               </div>
             )}
 
+            {/* Input Field */}
             {tab === "url" ? (
-              <div className="mt-3">
-                <label className="text-xs text-slate-300">Target URL</label>
-                <input className="mt-1 w-full rounded-xl border border-slate-300/20 bg-slate-900/60 px-3 py-3 text-sm" placeholder="https://example.com/article" value={url} onChange={(e) => setUrl(e.target.value)} />
-                <div className="mt-2 flex flex-wrap gap-2">
+              <div className="mt-4">
+                <label className="text-xs text-slate-300 block">Target URL</label>
+                <div className="mt-1 relative">
+                  <input
+                    className={cx("w-full rounded-xl border bg-slate-900/60 px-3 py-3 text-sm transition", isValidUrl ? "border-emerald-300/40 bg-emerald-400/5" : url.trim() ? "border-rose-300/40 bg-rose-400/5" : "border-slate-300/20")}
+                    placeholder="https://example.com/article"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                  />
+                  {isValidUrl && <span className="absolute right-3 top-3 text-emerald-400">✓</span>}
+                  {url.trim() && !isValidUrl && <span className="absolute right-3 top-3 text-rose-400">✕</span>}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
                   {examples.map((x) => (
-                    <button key={x} className="rounded-full border border-slate-300/20 px-3 py-1 text-xs text-slate-200 hover:border-cyan-300/40" onClick={() => setUrl(x)}>
-                      Use sample
+                    <button key={x} className="rounded-full border border-slate-300/20 px-2 py-1 text-xs text-slate-300 hover:border-cyan-300/40 hover:text-cyan-100 transition truncate max-w-[120px]" onClick={() => setUrl(x)} title={x}>
+                      Sample
                     </button>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="mt-3">
-                <label className="text-xs text-slate-300">Claim or paragraph</label>
-                <textarea className="mt-1 w-full min-h-[140px] rounded-xl border border-slate-300/20 bg-slate-900/60 px-3 py-3 text-sm" placeholder="Paste a claim to verify" value={text} onChange={(e) => setText(e.target.value)} />
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs text-slate-300">Claim or text</label>
+                  <span className="text-xs text-slate-400">{text.length}/10000</span>
+                </div>
+                <textarea
+                  className={cx("w-full min-h-[140px] rounded-xl border bg-slate-900/60 px-3 py-3 text-sm transition", isValidText ? "border-emerald-300/40 bg-emerald-400/5" : text.trim() ? "border-rose-300/40 bg-rose-400/5" : "border-slate-300/20")}
+                  placeholder="Paste a claim to verify..."
+                  value={text}
+                  onChange={(e) => setText(e.target.value.slice(0, 10000))}
+                  maxLength={10000}
+                />
               </div>
             )}
 
-            <button className={cx("mt-4 w-full rounded-xl px-4 py-3 text-sm font-semibold transition", !canAnalyze || loading ? "bg-slate-700/60 text-slate-400 cursor-not-allowed" : "bg-gradient-to-r from-cyan-300 to-blue-400 text-slate-950 hover:brightness-110")} onClick={analyze} disabled={!canAnalyze || loading}>
-              {loading ? "Running AI verification..." : "Run verification"}
+            {/* Submit Button */}
+            <button
+              className={cx(
+                "mt-4 w-full rounded-xl px-4 py-3 text-sm font-semibold transition",
+                !canAnalyze || loading
+                  ? "bg-slate-700/60 text-slate-400 cursor-not-allowed"
+                  : "bg-gradient-to-r from-cyan-300 to-blue-400 text-slate-950 hover:brightness-110 shadow-lg hover:shadow-cyan-400/50"
+              )}
+              onClick={analyze}
+              disabled={!canAnalyze || loading}
+            >
+              {loading ? "⏳ Analyzing..." : "🔍 Run verification"}
             </button>
 
+            {/* Error Alert */}
             {error && (
-              <div className="mt-4 rounded-xl border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-100">
-                {error}
+              <Alert
+                type="error"
+                title="Verification failed"
+                message={error}
+                action={{ label: "Retry", onClick: analyze }}
+              />
+            )}
+
+            {/* Loading Progress */}
+            {loading && processingSteps.length > 0 && (
+              <div className="mt-4 p-4 rounded-lg bg-slate-800/40 border border-slate-700/40">
+                <ProgressIndicator
+                  steps={processingSteps}
+                  currentStep={processingSteps.findIndex((s) => s.status === "active")}
+                  estimatedTime={estimatedTime}
+                />
               </div>
             )}
           </div>
 
+          {/* Right: Results Panel */}
           <div className="grid gap-6 section-fade-in">
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="glass-panel rounded-2xl border p-4 stagger-card hover-lift" style={staggerStyle(0)}>
-                <div className="text-xs uppercase tracking-wide text-slate-300">Input domain</div>
-                <div className="mt-2 font-mono text-lg text-white">{result?.domain ?? "-"}</div>
-                <div className="mt-2 text-xs text-slate-400">{result?.timestamp_utc ?? "Ready"}</div>
+            {/* Summary Stats */}
+            {result && (
+              <div className="grid md:grid-cols-3 gap-4">
+                <StatCard
+                  label="Domain credibility"
+                  value={typeof result.domain_score === "number" ? result.domain_score : "-"}
+                  unit={result.domain_score ? "/ 100" : ""}
+                  icon="🏢"
+                  trend={
+                    typeof result.domain_score === "number"
+                      ? result.domain_score >= 70
+                        ? "up"
+                        : result.domain_score >= 40
+                        ? "neutral"
+                        : "down"
+                      : undefined
+                  }
+                />
+                <StatCard
+                  label="Misinformation risk"
+                  value={fmtPct(result.final_misinformation_likelihood)}
+                  icon="⚠️"
+                  trend={
+                    typeof result.final_misinformation_likelihood === "number"
+                      ? result.final_misinformation_likelihood > 0.6
+                        ? "down"
+                        : result.final_misinformation_likelihood > 0.3
+                        ? "neutral"
+                        : "up"
+                      : undefined
+                  }
+                />
+                <StatCard
+                  label="Claims analyzed"
+                  value={result.claims?.length || 0}
+                  unit="total"
+                  icon="📊"
+                />
               </div>
-              <div className="glass-panel rounded-2xl border p-4 stagger-card hover-lift" style={staggerStyle(1)}>
-                <div className="text-xs uppercase tracking-wide text-slate-300">Credibility score</div>
-                <div className="mt-2 text-2xl font-semibold text-white">{typeof result?.domain_score === "number" ? result.domain_score : "-"}</div>
-                <div className="text-xs text-slate-300">{result?.domain_label ?? "No label"}</div>
-              </div>
-              <div className="glass-panel rounded-2xl border p-4 stagger-card hover-lift" style={staggerStyle(2)}>
-                <div className="text-xs uppercase tracking-wide text-slate-300">Misinformation risk</div>
-                <div className="mt-2 text-2xl font-semibold text-white">{fmtPct(result?.final_misinformation_likelihood)}</div>
-                <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-700/80">
-                  <div className="h-2 meter-fill bg-gradient-to-r from-emerald-300 via-amber-300 to-rose-400" style={{ width: typeof result?.final_misinformation_likelihood === "number" ? `${Math.round(result.final_misinformation_likelihood * 100)}%` : "0%" }} />
-                </div>
-              </div>
-            </div>
+            )}
 
-            <div className="glass-panel rounded-2xl border p-4 md:p-5 stagger-card hover-lift" style={staggerStyle(3)}>
-              <div className="text-sm font-semibold text-white">Extracted context</div>
-              <div className="mt-1 text-xs text-slate-400">Characters: {result?.extracted_text_chars ?? 0}</div>
-              <p className="mt-3 text-sm leading-relaxed text-slate-200">{result?.extracted_text_preview ?? "Run a verification to see extraction preview."}</p>
-            </div>
-
-            <div className="glass-panel rounded-2xl border p-4 md:p-5 stagger-card" style={staggerStyle(4)}>
-              <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold text-white">Claim intelligence</h2>
-                <span className="text-xs text-slate-300">{(result?.claims || []).length} claims</span>
-              </div>
-
-              <div className="mt-4 grid gap-3">
-                {showResultSkeleton && (
-                  <div className="grid gap-3">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <div key={`claim-skeleton-${i}`} className="rounded-xl border border-slate-300/20 bg-slate-900/45 p-4">
-                        <div className="skeleton h-3 w-24 rounded" />
-                        <div className="skeleton mt-3 h-4 w-full rounded" />
-                        <div className="skeleton mt-2 h-4 w-11/12 rounded" />
-                        <div className="mt-3 flex gap-2">
-                          <div className="skeleton h-6 w-28 rounded-full" />
-                          <div className="skeleton h-6 w-36 rounded-full" />
-                        </div>
-                      </div>
-                    ))}
+            {/* Extracted Content Preview */}
+            {result && (
+              <div className="glass-panel rounded-2xl border p-4 md:p-5 stagger-card hover-lift" style={staggerStyle(1)}>
+                <div className="flex items-start justify-between gap-2 mb-3">
+                  <div className="text-sm font-semibold text-white">📄 Extracted Content</div>
+                  <div className="text-xs text-slate-400 bg-slate-800/40 px-2 py-1 rounded">
+                    {result.extracted_text_chars || 0} chars
                   </div>
-                )}
+                </div>
+                <p className="text-sm leading-relaxed text-slate-200">{result.extracted_text_preview || "Content extraction pending..."}</p>
+              </div>
+            )}
 
-                {(result?.claims || []).map((c, idx) => {
-                  const open = openClaimIdx === idx;
-                  return (
-                    <article key={idx} className="rounded-xl border border-slate-300/20 bg-slate-900/45 stagger-card hover-lift" style={staggerStyle(idx, 64)}>
-                      <button className="w-full p-4 text-left" onClick={() => setOpenClaimIdx(open ? null : idx)}>
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <div className="text-xs uppercase tracking-wider text-slate-400">Claim #{idx + 1}</div>
-                            <div className="mt-1 text-sm text-white leading-relaxed">{c.claim_text}</div>
-                            <div className="mt-2 flex flex-wrap items-center gap-2">
-                              <span className={cx("rounded-full border px-3 py-1 text-xs", sentimentColor(c.verdict))}>{(c.verdict || "NEI").toUpperCase()} {fmtPct(c.confidence)}</span>
-                              {c.structured_verdict && <span className="rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-100">{c.structured_verdict}</span>}
-                              {c.needs_human_review && <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs text-amber-100">Human review</span>}
-                            </div>
+            {/* Results Tabs */}
+            {result && (
+              <div className="glass-panel rounded-2xl border overflow-hidden stagger-card" style={staggerStyle(2)}>
+                <Tabs
+                  tabs={[
+                    { label: "Claims", value: "claims", icon: "📋" },
+                    { label: "Evidence", value: "evidence", icon: "📚" },
+                    { label: "Details", value: "overview", icon: "🔍" },
+                  ]}
+                  activeTab={resultTab}
+                  onTabChange={(v) => setResultTab(v as "overview" | "claims" | "evidence")}
+                />
+
+                <div className="p-5">
+                  {resultTab === "claims" && (
+                    <div className="grid gap-3">
+                      {showResultSkeleton ? (
+                        Array.from({ length: 3 }).map((_, i) => (
+                          <div key={`claim-skeleton-${i}`} className="rounded-xl border border-slate-300/20 bg-slate-900/45 p-4 animate-pulse">
+                            <div className="h-3 w-24 rounded bg-slate-700" />
+                            <div className="h-4 w-full rounded bg-slate-700 mt-3" />
+                            <div className="h-4 w-11/12 rounded bg-slate-700 mt-2" />
                           </div>
-                          <div className="text-slate-400 text-xs">{open ? "Hide" : "Details"}</div>
-                        </div>
-                      </button>
-
-                      {open && (
-                        <div className="border-t border-slate-300/20 p-4">
-                          {c.debate_summary && <p className="text-sm text-slate-200">{c.debate_summary}</p>}
-
-                          <div className="mt-3 grid md:grid-cols-2 gap-3 text-xs text-slate-300">
-                            <div className="rounded-lg border border-slate-300/20 bg-slate-800/40 p-3">
-                              <div className="font-semibold text-slate-100">Claim profile</div>
-                              <div className="mt-2">Expertise: {c.claim_profile?.expertise_profile ?? "general"}</div>
-                              <div>Entities: {(c.claim_profile?.entities || []).join(", ") || "-"}</div>
-                              <div>Numbers: {(c.claim_profile?.numbers || []).join(", ") || "-"}</div>
-                            </div>
-                            <div className="rounded-lg border border-slate-300/20 bg-slate-800/40 p-3">
-                              <div className="font-semibold text-slate-100">Trust diagnostics</div>
-                              <div className="mt-2">High credibility: {c.evidence_summary?.high_credibility_sources ?? 0}</div>
-                              <div>Primary sources: {c.evidence_summary?.primary_source_count ?? 0}</div>
-                              <div>Conflict level: {c.evidence_summary?.conflict_level ?? "low"}</div>
-                              <div>Average quality: {c.evidence_summary?.average_quality_score ?? "-"}</div>
-                            </div>
-                          </div>
-
-                          {!!(c.uncertainty_reasons && c.uncertainty_reasons.length) && (
-                            <div className="mt-3 rounded-lg border border-amber-300/30 bg-amber-300/10 p-3 text-xs text-amber-100">
-                              <div className="font-semibold">Uncertainty signals</div>
-                              <ul className="mt-1 list-disc pl-5 space-y-1">
-                                {c.uncertainty_reasons?.map((reason, i) => <li key={i}>{reason}</li>)}
-                              </ul>
-                            </div>
-                          )}
-
-                          <div className="mt-4 grid gap-2">
-                            {sortEvidence(c.evidence || []).map((ev, j) => {
-                              const score = evScore(ev);
-                              return (
-                                <div key={j} className="rounded-lg border border-slate-300/20 bg-slate-900/60 p-3 stagger-card hover-lift" style={staggerStyle(j, 42)}>
-                                  <div className="flex items-center justify-between gap-3 flex-wrap">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                      <span className="text-sm font-semibold text-slate-100">{ev.domain ?? safeHostFromUrl(ev.url)}</span>
-                                      <span className="rounded-full border border-slate-300/25 px-2 py-0.5 text-[11px] text-slate-200">Score {score}</span>
-                                      {typeof ev.quality_score === "number" && <span className="rounded-full border border-cyan-300/30 px-2 py-0.5 text-[11px] text-cyan-100">Q {Math.round(ev.quality_score)}</span>}
-                                      {ev.primary_source && <span className="rounded-full border border-emerald-300/30 px-2 py-0.5 text-[11px] text-emerald-100">Primary</span>}
+                        ))
+                      ) : result.claims && result.claims.length > 0 ? (
+                        result.claims.map((c, idx) => {
+                          const open = openClaimIdx === idx;
+                          return (
+                            <div key={idx} className="rounded-xl border border-slate-300/20 bg-slate-900/45 overflow-hidden stagger-card hover-lift" style={staggerStyle(idx, 50)}>
+                              <button
+                                className="w-full p-4 text-left hover:bg-slate-900/60 transition"
+                                onClick={() => setOpenClaimIdx(open ? null : idx)}
+                              >
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-xs uppercase tracking-wider text-slate-400">Claim #{idx + 1}</div>
+                                    <div className="mt-1 text-sm text-white leading-relaxed">{c.claim_text}</div>
+                                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                                      <VerdictBadge verdict={c.verdict} confidence={c.confidence} />
+                                      {c.needs_human_review && (
+                                        <span className="px-2 py-1 text-xs rounded-full border border-amber-300/30 bg-amber-300/10 text-amber-100">
+                                          👤 Human review
+                                        </span>
+                                      )}
                                     </div>
-                                    <a href={ev.url} target="_blank" rel="noreferrer" className="rounded-md border border-slate-300/25 px-2 py-1 text-xs text-slate-200 hover:border-cyan-300/40">Open</a>
                                   </div>
-                                  {ev.snippet && <p className="mt-2 text-sm text-slate-200 leading-relaxed">{ev.snippet}</p>}
-                                  <div className="mt-2 grid sm:grid-cols-3 gap-2 text-[11px] text-slate-400">
-                                    <span>Type: {ev.source_type ?? "news"}</span>
-                                    <span>Recency: {typeof ev.recency_score === "number" ? `${Math.round(ev.recency_score * 100)}%` : "-"}</span>
-                                    <span>Directness: {typeof ev.directness_score === "number" ? `${Math.round(ev.directness_score * 100)}%` : "-"}</span>
-                                  </div>
+                                  <div className="text-slate-400 text-xs whitespace-nowrap">{open ? "↑" : "↓"}</div>
                                 </div>
-                              );
-                            })}
-                          </div>
+                              </button>
+
+                              {open && (
+                                <div className="border-t border-slate-300/20 p-4 bg-slate-900/30">
+                                  {c.debate_summary && (
+                                    <div className="mb-4 p-3 rounded-lg bg-purple-400/10 border border-purple-300/20">
+                                      <div className="text-xs font-semibold text-purple-200 mb-1">⚖️ Debate Summary</div>
+                                      <p className="text-sm text-purple-100/80">{c.debate_summary}</p>
+                                    </div>
+                                  )}
+
+                                  <div className="grid md:grid-cols-2 gap-3 mb-4 text-xs">
+                                    <div className="rounded-lg border border-slate-300/20 bg-slate-800/40 p-3">
+                                      <div className="font-semibold text-slate-100 mb-2">📊 Claim Profile</div>
+                                      <div className="space-y-1 text-slate-300">
+                                        <div>Expertise: {c.claim_profile?.expertise_profile || "general"}</div>
+                                        <div>Entities: {c.claim_profile?.entities?.join(", ") || "-"}</div>
+                                        <div>Numbers: {c.claim_profile?.numbers?.join(", ") || "-"}</div>
+                                      </div>
+                                    </div>
+                                    <div className="rounded-lg border border-slate-300/20 bg-slate-800/40 p-3">
+                                      <div className="font-semibold text-slate-100 mb-2">🔒 Trust Signals</div>
+                                      <div className="space-y-1 text-slate-300">
+                                        <div>High credibility: {c.evidence_summary?.high_credibility_sources || 0}</div>
+                                        <div>Primary sources: {c.evidence_summary?.primary_source_count || 0}</div>
+                                        <div>Conflict level: {c.evidence_summary?.conflict_level || "low"}</div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {c.uncertainty_reasons && c.uncertainty_reasons.length > 0 && (
+                                    <div className="rounded-lg border border-amber-300/30 bg-amber-300/10 p-3 text-xs text-amber-100">
+                                      <div className="font-semibold mb-2">⚡ Uncertainty Signals</div>
+                                      <ul className="list-disc pl-5 space-y-1">
+                                        {c.uncertainty_reasons.map((r, i) => (
+                                          <li key={i}>{r}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-8 text-slate-400">
+                          No claims found. Try analyzing longer text or a different source.
                         </div>
                       )}
-                    </article>
-                  );
-                })}
+                    </div>
+                  )}
+
+                  {resultTab === "evidence" && (
+                    <div className="grid gap-3">
+                      {result.claims && result.claims.length > 0 ? (
+                        result.claims.flatMap((c, cIdx) =>
+                          sortEvidence(c.evidence || []).slice(0, 3).map((ev, eIdx) => {
+                            const score = evScore(ev);
+                            const quality = evQuality(ev);
+                            return (
+                              <a
+                                key={`${cIdx}-${eIdx}`}
+                                href={ev.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="rounded-lg border border-slate-300/20 bg-slate-900/60 p-3 stagger-card hover-lift hover:border-cyan-300/40 transition"
+                                style={staggerStyle(eIdx, 40)}
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-semibold text-slate-100 text-sm truncate">{ev.domain || safeHostFromUrl(ev.url)}</div>
+                                    <div className="text-xs text-slate-300 mt-1">{ev.snippet?.slice(0, 100)}...</div>
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                      <ScoreBadge score={score} maxScore={100} label="Domain" variant={score >= 70 ? "good" : score >= 40 ? "warn" : "bad"} />
+                                      {typeof quality === "number" && (
+                                        <ScoreBadge score={quality} maxScore={100} label="Quality" variant={quality >= 70 ? "good" : "warn"} />
+                                      )}
+                                      {ev.primary_source && <span className="px-2 py-0.5 text-xs rounded-full bg-emerald-300/20 text-emerald-200 border border-emerald-300/30">Primary</span>}
+                                    </div>
+                                  </div>
+                                  <div className="text-cyan-400 text-lg">→</div>
+                                </div>
+                              </a>
+                            );
+                          })
+                        )
+                      ) : (
+                        <div className="text-center py-8 text-slate-400">No evidence found.</div>
+                      )}
+                    </div>
+                  )}
+
+                  {resultTab === "overview" && result && (
+                    <div className="space-y-4">
+                      <div className="grid gap-3">
+                        <div className="p-3 rounded-lg bg-slate-800/30 border border-slate-700/30">
+                          <div className="text-xs uppercase tracking-wide text-slate-400 mb-1">Analysis Type</div>
+                          <div className="text-sm text-slate-100">{result.input_type === "url" ? "🔗 URL Analysis" : "📝 Text Analysis"}</div>
+                        </div>
+                        <div className="p-3 rounded-lg bg-slate-800/30 border border-slate-700/30">
+                          <div className="text-xs uppercase tracking-wide text-slate-400 mb-1">Processing Time</div>
+                          <div className="text-sm text-slate-100">{processingTime > 0 ? `${(processingTime / 1000).toFixed(1)}s` : "Pending..."}</div>
+                        </div>
+                        <div className="p-3 rounded-lg bg-slate-800/30 border border-slate-700/30">
+                          <div className="text-xs uppercase tracking-wide text-slate-400 mb-1">Domain</div>
+                          <div className="text-sm text-slate-100 font-mono">{result.domain || "N/A"}</div>
+                        </div>
+                        <div className="p-3 rounded-lg bg-slate-800/30 border border-slate-700/30">
+                          <div className="text-xs uppercase tracking-wide text-slate-400 mb-1">Timestamp</div>
+                          <div className="text-xs text-slate-300 font-mono">{result.timestamp_utc || "N/A"}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Empty State */}
+            {!result && !loading && (
+              <div className="glass-panel rounded-2xl border p-8 md:p-12 text-center stagger-card">
+                <div className="text-4xl mb-4">🔍</div>
+                <h3 className="text-lg font-semibold text-slate-200 mb-2">No analysis yet</h3>
+                <p className="text-sm text-slate-400 max-w-sm mx-auto">
+                  Enter a URL or paste text in the left panel to get started with professional-grade fact verification.
+                </p>
+              </div>
+            )}
           </div>
         </section>
 
-        <section className="glass-panel rounded-2xl border p-5 mt-6 section-fade-in">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <h3 className="text-sm font-semibold text-white">Recent verification runs</h3>
-            <button className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs hover:border-cyan-300/40" onClick={fetchRuns} disabled={runsLoading}>
+        {/* Run History */}
+        <section className="glass-panel rounded-2xl border p-5 mt-8 section-fade-in">
+          <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <h3 className="text-base font-semibold text-white">📊 Recent Verification Runs</h3>
+            <button
+              className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs hover:border-cyan-300/40 transition disabled:opacity-50"
+              onClick={fetchRuns}
+              disabled={runsLoading}
+            >
               {runsLoading ? "Refreshing..." : "Refresh"}
             </button>
           </div>
 
           {runsLoading && runs.length === 0 ? (
-            <div className="mt-3 grid gap-2">
+            <div className="grid gap-2">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={`run-skeleton-${i}`} className="skeleton h-9 rounded-lg" />
+                <div key={`run-skeleton-${i}`} className="h-10 rounded-lg bg-slate-700/40 animate-pulse" />
               ))}
             </div>
           ) : runsError ? (
-            <div className="mt-3 text-sm text-rose-200">{runsError}</div>
+            <Alert type="warn" message={runsError} title="Could not load history" />
           ) : runs.length === 0 ? (
-            <div className="mt-3 text-sm text-slate-300">No runs yet.</div>
+            <div className="text-center py-8 text-slate-400">
+              <div className="text-sm">No verification runs yet</div>
+            </div>
           ) : (
-            <div className="mt-3 overflow-auto rounded-xl border border-slate-300/20">
+            <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-slate-900/70 text-slate-300">
+                <thead className="bg-slate-900/70 text-slate-300 border-b border-slate-700">
                   <tr>
-                    <th className="px-3 py-2 text-left">ID</th>
-                    <th className="px-3 py-2 text-left">Time</th>
-                    <th className="px-3 py-2 text-left">Type</th>
-                    <th className="px-3 py-2 text-left">Domain</th>
-                    <th className="px-3 py-2 text-left">URL</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold">#</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold">Time</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold">Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold">Domain</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {runs.map((r, i) => (
-                    <tr key={`${r.id}_${i}`} className="border-t border-slate-300/15">
-                      <td className="px-3 py-2 text-slate-100">{r.id}</td>
-                      <td className="px-3 py-2 font-mono text-xs text-slate-300">{r.time_utc ?? r.timestamp_utc ?? "-"}</td>
-                      <td className="px-3 py-2 text-slate-200">{r.input_type ?? r.type ?? "-"}</td>
-                      <td className="px-3 py-2 text-slate-200">{r.domain ?? safeHostFromUrl(r.url)}</td>
-                      <td className="px-3 py-2">{r.url ? <a className="rounded-md border border-slate-300/20 px-2 py-1 text-xs text-slate-200 hover:border-cyan-300/40" href={r.url} target="_blank" rel="noreferrer">Open</a> : "-"}</td>
+                    <tr key={`${r.id}_${i}`} className="border-t border-slate-700/50 hover:bg-slate-900/50 transition">
+                      <td className="px-4 py-3 text-slate-200">{r.id}</td>
+                      <td className="px-4 py-3 text-xs text-slate-400 font-mono">{(r.time_utc || r.timestamp_utc || "-").slice(0, 19)}</td>
+                      <td className="px-4 py-3 text-slate-300">{(r.input_type || r.type || "-").slice(0, 10)}</td>
+                      <td className="px-4 py-3 text-slate-300 max-w-[150px] truncate">{r.domain || safeHostFromUrl(r.url) || "-"}</td>
+                      <td className="px-4 py-3">
+                        {r.url ? (
+                          <a
+                            className="text-xs px-2 py-1.5 rounded-lg border border-slate-300/20 text-slate-200 hover:border-cyan-300/40 transition"
+                            href={r.url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Open
+                          </a>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -185,9 +185,11 @@ OLLAMA_BASE_URL=http://127.0.0.1:11434
 OLLAMA_MODEL=llama3.1:8b
 
 # ── Optional: override default paths ──────────────────────────────────────────
-FACT_VALIDATOR_DB=C:/Fact_Validator/data/fact_validator.db
+FACT_VALIDATOR_DB=./data/fact_validator.db
 FACTVALIDATOR_DOMAIN_CACHE=C:/Fact_Validator/services/api/data/domain_cache.json
 ```
+
+> `FACT_VALIDATOR_DB` is the canonical SQLite path variable. The legacy alias `FACTVALIDATOR_DB` is still accepted for backward compatibility.
 
 > The app runs without `SERPAPI_API_KEY` — evidence search will be skipped and all claims will resolve to `NEI`.
 
@@ -263,6 +265,7 @@ docker compose up -d
 | `OLLAMA_BASE_URL` | No | `http://127.0.0.1:11434` | Base URL of a running Ollama instance |
 | `OLLAMA_MODEL` | No | `llama3.1:8b` | Ollama model name used for debate-mode verdicts |
 | `FACT_VALIDATOR_DB` | No | `<repo>/data/fact_validator.db` | SQLite database file path |
+| `FACTVALIDATOR_DB` | Legacy alias | `""` | Backward-compatible alias for `FACT_VALIDATOR_DB` |
 | `FACTVALIDATOR_DOMAIN_CACHE` | No | `services/api/data/domain_cache.json` | Credibility score cache file path |
 
 ---

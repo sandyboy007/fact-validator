@@ -308,6 +308,7 @@ def enrich_evidence(claim: str, claim_profile: Dict[str, Any], ev: Dict[str, Any
     domain = ev.get("domain") or ""
     url = ev.get("url") or ""
     domain_score = int(ev.get("domain_score") or 0)
+    semantic_score = float(ev.get("semantic_score") or 0.0)
     primary_source, primary_reason = detect_primary_source(domain, url, title)
     source_type = guess_source_type(domain, url, title)
     year = extract_snippet_year(title, snippet)
@@ -323,6 +324,7 @@ def enrich_evidence(claim: str, claim_profile: Dict[str, Any], ev: Dict[str, Any
     quality = (
         domain_score * 0.46
         + min(int(ev.get("overlap") or 0), 10) * 2.1
+        + semantic_score * 16
         + (12 if primary_source else 0)
         + recent * 12
         + directness * 14
@@ -338,6 +340,7 @@ def enrich_evidence(claim: str, claim_profile: Dict[str, Any], ev: Dict[str, Any
     enriched.update(
         {
             "source_type": source_type,
+            "semantic_score": round(semantic_score, 4),
             "primary_source": primary_source,
             "primary_source_reason": primary_reason,
             "published_year": year,

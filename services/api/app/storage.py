@@ -3,9 +3,24 @@ import json
 import sqlite3
 from typing import Any, Dict, List, Optional
 from datetime import datetime
+from pathlib import Path
 
-# Change this if you want a different DB location
-DB_PATH = os.getenv("FACT_VALIDATOR_DB", r"C:\Fact_Validator\data\fact_validator.db")
+
+def _resolve_db_path() -> str:
+    # Canonical env var is FACT_VALIDATOR_DB.
+    # Keep FACTVALIDATOR_DB as a legacy fallback for compatibility.
+    db_from_env = (
+        os.getenv("FACT_VALIDATOR_DB", "").strip()
+        or os.getenv("FACTVALIDATOR_DB", "").strip()
+    )
+    if db_from_env:
+        return os.path.abspath(db_from_env)
+
+    repo_root = Path(__file__).resolve().parents[3]
+    return str((repo_root / "data" / "fact_validator.db").resolve())
+
+
+DB_PATH = _resolve_db_path()
 
 
 def _ensure_dir(path: str) -> None:

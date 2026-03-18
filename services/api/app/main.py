@@ -24,6 +24,8 @@ from app.analysis_features import (
     normalize_claim_key,
 )
 from app.credibility import score_domain_rubric
+from app.semantic_retrieval import semantic_rerank
+from app.source_routes import router as source_router
 from app.storage import (
     save_run,
     list_runs,
@@ -75,6 +77,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(source_router)
+
 
 
 
@@ -107,6 +111,7 @@ class EvidenceItem(BaseModel):
     domain: str
     domain_score: int
     overlap: int = 0
+    semantic_score: Optional[float] = None
     quality_score: Optional[float] = None
     stance: Optional[Literal["support", "refute", "neutral"]] = None
     source_type: Optional[str] = None
@@ -514,22 +519,6 @@ def evaluation_benchmark():
     return data
 
 
-# Step 9: Source credibility endpoint
-@app.get("/source/{domain}")
-def source_report(domain: str):
-    d = (domain or "").strip().lower()
-    rep = score_domain_rubric(d)
-    return {
-        "domain": d,
-        "base_domain": base_domain(d) if d else d,
-        "score": rep.score,
-        "label": rep.label,
-        "reasons": rep.reasons,
-        "timestamp_utc": datetime.utcnow().isoformat() + "Z",
-        "disclaimer": "Credibility score is heuristic and should be interpreted as a risk signal, not ground truth.",
-    }
-
-
 @app.get("/runs")
 def runs(limit: int = 50):
     return {"items": list_runs(limit=limit)}
@@ -580,6 +569,7 @@ async def analyze(req: AnalyzeRequest):
         "claims_debated": 0,
         "items": [],
         "memory_hits": 0,
+        "semantic_retrieval": {"enabled": True, "method": "unknown"},
     }
 
     for ct in claim_texts:
@@ -642,7 +632,14 @@ async def analyze(req: AnalyzeRequest):
                 }
             )
 
-        enriched_items = [enrich_evidence(ct, claim_profile, e) for e in ev_items]
+        reranked_items, semantic_meta = semantic_rerank(
+            ct,
+            ev_items,
+            top_k=req.max_evidence_per_claim,
+        )
+        debate_meta["semantic_retrieval"] = semantic_meta
+
+        enriched_items = [enrich_evidence(ct, claim_profile, e) for e in reranked_items]
         enriched_items.sort(
             key=lambda e: (float(e.get("quality_score") or 0.0), int(e.get("domain_score") or 0), int(e.get("overlap") or 0)),
             reverse=True,

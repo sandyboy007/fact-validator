@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import pytest
 from app.credibility import score_domain_rubric, base_domain, CredibilityScore
 from app.analysis_features import decompose_claim, determine_verdict, enrich_evidence
+from app.semantic_retrieval import semantic_rerank
 
 
 # ---------------------------------------------------------------------------
@@ -294,3 +295,50 @@ class TestStructuredVerdict:
         result = determine_verdict(claim, profile, evidence)
         assert result["structured_verdict"] == "Mixed / disputed"
         assert result["needs_human_review"] is True
+
+
+class TestSemanticRetrieval:
+    def test_semantic_rerank_adds_scores(self):
+        claim = "WHO declared COVID-19 a pandemic in 2020"
+        evidence = [
+            {
+                "title": "WHO declares pandemic",
+                "snippet": "WHO declared COVID-19 a pandemic in March 2020.",
+                "domain": "who.int",
+                "domain_score": 85,
+                "overlap": 8,
+            },
+            {
+                "title": "Sports update",
+                "snippet": "Football match and team transfer news.",
+                "domain": "sports.example",
+                "domain_score": 60,
+                "overlap": 1,
+            },
+        ]
+        ranked, meta = semantic_rerank(claim, evidence, top_k=2)
+        assert len(ranked) == 2
+        assert "semantic_score" in ranked[0]
+        assert 0.0 <= float(ranked[0]["semantic_score"]) <= 1.0
+        assert meta["enabled"] is True
+
+    def test_semantic_rerank_prefers_relevant_item(self):
+        claim = "global warming increases average temperature"
+        evidence = [
+            {
+                "title": "Climate report",
+                "snippet": "Global warming increases average temperatures worldwide.",
+                "domain": "reuters.com",
+                "domain_score": 80,
+                "overlap": 7,
+            },
+            {
+                "title": "Cooking tips",
+                "snippet": "How to bake bread and pastries at home.",
+                "domain": "food.example",
+                "domain_score": 80,
+                "overlap": 2,
+            },
+        ]
+        ranked, _ = semantic_rerank(claim, evidence, top_k=2)
+        assert ranked[0]["title"] == "Climate report"

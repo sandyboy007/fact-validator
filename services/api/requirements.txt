@@ -10,3 +10,10 @@ tldextract
 nltk
 watchfiles
 sentence-transformers
+slowapi
+python-json-logger
+pydantic[email]
+pytest
+pytest-asyncio
+pytest-mock
+httpx[http2]

@@ -1,13 +1,15 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, validator, ValidationError
 from typing import Optional, List, Literal, Dict, Any, Tuple
 from datetime import datetime
 import json
 from urllib.parse import urlparse
 import os
 import re
+import asyncio
+import time
 
 import httpx
 import trafilatura
@@ -34,6 +36,11 @@ from app.storage import (
     get_claim_memory,
     save_claim_memory,
 )
+from app.debate import llm_debate_verdict
+from app.logger import log_analyze_start, log_analyze_complete, log_debate_started, log_debate_error
+from app.config import Config
+from app.cache import get_cache
+from app.security import ollama_health, rate_limiter
 
  
 
@@ -77,6 +84,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add rate limiting middleware
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    if Config.FEATURE_RATE_LIMITING:
+        client_ip = request.client.host if request.client else "unknown"
+        if not rate_limiter.is_allowed(client_ip):
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "Rate limit exceeded. Max 100 requests per minute."}
+            )
+    response = await call_next(request)
+    return response
+
 app.include_router(source_router)
 
 
@@ -90,9 +110,9 @@ class AnalyzeRequest(BaseModel):
     url: Optional[str] = None
     text: Optional[str] = None
     mode: Literal["live", "snapshot"] = "live"
-    verifier: Literal["baseline", "debate"] = "baseline"  # debate can fallback
+    verifier: Literal["baseline", "debate"] = "baseline"
 
-    # optional Step 11 knobs (safe if unused by UI)
+    # optional control knobs
     enable_weighted_confidence: bool = False
     min_source_score: int = 50
     require_independent_domains: bool = True
@@ -102,6 +122,38 @@ class AnalyzeRequest(BaseModel):
     max_claims: int = 6
     max_evidence_per_claim: int = 5
     max_debate_claims: int = 2
+    
+    @validator("url")
+    @classmethod
+    def validate_url(cls, v: Optional[str]) -> Optional[str]:
+        if v and len(v) > Config.MAX_INPUT_URL_LENGTH:
+            raise ValueError(f"URL exceeds max length of {Config.MAX_INPUT_URL_LENGTH}")
+        return v
+    
+    @validator("text")
+    @classmethod
+    def validate_text(cls, v: Optional[str]) -> Optional[str]:
+        if v and len(v) > Config.MAX_INPUT_TEXT_LENGTH:
+            raise ValueError(f"Text exceeds max length of {Config.MAX_INPUT_TEXT_LENGTH}")
+        return v
+    
+    @validator("max_claims")
+    @classmethod
+    def validate_max_claims(cls, v: int) -> int:
+        if v > Config.MAX_CLAIMS_HARD_LIMIT:
+            raise ValueError(f"max_claims exceeds limit of {Config.MAX_CLAIMS_HARD_LIMIT}")
+        if v < 1:
+            raise ValueError("max_claims must be at least 1")
+        return v
+    
+    @validator("max_evidence_per_claim")
+    @classmethod
+    def validate_max_evidence(cls, v: int) -> int:
+        if v > Config.MAX_EVIDENCE_PER_CLAIM_LIMIT:
+            raise ValueError(f"max_evidence_per_claim exceeds limit of {Config.MAX_EVIDENCE_PER_CLAIM_LIMIT}")
+        if v < 1:
+            raise ValueError("max_evidence_per_claim must be at least 1")
+        return v
 
 
 class EvidenceItem(BaseModel):
@@ -501,6 +553,18 @@ def health():
     return {"status": "ok"}
 
 
+@app.get("/health/deep")
+async def health_deep():
+    """Deep health check including Ollama availability."""
+    ollama_available = await ollama_health.is_available()
+    return {
+        "status": "ok",
+        "ollama_available": ollama_available,
+        "debate_enabled": Config.FEATURE_DEBATE_MODE,
+        "config": Config.get_all(),
+    }
+
+
 @app.get("/evaluation/benchmark")
 def evaluation_benchmark():
     benchmark_path = os.path.join(
@@ -540,11 +604,15 @@ def runs_export(limit: int = 500):
 
 @app.post("/analyze")
 async def analyze(req: AnalyzeRequest):
+    start_time = time.time()
+    
     has_url = bool(req.url and req.url.strip())
     has_text = bool(req.text and req.text.strip())
 
     input_type: Literal["url", "text"] = "url" if has_url else "text"
     domain = extract_domain(req.url) if has_url else None
+    
+    log_analyze_start(input_type, domain or "(text)", req.max_claims)
 
     extracted_text = ""
     final_url = None
@@ -594,7 +662,16 @@ async def analyze(req: AnalyzeRequest):
             debate_meta["memory_hits"] += 1
             continue
 
-        raw_results = await serpapi_search(ct[:220], num=req.max_evidence_per_claim)
+        # Try to get cached SerpAPI results
+        raw_results = None
+        cache = get_cache() if Config.FEATURE_CACHING else None
+        if cache:
+            raw_results = cache.get(ct)
+        
+        if raw_results is None:
+            raw_results = await serpapi_search(ct[:220], num=req.max_evidence_per_claim)
+            if cache and raw_results:
+                cache.set(ct, raw_results)
 
         ev_items: List[Dict[str, Any]] = []
         seen_base_domains: Dict[str, int] = {}
@@ -706,6 +783,45 @@ async def analyze(req: AnalyzeRequest):
 
         if req.verifier == "debate":
             summary = summary + " | Debate mode currently uses enriched counter-evidence scoring before optional LLM debate."
+        
+        # Wire LLM debate mode if enabled
+        debate_result_raw = None
+        ollama_available = False
+        if req.verifier == "debate" and Config.FEATURE_DEBATE_MODE and enriched_items:
+            try:
+                log_debate_started(ct)
+                ollama_available = await ollama_health.is_available()
+                
+                if ollama_available:
+                    # Try debate with timeout protection
+                    debate_task = asyncio.create_task(
+                        llm_debate_verdict(ct, enriched_items)
+                    )
+                    try:
+                        debate_result_raw = await asyncio.wait_for(
+                            debate_task, 
+                            timeout=Config.OLLAMA_TIMEOUT
+                        )
+                    except asyncio.TimeoutError:
+                        log_debate_error(ct, Exception("Debate timeout, using baseline verdict"))
+                        debate_result_raw = None
+            except Exception as e:
+                log_debate_error(ct, e)
+                debate_result_raw = None
+        
+        # Apply debate result if available
+        if debate_result_raw:
+            debate_verdict, debate_conf, debate_msg, debate_debug = debate_result_raw
+            verdict = debate_verdict
+            conf = debate_conf
+            summary = f"LLM Debate: {debate_msg} | {summary}"
+            debate_meta["claims_debated"] += 1
+            debate_meta["items"].append({
+                "claim": ct[:100],
+                "debate_verdict": debate_verdict,
+                "ollama_model": os.getenv("OLLAMA_MODEL", "llama3.1:8b"),
+                "debug": debate_debug,
+            })
 
         claim_output = {
             "claim_text": ct,
@@ -718,6 +834,8 @@ async def analyze(req: AnalyzeRequest):
             "claim_profile": claim_profile,
             "evidence": [{k: v for k, v in e.items() if k != "base_domain"} for e in enriched_items],
             "debate_summary": summary,
+            "debate_used": req.verifier == "debate",
+            "debate_available": ollama_available,
             "adjusted_verdict": adjusted_verdict,
             "adjusted_confidence": adjusted_conf,
             "evidence_summary": evidence_summary,
@@ -795,5 +913,9 @@ async def analyze(req: AnalyzeRequest):
         response=response_dict,
     )
     response_dict["metadata"]["run_id"] = run_id
+    
+    # Log completion
+    duration_ms = (time.time() - start_time) * 1000
+    log_analyze_complete(run_id, len(claims), response_dict["final_misinformation_likelihood"], duration_ms)
 
     return response_dict

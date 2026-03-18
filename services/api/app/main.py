@@ -36,6 +36,7 @@ from app.storage import (
     export_runs,
     get_claim_memory,
     save_claim_memory,
+    init_db,
 )
 from app.debate import llm_debate_verdict
 from app.logger import log_analyze_start, log_analyze_complete, log_debate_started, log_debate_error
@@ -71,6 +72,9 @@ def _ensure_nltk():
 _ensure_nltk()
 
 app = FastAPI(title="Fact Validator API", version="0.8.2")
+
+# Initialize database on startup
+init_db()
 
 app.add_middleware(
     CORSMiddleware,

@@ -76,6 +76,7 @@ app = FastAPI(title="Fact Validator API", version="0.8.2")
 # Initialize database on startup
 init_db()
 
+# Add CORS middleware FIRST (before other middleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -83,15 +84,22 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "http://localhost:3001",
         "http://127.0.0.1:3001",
+        "http://192.168.0.106:3000",
+        "http://192.168.0.106:3001",
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    max_age=600,
 )
 
-# Add rate limiting middleware
+# Add rate limiting middleware (skip OPTIONS for CORS preflight)
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
+    # Skip rate limiting for OPTIONS requests (CORS preflight)
+    if request.method == "OPTIONS":
+        return await call_next(request)
+    
     if Config.FEATURE_RATE_LIMITING:
         client_ip = request.client.host if request.client else "unknown"
         if not rate_limiter.is_allowed(client_ip):

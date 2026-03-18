@@ -130,6 +130,22 @@ function staggerStyle(index: number, stepMs = 70) {
   return { animationDelay: `${index * stepMs}ms` };
 }
 
+function filterClaimsBySentiment(
+  claims: ClaimItem[],
+  sentimentFilter: string,
+  biasRiskFilter: string
+): ClaimItem[] {
+  return claims.filter((claim) => {
+    if (sentimentFilter !== "all" && claim.sentiment?.label !== sentimentFilter) {
+      return false;
+    }
+    if (biasRiskFilter !== "all" && claim.sentiment?.bias_risk !== biasRiskFilter) {
+      return false;
+    }
+    return true;
+  });
+}
+
 export default function Page() {
   const API_BASE = "http://127.0.0.1:8000";
 
@@ -156,6 +172,8 @@ export default function Page() {
 
   const [openClaimIdx, setOpenClaimIdx] = useState<number | null>(0);
   const [resultTab, setResultTab] = useState<"overview" | "claims" | "evidence">("overview");
+  const [sentimentFilter, setSentimentFilter] = useState<"all" | "positive" | "negative" | "neutral">("all");
+  const [biasRiskFilter, setBiasRiskFilter] = useState<"all" | "low" | "medium" | "high">("all");
 
   const [processingSteps, setProcessingSteps] = useState<
     { label: string; status: "pending" | "active" | "complete" | "error" }[]
@@ -548,22 +566,126 @@ export default function Page() {
 
                 <div className="p-5">
                   {resultTab === "claims" && (
-                    <div className="grid gap-3">
-                      {showResultSkeleton ? (
-                        Array.from({ length: 3 }).map((_, i) => (
-                          <div key={`claim-skeleton-${i}`} className="rounded-xl border border-slate-300/20 bg-slate-900/45 p-4 animate-pulse">
-                            <div className="h-3 w-24 rounded bg-slate-700" />
-                            <div className="h-4 w-full rounded bg-slate-700 mt-3" />
-                            <div className="h-4 w-11/12 rounded bg-slate-700 mt-2" />
+                    <div>
+                      {/* Sentiment Filter Controls */}
+                      {result?.claims && result.claims.some((c) => c.sentiment) && (
+                        <div className="mb-4 p-3 rounded-lg bg-slate-800/40 border border-slate-700/40">
+                          <div className="text-xs uppercase tracking-wider text-slate-400 mb-3 font-semibold">Filter by sentiment</div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                            <button
+                              onClick={() => setSentimentFilter("all")}
+                              className={cx(
+                                "px-3 py-2 rounded-lg text-xs font-medium transition border",
+                                sentimentFilter === "all"
+                                  ? "bg-cyan-400/15 border-cyan-300/40 text-cyan-100"
+                                  : "border-slate-300/20 text-slate-300 hover:border-slate-300/40"
+                              )}
+                            >
+                              All claims
+                            </button>
+                            <button
+                              onClick={() => setSentimentFilter("positive")}
+                              className={cx(
+                                "px-3 py-2 rounded-lg text-xs font-medium transition border",
+                                sentimentFilter === "positive"
+                                  ? "bg-blue-400/15 border-blue-300/40 text-blue-100"
+                                  : "border-slate-300/20 text-slate-300 hover:border-slate-300/40"
+                              )}
+                            >
+                              😊 Positive
+                            </button>
+                            <button
+                              onClick={() => setSentimentFilter("negative")}
+                              className={cx(
+                                "px-3 py-2 rounded-lg text-xs font-medium transition border",
+                                sentimentFilter === "negative"
+                                  ? "bg-orange-400/15 border-orange-300/40 text-orange-100"
+                                  : "border-slate-300/20 text-slate-300 hover:border-slate-300/40"
+                              )}
+                            >
+                              😠 Negative
+                            </button>
+                            <button
+                              onClick={() => setSentimentFilter("neutral")}
+                              className={cx(
+                                "px-3 py-2 rounded-lg text-xs font-medium transition border",
+                                sentimentFilter === "neutral"
+                                  ? "bg-slate-400/15 border-slate-300/40 text-slate-100"
+                                  : "border-slate-300/20 text-slate-300 hover:border-slate-300/40"
+                              )}
+                            >
+                              😐 Neutral
+                            </button>
+                          </div>
+                          <div className="mt-3 text-xs uppercase tracking-wider text-slate-400 font-semibold">Bias risk level</div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+                            <button
+                              onClick={() => setBiasRiskFilter("all")}
+                              className={cx(
+                                "px-3 py-2 rounded-lg text-xs font-medium transition border",
+                                biasRiskFilter === "all"
+                                  ? "bg-cyan-400/15 border-cyan-300/40 text-cyan-100"
+                                  : "border-slate-300/20 text-slate-300 hover:border-slate-300/40"
+                              )}
+                            >
+                              All risk levels
+                            </button>
+                            <button
+                              onClick={() => setBiasRiskFilter("low")}
+                              className={cx(
+                                "px-3 py-2 rounded-lg text-xs font-medium transition border",
+                                biasRiskFilter === "low"
+                                  ? "bg-emerald-400/15 border-emerald-300/40 text-emerald-100"
+                                  : "border-slate-300/20 text-slate-300 hover:border-slate-300/40"
+                              )}
+                            >
+                              🟢 Low risk
+                            </button>
+                            <button
+                              onClick={() => setBiasRiskFilter("medium")}
+                              className={cx(
+                                "px-3 py-2 rounded-lg text-xs font-medium transition border",
+                                biasRiskFilter === "medium"
+                                  ? "bg-amber-400/15 border-amber-300/40 text-amber-100"
+                                  : "border-slate-300/20 text-slate-300 hover:border-slate-300/40"
+                              )}
+                            >
+                              🟡 Medium risk
+                            </button>
+                            <button
+                              onClick={() => setBiasRiskFilter("high")}
+                              className={cx(
+                                "px-3 py-2 rounded-lg text-xs font-medium transition border",
+                                biasRiskFilter === "high"
+                                  ? "bg-rose-400/15 border-rose-300/40 text-rose-100"
+                                  : "border-slate-300/20 text-slate-300 hover:border-slate-300/40"
+                              )}
+                            >
+                              🔴 High risk
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid gap-3">
+                        {showResultSkeleton ? (
+                          Array.from({ length: 3 }).map((_, i) => (
+                            <div key={`claim-skeleton-${i}`} className="rounded-xl border border-slate-300/20 bg-slate-900/45 p-4 animate-pulse">
+                              <div className="h-3 w-24 rounded bg-slate-700" />
+                              <div className="h-4 w-full rounded bg-slate-700 mt-3" />
+                              <div className="h-4 w-11/12 rounded bg-slate-700 mt-2" />
                           </div>
                         ))
                       ) : result.claims && result.claims.length > 0 ? (
-                        result.claims.map((c, idx) => {
-                          const open = openClaimIdx === idx;
-                          return (
-                            <div key={idx} className="rounded-xl border border-slate-300/20 bg-slate-900/45 overflow-hidden stagger-card hover-lift" style={staggerStyle(idx, 50)}>
-                              <button
-                                className="w-full p-4 text-left hover:bg-slate-900/60 transition"
+                        (() => {
+                          const filteredClaims = filterClaimsBySentiment(result.claims, sentimentFilter, biasRiskFilter);
+                          return filteredClaims.length > 0 ? (
+                            filteredClaims.map((c, idx) => {
+                              const open = openClaimIdx === idx;
+                              return (
+                                <div key={idx} className="rounded-xl border border-slate-300/20 bg-slate-900/45 overflow-hidden stagger-card hover-lift" style={staggerStyle(idx, 50)}>
+                                  <button
+                                    className="w-full p-4 text-left hover:bg-slate-900/60 transition"
                                 onClick={() => setOpenClaimIdx(open ? null : idx)}
                               >
                                 <div className="flex items-start justify-between gap-3">
@@ -677,12 +799,19 @@ export default function Page() {
                               )}
                             </div>
                           );
-                        })
+                            })
+                          ) : (
+                            <div className="text-center py-8 text-slate-400">
+                              No claims match the selected filters.
+                            </div>
+                          );
+                        })()
                       ) : (
                         <div className="text-center py-8 text-slate-400">
                           No claims found. Try analyzing longer text or a different source.
                         </div>
                       )}
+                      </div>
                     </div>
                   )}
 

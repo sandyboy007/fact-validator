@@ -16,6 +16,7 @@ class SentimentResult:
 
 # Sentiment lexicons for rule-based analysis (VADER-inspired)
 _POSITIVE_WORDS = {
+    # General positive
     "good", "great", "excellent", "amazing", "wonderful", "fantastic", 
     "best", "better", "improved", "success", "successful", "progress",
     "benefits", "beneficial", "positive", "uplifting", "inspiring",
@@ -23,9 +24,25 @@ _POSITIVE_WORDS = {
     "breakthrough", "innovative", "revolutionary", "advanced",
     "helpful", "supportive", "thriving", "flourishing", "growth",
     "safe", "effective", "reliable", "trustworthy", "confident",
+    # Science/research
+    "discover", "discovered", "finding", "found", "study", "research",
+    "academic", "peer-reviewed", "evidence", "data", "scientific",
+    # Success/achievement
+    "award", "winning", "triumph", "victory", "achieve", "accomplished",
+    "outperform", "leading", "top", "first", "champion",
+    # Health/wellbeing
+    "healing", "cure", "recovery", "wellness", "healthy", "vital",
+    "natural", "organic", "pure", "clean", "fresh",
+    # Trust/credibility
+    "transparent", "honest", "integrity", "ethical", "legitimate",
+    "verified", "certified", "official", "authorized", "valid",
+    # Quality
+    "quality", "premium", "superior", "exceptional", "outstanding",
+    "remarkable", "impressive", "stunning", "beautiful", "elegant",
 }
 
 _NEGATIVE_WORDS = {
+    # General negative
     "bad", "terrible", "horrible", "awful", "worst", "worse",
     "failed", "failure", "disaster", "crisis", "emergency",
     "danger", "dangerous", "threat", "scary", "terrifying",
@@ -35,6 +52,23 @@ _NEGATIVE_WORDS = {
     "collapse", "ruin", "destroyed", "devastated", "catastrophic",
     "controversial", "blamed", "accused", "guilty", "criminal",
     "problematic", "misleading", "wrong", "flawed", "defective",
+    # Health/disease
+    "disease", "illness", "sick", "infected", "virus", "pandemic",
+    "epidemic", "plague", "outbreak", "contagion", "contamination",
+    "side-effect", "toxin", "poison", "overdose", "death", "dying",
+    # Distrust
+    "suspicious", "doubt", "questionable", "unreliable", "untrustworthy",
+    "fraudulent", "scam", "scheme", "corruption", "bribery",
+    "censorship", "suppression", "coverup", "hidden", "secret",
+    # Decline/failure
+    "decline", "declining", "falling", "crash", "plummet", "bankruptcy",
+    "unemployment", "poverty", "inequality", "suffering", "crisis",
+    # Violation/abuse
+    "abuse", "assault", "violation", "attack", "aggression", "violence",
+    "oppression", "discrimination", "injustice", "exploitation",
+    # Intensity negatives
+    "disgusting", "repugnant", "abhorrent", "revolting", "sickening",
+    "grotesque", "vile", "despicable", "heinous", "monstrous",
 }
 
 # Emotional amplifiers and intensifiers
@@ -42,31 +76,93 @@ _INTENSIFIERS = {
     "extremely", "very", "incredibly", "absolutely", "definitely",
     "completely", "totally", "utterly", "pure", "sheer",
     "massive", "huge", "enormous", "tremendous", "shocking",
+    # Additional intensifiers
+    "profoundly", "deeply", "severely", "dramatically", "significantly",
+    "remarkably", "exceptionally", "extraordinarily", "exceptionally",
+    "undeniably", "unquestionably", "indisputably", "incontrovertibly",
+    "devastatingly", "overwhelmingly", "stunningly", "shockingly",
 }
 
 # Red flag words for emotional manipulation
 _MANIPULATION_FLAGS = {
+    # Sensationalism
     "shocking": "sensationalism",
     "bombshell": "sensationalism",
     "exposed": "alarmism",
+    "breaking": "sensationalism",
+    "urgent": "sensationalism",
+    "must-see": "sensationalism",
+    "incredible": "sensationalism",
+    
+    # Conspiracy/Cover-up
     "coverup": "conspiracy-thinking",
-    "must see": "urgency-manipulation",
-    "everyone knows": "false-consensus",
+    "hidden": "conspiracy-thinking",
+    "suppressed": "conspiracy-thinking",
+    "shadow": "conspiracy-thinking",
+    "elite": "conspiracy-thinking",
+    
+    # Alarmism
+    "wake-up": "alarmism",
+    "awakening": "conspiratorial",
+    "warning": "alarmism",
+    "beware": "alarmism",
+    "danger": "alarmism",
+    
+    # False consensus
+    "everyone-knows": "false-consensus",
+    "obviously": "false-certainty",
+    "clearly": "false-certainty",
+    "evidently": "false-certainty",
+    
+    # Certainty claims
     "proof": "false-certainty",
     "guaranteed": "false-certainty",
-    "awakening": "conspiratorial",
-    "sheeple": "ad-hominem",
-    "wake up": "alarmism",
+    "proven": "false-certainty",
+    "undeniable": "false-certainty",
+    "incontrovertible": "false-certainty",
+    
+    # Manipulation tactics
     "miracle": "exaggeration",
-    "secret": "mystique",
-    "mainstream media": "propaganda-framing",
-    "fake news": "propaganda-framing",
-    "censorship": "persecution-narrative",
+    "cure-all": "exaggeration",
+    "secret-weapon": "mystique",
+    "ancient-secret": "mystique",
+    "they-don't-want": "persecution-narrative",
+    
+    # Propaganda framing
+    "mainstream-media": "propaganda-framing",
+    "mainstream": "propaganda-framing",
+    "fake-news": "propaganda-framing",
+    "lamestream": "propaganda-framing",
+    "legacy-media": "propaganda-framing",
+    "state-media": "propaganda-framing",
+    
+    # Demonization
     "evil": "demonization",
     "traitor": "demonization",
-    "criminal": "demonization",
+    "enemy": "demonization",
+    "villain": "demonization",
+    "scum": "demonization",
+    "corrupt": "demonization",
+    
+    # Ad hominem / Dismissiveness
+    "sheeple": "ad-hominem",
+    "sheep": "ad-hominem",
+    "idiot": "ad-hominem",
+    "moron": "ad-hominem",
+    "brainwashed": "ad-hominem",
+    "asleep": "ad-hominem",
+    
+    # Dismissal of evidence
     "scam": "dismissiveness",
+    "hoax": "dismissiveness",
     "propaganda": "propaganda-framing",
+    "lies": "dismissiveness",
+    
+    # Persecution narratives
+    "censored": "persecution-narrative",
+    "silenced": "persecution-narrative",
+    "attacked": "persecution-narrative",
+    "hunted": "persecution-narrative",
 }
 
 
@@ -170,3 +266,52 @@ def estimate_bias_risk(sentiment_label: str, emotional_intensity: float, flags: 
         return "medium"
     else:
         return "low"
+
+
+def calculate_sentiment_misinformation_adjustment(
+    sentiment_result: SentimentResult,
+) -> float:
+    """
+    Calculate adjustment factor (0-0.4) to apply to misinformation likelihood based on sentiment.
+    
+    Higher emotional intensity + manipulative flags = higher adjustment.
+    This can be added to the base misinformation likelihood.
+    
+    Returns:
+        float: Adjustment factor between 0 and 0.4
+    """
+    adjustment = 0.0
+    
+    # Base adjustment from emotional intensity
+    if sentiment_result.emotional_intensity > 0.7:
+        adjustment += 0.2  # High emotion = 20% boost
+    elif sentiment_result.emotional_intensity > 0.5:
+        adjustment += 0.1  # Medium emotion = 10% boost
+    
+    # Negative sentiment slightly increases risk
+    if sentiment_result.label == "negative":
+        adjustment += 0.05
+    
+    # Each manipulation flag adds 5% adjustment
+    flag_adjustment = min(0.15, len(sentiment_result.flags) * 0.05)
+    adjustment += flag_adjustment
+    
+    # Cap at 0.4
+    return min(0.4, adjustment)
+
+
+def get_sentiment_summary(sentiment_result: SentimentResult) -> str:
+    """Generate a human-readable summary of sentiment analysis."""
+    intensity_level = "highly" if sentiment_result.emotional_intensity > 0.6 else "moderately" if sentiment_result.emotional_intensity > 0.3 else "slightly"
+    
+    summary = f"This claim is {intensity_level} emotionally charged with {sentiment_result.label} sentiment"
+    
+    if sentiment_result.flags:
+        summary += f" with red flags detected: {', '.join(sentiment_result.flags[:3])}"
+        if len(sentiment_result.flags) > 3:
+            summary += f" and {len(sentiment_result.flags) - 3} more"
+        summary += " (possible manipulation)."
+    else:
+        summary += "."
+    
+    return summary

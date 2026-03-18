@@ -27,7 +27,7 @@ from app.analysis_features import (
 )
 from app.credibility import score_domain_rubric
 from app.semantic_retrieval import semantic_rerank
-from app.sentiment import analyze_sentiment, estimate_bias_risk
+from app.sentiment import analyze_sentiment, estimate_bias_risk, calculate_sentiment_misinformation_adjustment, get_sentiment_summary
 from app.source_routes import router as source_router
 from app.storage import (
     save_run,
@@ -879,6 +879,28 @@ async def analyze(req: AnalyzeRequest):
         [ClaimResult(**c) for c in claims],
         input_domain_score=input_domain_score,
     )
+
+    # Apply sentiment-based adjustment to misinformation likelihood
+    sentiment_adjustments = []
+    for claim in claims:
+        if "sentiment" in claim:
+            sent = claim["sentiment"]
+            # Create SentimentResult-like object for adjustment calculation
+            from app.sentiment import SentimentResult
+            sent_result = SentimentResult(
+                score=sent["score"],
+                label=sent["label"],
+                emotional_intensity=sent["emotional_intensity"],
+                flags=sent.get("manipulation_flags", [])
+            )
+            adjustment = calculate_sentiment_misinformation_adjustment(sent_result)
+            sentiment_adjustments.append(adjustment)
+    
+    if sentiment_adjustments:
+        avg_sentiment_adjustment = sum(sentiment_adjustments) / len(sentiment_adjustments)
+        # Adjust final misinformation likelihood (max +0.4, min -0.05)
+        final_like = min(1.0, max(0.0, final_like + avg_sentiment_adjustment))
+        debate_meta["sentiment_adjustment_applied"] = round(avg_sentiment_adjustment, 3)
 
     response_dict: Dict[str, Any] = {
         "input_type": input_type,

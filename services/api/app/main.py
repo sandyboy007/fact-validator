@@ -27,6 +27,7 @@ from app.analysis_features import (
 )
 from app.credibility import score_domain_rubric
 from app.semantic_retrieval import semantic_rerank
+from app.sentiment import analyze_sentiment, estimate_bias_risk
 from app.source_routes import router as source_router
 from app.storage import (
     save_run,
@@ -823,6 +824,14 @@ async def analyze(req: AnalyzeRequest):
                 "debug": debate_debug,
             })
 
+        # Perform sentiment analysis on the claim
+        sentiment_result = analyze_sentiment(ct)
+        bias_risk = estimate_bias_risk(
+            sentiment_result.label,
+            sentiment_result.emotional_intensity,
+            sentiment_result.flags
+        )
+
         claim_output = {
             "claim_text": ct,
             "verdict": verdict,
@@ -839,6 +848,13 @@ async def analyze(req: AnalyzeRequest):
             "adjusted_verdict": adjusted_verdict,
             "adjusted_confidence": adjusted_conf,
             "evidence_summary": evidence_summary,
+            "sentiment": {
+                "score": sentiment_result.score,
+                "label": sentiment_result.label,
+                "emotional_intensity": sentiment_result.emotional_intensity,
+                "bias_risk": bias_risk,
+                "manipulation_flags": sentiment_result.flags,
+            },
             "memory": {
                 "hit": memory_hit,
                 "mode": "live" if req.mode == "live" else "snapshot-refresh",
@@ -897,6 +913,8 @@ async def analyze(req: AnalyzeRequest):
                 "anti_manipulation_flags",
                 "expertise_profiles",
                 "human_review_mode",
+                "sentiment_analysis",
+                "emotional_bias_detection",
             ],
             "benchmark_endpoint": "/evaluation/benchmark",
             "note": "Runs are saved to SQLite; list at GET /runs and export at GET /runs-export.",

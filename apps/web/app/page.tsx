@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { cx, Tooltip, Tabs, ProgressIndicator, ScoreBadge, VerdictBadge, Alert, StatCard } from "../components/ui";
+import { cx, Tooltip, Tabs, ProgressIndicator, ScoreBadge, VerdictBadge, SentimentBadge, Alert, StatCard } from "../components/ui";
 
 type EvidenceItem = {
   url: string;
@@ -55,6 +55,13 @@ type ClaimItem = {
     oldest_citation_year?: number;
     newest_citation_year?: number;
     average_quality_score?: number;
+  };
+  sentiment?: {
+    score: number;
+    label: "positive" | "negative" | "neutral";
+    emotional_intensity: number;
+    bias_risk: "low" | "medium" | "high";
+    manipulation_flags?: string[];
   };
 };
 
@@ -565,6 +572,14 @@ export default function Page() {
                                     <div className="mt-1 text-sm text-white leading-relaxed">{c.claim_text}</div>
                                     <div className="mt-2 flex flex-wrap items-center gap-2">
                                       <VerdictBadge verdict={c.verdict} confidence={c.confidence} />
+                                      {c.sentiment && (
+                                        <SentimentBadge
+                                          label={c.sentiment.label}
+                                          score={c.sentiment.score}
+                                          emotionalIntensity={c.sentiment.emotional_intensity}
+                                          biasRisk={c.sentiment.bias_risk}
+                                        />
+                                      )}
                                       {c.needs_human_review && (
                                         <span className="px-2 py-1 text-xs rounded-full border border-amber-300/30 bg-amber-300/10 text-amber-100">
                                           👤 Human review
@@ -603,6 +618,50 @@ export default function Page() {
                                       </div>
                                     </div>
                                   </div>
+
+                                  {c.sentiment && (
+                                    <div className="rounded-lg border border-slate-300/20 bg-slate-800/40 p-3 mb-4 text-xs">
+                                      <div className="font-semibold text-slate-100 mb-2">😊 Sentiment Analysis</div>
+                                      <div className="space-y-2 text-slate-300">
+                                        <div className="flex items-center justify-between">
+                                          <span>Sentiment:</span>
+                                          <SentimentBadge
+                                            label={c.sentiment.label}
+                                            score={c.sentiment.score}
+                                            emotionalIntensity={c.sentiment.emotional_intensity}
+                                            biasRisk={c.sentiment.bias_risk}
+                                          />
+                                        </div>
+                                        <div>Emotional intensity: {Math.round(c.sentiment.emotional_intensity * 100)}%</div>
+                                        <div>
+                                          Bias risk:{" "}
+                                          <span
+                                            className={
+                                              c.sentiment.bias_risk === "high"
+                                                ? "text-rose-400"
+                                                : c.sentiment.bias_risk === "medium"
+                                                ? "text-amber-400"
+                                                : "text-emerald-400"
+                                            }
+                                          >
+                                            {c.sentiment.bias_risk.toUpperCase()}
+                                          </span>
+                                        </div>
+                                        {c.sentiment.manipulation_flags && c.sentiment.manipulation_flags.length > 0 && (
+                                          <div className="pt-2 border-t border-slate-600">
+                                            <div className="font-semibold text-amber-300 mb-1">⚠️ Detected manipulation:</div>
+                                            <div className="space-y-1">
+                                              {c.sentiment.manipulation_flags.map((flag, i) => (
+                                                <div key={i} className="text-amber-200">
+                                                  • {flag}
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
 
                                   {c.uncertainty_reasons && c.uncertainty_reasons.length > 0 && (
                                     <div className="rounded-lg border border-amber-300/30 bg-amber-300/10 p-3 text-xs text-amber-100">

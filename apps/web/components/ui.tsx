@@ -158,6 +158,44 @@ export function VerdictBadge({
   );
 }
 
+export function SentimentBadge({
+  label,
+  score,
+  emotionalIntensity,
+  biasRisk,
+}: {
+  label: "positive" | "negative" | "neutral";
+  score?: number;
+  emotionalIntensity?: number;
+  biasRisk?: "low" | "medium" | "high";
+}) {
+  const icon = label === "positive" ? "😊" : label === "negative" ? "😠" : "😐";
+  const color =
+    label === "positive"
+      ? "bg-blue-400/15 border-blue-300/40 text-blue-100 hover:bg-blue-400/20"
+      : label === "negative"
+      ? "bg-orange-400/15 border-orange-300/40 text-orange-100 hover:bg-orange-400/20"
+      : "bg-slate-400/15 border-slate-300/40 text-slate-100 hover:bg-slate-400/20";
+
+  const riskColor =
+    biasRisk === "high" ? "text-rose-300" : biasRisk === "medium" ? "text-amber-300" : "text-emerald-300";
+
+  return (
+    <Tooltip content={`Emotional intensity: ${Math.round((emotionalIntensity || 0) * 100)}% | Bias risk: ${biasRisk || "unknown"}`}>
+      <span
+        className={cx(
+          "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold cursor-help transition",
+          color
+        )}
+      >
+        <span className="text-sm">{icon}</span>
+        <span className="capitalize">{label}</span>
+        {typeof score === "number" && <span className={cx("text-xs", riskColor)}>●</span>}
+      </span>
+    </Tooltip>
+  );
+}
+
 export function Badge({
   children,
   variant = "neutral",

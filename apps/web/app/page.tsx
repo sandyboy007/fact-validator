@@ -749,36 +749,32 @@ export default function Page() {
   const showResultSkeleton = loading && !result;
 
   return (
-    <main className="min-h-screen text-slate-100 relative overflow-hidden">
+    <main className="min-h-screen text-slate-900 relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 grid-overlay opacity-30" />
-      <div className="pointer-events-none absolute -top-24 left-[-5rem] h-80 w-80 rounded-full bg-cyan-400/20 blur-3xl" />
-      <div className="pointer-events-none absolute top-10 right-0 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-emerald-400/10 blur-3xl" />
+      <div className="pointer-events-none absolute -top-24 left-[-5rem] h-80 w-80 rounded-full bg-rose-400/20 blur-3xl" />
+      <div className="pointer-events-none absolute top-10 right-0 h-96 w-96 rounded-full bg-amber-300/20 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-slate-300/30 blur-3xl" />
 
       <div className="relative mx-auto max-w-7xl px-4 py-8 md:py-10 section-fade-in flex flex-col gap-6">
         {/* Header */}
         <header className="glass-panel rounded-3xl p-5 md:p-7 border order-1">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3 py-1 text-[11px] uppercase tracking-wider text-cyan-200">
-                <span className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_12px_#42d9ff]" />
-                AI Verification Console
-              </div>
-              <h1 className="mt-4 text-3xl md:text-4xl font-semibold leading-tight text-white">
-                Fact Validator AI
+              <h1 className="mt-4 text-3xl md:text-4xl font-semibold leading-tight text-slate-950">
+                Fact Validator
               </h1>
               <p className="mt-2 max-w-2xl text-sm md:text-base text-slate-300">
                 Professional-grade claim intelligence with credibility scoring, counter-evidence analysis, uncertainty disclosure, and explainable verdicts.
               </p>
               <div className="mt-3 inline-flex rounded-xl border border-slate-300/20 overflow-hidden">
                 <button
-                  className={cx("px-3 py-1.5 text-xs font-semibold transition", audienceMode === "user" ? "bg-cyan-400/15 text-cyan-100" : "text-slate-300 hover:bg-slate-800/50")}
+                  className={cx("px-3 py-1.5 text-xs font-semibold transition", audienceMode === "user" ? "bg-rose-500/10 text-rose-800" : "text-slate-600 hover:bg-slate-200/70")}
                   onClick={() => setAudienceMode("user")}
                 >
                   User View
                 </button>
                 <button
-                  className={cx("px-3 py-1.5 text-xs font-semibold transition", audienceMode === "analyst" ? "bg-cyan-400/15 text-cyan-100" : "text-slate-300 hover:bg-slate-800/50")}
+                  className={cx("px-3 py-1.5 text-xs font-semibold transition", audienceMode === "analyst" ? "bg-rose-500/10 text-rose-800" : "text-slate-600 hover:bg-slate-200/70")}
                   onClick={() => setAudienceMode("analyst")}
                 >
                   Analyst View
@@ -1368,7 +1364,7 @@ export default function Page() {
           {/* Left: Input Panel */}
           <div id="full-verifier" className="glass-panel rounded-3xl border p-5 md:p-6 section-fade-in">
             <div className="flex items-center justify-between mb-4">
-              <div className="text-sm uppercase tracking-wider text-slate-300 font-semibold">Input Setup</div>
+              <div className="text-sm uppercase tracking-wider text-slate-300 font-semibold">Let’s Verify Your Fact</div>
               <button className="text-xs px-3 py-1.5 rounded-lg border border-slate-300/20 hover:border-cyan-300/40 transition" onClick={() => setShowAdvanced((v) => !v)}>
                 {showAdvanced ? "Hide" : "Show"} advanced
               </button>

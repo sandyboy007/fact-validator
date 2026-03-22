@@ -24,12 +24,12 @@ export function Tooltip({
       {show && (
         <div
           className={cx(
-            "absolute z-50 px-3 py-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-100 whitespace-nowrap",
+            "absolute z-50 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 whitespace-nowrap shadow-lg",
             position === "right" ? "left-full ml-2 top-0" : position === "bottom" ? "top-full mt-2 left-1/2 -translate-x-1/2" : "bottom-full mb-2 left-1/2 -translate-x-1/2"
           )}
         >
           {content}
-          <div className={cx("absolute w-2 h-2 bg-slate-900 border border-slate-700", position === "right" ? "-left-1 top-2" : position === "bottom" ? "bottom-full -translate-x-1/2 left-1/2 border-t-0 border-l-0" : "top-full -translate-x-1/2 left-1/2 border-b-0 border-l-0")} />
+          <div className={cx("absolute w-2 h-2 bg-white border border-slate-200", position === "right" ? "-left-1 top-2" : position === "bottom" ? "bottom-full -translate-x-1/2 left-1/2 border-t-0 border-l-0" : "top-full -translate-x-1/2 left-1/2 border-b-0 border-l-0")} />
         </div>
       )}
     </div>
@@ -46,7 +46,7 @@ export function Tabs({
   onTabChange: (value: string) => void;
 }) {
   return (
-    <div className="flex gap-2 border-b border-slate-300/20">
+    <div className="flex gap-2 border-b border-slate-200">
       {tabs.map((tab) => (
         <button
           key={tab.value}
@@ -54,8 +54,8 @@ export function Tabs({
           className={cx(
             "flex items-center gap-1 px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap",
             activeTab === tab.value
-              ? "border-cyan-400 text-cyan-100"
-              : "border-transparent text-slate-300 hover:text-slate-100"
+              ? "border-rose-600 text-rose-700"
+              : "border-transparent text-slate-600 hover:text-slate-900"
           )}
         >
           {tab.icon && <span className="text-base">{tab.icon}</span>}
@@ -77,6 +77,7 @@ export function ProgressIndicator({
 }) {
   return (
     <div className="space-y-3">
+      <div className="sr-only">Current step {currentStep}</div>
       {steps.map((step, idx) => (
         <div key={idx} className="flex items-center gap-3">
           <div
@@ -120,10 +121,10 @@ export function ScoreBadge({
     variant === "good"
       ? "bg-emerald-400/15 border-emerald-300/40 text-emerald-100"
       : variant === "bad"
-      ? "bg-rose-400/15 border-rose-300/40 text-rose-100"
+      ? "bg-rose-100 border-rose-300 text-rose-800"
       : variant === "warn"
-      ? "bg-amber-400/15 border-amber-300/40 text-amber-100"
-      : "bg-cyan-400/15 border-cyan-300/40 text-cyan-100";
+      ? "bg-amber-100 border-amber-300 text-amber-900"
+      : "bg-slate-100 border-slate-300 text-slate-800";
 
   return (
     <span className={cx("inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium", colors)}>
@@ -144,10 +145,10 @@ export function VerdictBadge({
   const icon = v === "SUPPORTED" ? "✓" : v === "REFUTED" ? "✕" : "?";
   const color =
     v === "SUPPORTED"
-      ? "bg-emerald-400/15 border-emerald-300/40 text-emerald-100"
+      ? "bg-emerald-100 border-emerald-300 text-emerald-800"
       : v === "REFUTED"
-      ? "bg-rose-400/15 border-rose-300/40 text-rose-100"
-      : "bg-amber-400/15 border-amber-300/40 text-amber-100";
+      ? "bg-rose-100 border-rose-300 text-rose-800"
+      : "bg-amber-100 border-amber-300 text-amber-900";
 
   return (
     <span className={cx("inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold", color)}>
@@ -174,8 +175,8 @@ export function SentimentBadge({
     label === "positive"
       ? "bg-blue-400/15 border-blue-300/40 text-blue-100 hover:bg-blue-400/20"
       : label === "negative"
-      ? "bg-orange-400/15 border-orange-300/40 text-orange-100 hover:bg-orange-400/20"
-      : "bg-slate-400/15 border-slate-300/40 text-slate-100 hover:bg-slate-400/20";
+      ? "bg-orange-100 border-orange-300 text-orange-900 hover:bg-orange-200"
+      : "bg-slate-100 border-slate-300 text-slate-800 hover:bg-slate-200";
 
   const riskColor =
     biasRisk === "high" ? "text-rose-300" : biasRisk === "medium" ? "text-amber-300" : "text-emerald-300";
@@ -322,10 +323,10 @@ export function Alert({
     type === "success"
       ? "bg-emerald-400/10 border-emerald-300/30 text-emerald-100"
       : type === "error"
-      ? "bg-rose-400/10 border-rose-300/30 text-rose-100"
+      ? "bg-rose-100 border-rose-300 text-rose-800"
       : type === "warn"
-      ? "bg-amber-400/10 border-amber-300/30 text-amber-100"
-      : "bg-cyan-400/10 border-cyan-300/30 text-cyan-100";
+      ? "bg-amber-100 border-amber-300 text-amber-900"
+      : "bg-slate-100 border-slate-300 text-slate-800";
 
   const icon =
     type === "success" ? "✓" : type === "error" ? "✕" : type === "warn" ? "!" : "ℹ";

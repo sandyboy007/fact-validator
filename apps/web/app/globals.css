@@ -4,14 +4,14 @@
 @tailwind utilities;
 
 :root {
-  --background: #1b1f26;
-  --foreground: #1a2431;
-  --muted: #5f6c7a;
-  --surface: rgba(255, 255, 255, 0.92);
-  --surface-border: rgba(15, 23, 42, 0.12);
-  --accent-cyan: #a71d2a;
-  --accent-blue: #8b1320;
-  --accent-teal: #cf2e3f;
+  --background: #0f141b;
+  --foreground: #e5eaf1;
+  --muted: #9aa4b2;
+  --surface: rgba(21, 28, 38, 0.9);
+  --surface-border: rgba(120, 138, 161, 0.26);
+  --accent-cyan: #d6dde7;
+  --accent-blue: #b7c1cf;
+  --accent-teal: #95a3b8;
 }
 
 @theme inline {
@@ -27,15 +27,15 @@ body {
   font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
   min-height: 100vh;
   background-image:
-    radial-gradient(circle at 8% 10%, rgba(167, 29, 42, 0.18), transparent 34%),
-    radial-gradient(circle at 90% 16%, rgba(207, 46, 63, 0.12), transparent 30%),
-    linear-gradient(180deg, #222831 0%, #1b1f26 52%, #171b22 100%);
+    radial-gradient(circle at 10% 8%, rgba(148, 163, 184, 0.2), transparent 34%),
+    radial-gradient(circle at 92% 12%, rgba(100, 116, 139, 0.12), transparent 30%),
+    linear-gradient(180deg, #19202a 0%, #0f141b 56%, #0a0f14 100%);
 }
 
 .glass-panel {
   background: var(--surface);
   border: 1px solid var(--surface-border);
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 14px 34px rgba(2, 6, 23, 0.42);
   backdrop-filter: blur(8px);
 }
 
@@ -54,8 +54,8 @@ body {
 
 .hover-lift:hover {
   transform: translateY(-3px) scale(1.002);
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
-  border-color: rgba(167, 29, 42, 0.32);
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.5);
+  border-color: rgba(148, 163, 184, 0.5);
 }
 
 .meter-fill {
@@ -65,7 +65,7 @@ body {
 .skeleton {
   position: relative;
   overflow: hidden;
-  background: rgba(148, 163, 184, 0.28);
+  background: rgba(71, 85, 105, 0.35);
 }
 
 .skeleton::after {
@@ -73,7 +73,7 @@ body {
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
+  background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.24), transparent);
   animation: skeletonShimmer 1.15s infinite;
 }
 
@@ -107,8 +107,8 @@ body {
 
 .grid-overlay {
   background-image:
-    linear-gradient(to right, rgba(100, 116, 139, 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(100, 116, 139, 0.07) 1px, transparent 1px);
+    linear-gradient(to right, rgba(100, 116, 139, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(100, 116, 139, 0.08) 1px, transparent 1px);
   background-size: 34px 34px;
 }
 
@@ -119,20 +119,26 @@ body {
 .text-cyan-100,
 .text-cyan-200,
 .text-cyan-300 {
-  color: #17212e !important;
+  color: #e5eaf1 !important;
 }
 
 .text-slate-300,
 .text-slate-400 {
-  color: #5b6775 !important;
+  color: #9aa4b2 !important;
 }
 
 .text-rose-200,
-.text-rose-300,
+.text-rose-300 {
+  color: #b91c1c !important;
+}
+
 .text-amber-200,
-.text-amber-300,
+.text-amber-300 {
+  color: #b45309 !important;
+}
+
 .text-emerald-300 {
-  color: #a71d2a !important;
+  color: #15803d !important;
 }
 
 .bg-slate-900\/70,
@@ -142,7 +148,7 @@ body {
 .bg-slate-900\/30,
 .bg-slate-800\/30,
 .bg-slate-700\/30 {
-  background-color: rgba(241, 245, 249, 0.92) !important;
+  background-color: rgba(15, 19, 26, 0.88) !important;
 }
 
 .border-slate-700,
@@ -152,16 +158,34 @@ body {
 .border-slate-400\/30,
 .border-cyan-400\/20,
 .border-cyan-300\/30 {
-  border-color: rgba(148, 163, 184, 0.4) !important;
+  border-color: rgba(71, 85, 105, 0.52) !important;
 }
 
 .bg-cyan-500\/5,
 .bg-cyan-400\/10,
 .bg-cyan-400\/15,
 .bg-cyan-400\/20 {
-  background-color: rgba(167, 29, 42, 0.08) !important;
+  background-color: rgba(71, 85, 105, 0.28) !important;
 }
 
 .hover\:border-cyan-300\/40:hover {
-  border-color: rgba(167, 29, 42, 0.42) !important;
+  border-color: rgba(148, 163, 184, 0.5) !important;
+}
+
+.verdict-supported {
+  background-color: #dcfce7 !important;
+  border-color: #86efac !important;
+  color: #166534 !important;
+}
+
+.verdict-refuted {
+  background-color: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+  color: #991b1b !important;
+}
+
+.verdict-nei {
+  background-color: #fef3c7 !important;
+  border-color: #fcd34d !important;
+  color: #92400e !important;
 }

@@ -46,16 +46,16 @@ export function Tabs({
   onTabChange: (value: string) => void;
 }) {
   return (
-    <div className="flex gap-2 border-b border-slate-200">
+    <div className="flex gap-2 rounded-xl border border-slate-700/50 bg-slate-900/60 px-2 py-1.5">
       {tabs.map((tab) => (
         <button
           key={tab.value}
           onClick={() => onTabChange(tab.value)}
           className={cx(
-            "flex items-center gap-1 px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap",
+            "flex items-center gap-1 rounded-lg px-4 py-2.5 text-sm font-medium transition whitespace-nowrap",
             activeTab === tab.value
-              ? "border-rose-600 text-rose-700"
-              : "border-transparent text-slate-600 hover:text-slate-900"
+              ? "bg-slate-100/15 text-slate-100"
+              : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
           )}
         >
           {tab.icon && <span className="text-base">{tab.icon}</span>}
@@ -145,10 +145,10 @@ export function VerdictBadge({
   const icon = v === "SUPPORTED" ? "✓" : v === "REFUTED" ? "✕" : "?";
   const color =
     v === "SUPPORTED"
-      ? "bg-emerald-100 border-emerald-300 text-emerald-800"
+      ? "verdict-supported"
       : v === "REFUTED"
-      ? "bg-rose-100 border-rose-300 text-rose-800"
-      : "bg-amber-100 border-amber-300 text-amber-900";
+      ? "verdict-refuted"
+      : "verdict-nei";
 
   return (
     <span className={cx("inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold", color)}>

@@ -17,3 +17,5 @@ pytest
 pytest-asyncio
 pytest-mock
 httpx[http2]
+scipy
+numpy

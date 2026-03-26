@@ -30,7 +30,7 @@
 - [Contributing](#contributing)
 - [Code Style](#code-style)
 - [Commit Convention](#commit-convention)
-- [Licence](#licence)
+- [License](#license)
 
 ---
 
@@ -543,9 +543,9 @@ chore: remove tracked .venv and __pycache__ from git index
 
 ---
 
-## Licence
+## License
 
-This project is licensed under the **MIT Licence**. See [`LICENSE`](LICENSE) for details.
+This project is licensed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
 
 ---
 

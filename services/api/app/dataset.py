@@ -11,6 +11,42 @@ from pathlib import Path
 import random
 
 
+CANONICAL_LABELS = {"SUPPORTED", "REFUTED", "NEI"}
+LABEL_ALIASES = {
+    "supported": "SUPPORTED",
+    "support": "SUPPORTED",
+    "true": "SUPPORTED",
+    "refuted": "REFUTED",
+    "false": "REFUTED",
+    "likely false": "REFUTED",
+    "insufficient evidence": "NEI",
+    "not enough information": "NEI",
+    "nei": "NEI",
+    "mixed / disputed": "NEI",
+    "mixed": "NEI",
+    "disputed": "NEI",
+}
+
+ALLOWED_DIFFICULTY = {"easy", "medium", "hard"}
+
+
+def normalize_label(label: str) -> str:
+    """Normalize benchmark labels to SUPPORTED/REFUTED/NEI."""
+    if not isinstance(label, str):
+        raise ValueError("label must be a string")
+
+    raw = label.strip()
+    upper = raw.upper()
+    if upper in CANONICAL_LABELS:
+        return upper
+
+    mapped = LABEL_ALIASES.get(raw.lower())
+    if mapped:
+        return mapped
+
+    raise ValueError(f"Unsupported label: {label}")
+
+
 @dataclass
 class DatasetSplit:
     """Container for dataset split information."""
@@ -43,6 +79,130 @@ class DatasetManager:
             data = json.load(f)
         
         return data.get("claims", [])
+
+    def normalize_claim_labels(self) -> int:
+        """
+        Normalize labels in-place to canonical values.
+
+        Returns:
+            Number of claims whose labels were changed.
+        """
+        changed = 0
+        for claim in self.claims:
+            original = claim.get("label", "")
+            normalized = normalize_label(original)
+            if normalized != original:
+                claim["label"] = normalized
+                changed += 1
+        return changed
+
+    def validate_dataset_quality(self) -> Dict:
+        """
+        Validate dataset quality for research benchmarking.
+
+        Checks:
+        - Required fields per claim
+        - Unique claim IDs
+        - Allowed labels and difficulty values
+        - Duplicate claim text
+
+        Returns:
+            Validation report with errors/warnings.
+        """
+        required_fields = {"id", "claim", "label", "category", "difficulty"}
+        errors = []
+        warnings = []
+
+        seen_ids = set()
+        seen_claim_text = {}
+
+        for idx, claim in enumerate(self.claims):
+            claim_id = str(claim.get("id", f"missing-id-{idx}"))
+            row_ref = f"index={idx}, id={claim_id}"
+
+            missing = sorted(list(required_fields - set(claim.keys())))
+            if missing:
+                errors.append(f"{row_ref}: missing fields {missing}")
+
+            # Validate and normalize-capable label
+            try:
+                _ = normalize_label(str(claim.get("label", "")))
+            except ValueError as exc:
+                errors.append(f"{row_ref}: {exc}")
+
+            difficulty = str(claim.get("difficulty", "")).lower().strip()
+            if difficulty not in ALLOWED_DIFFICULTY:
+                errors.append(
+                    f"{row_ref}: invalid difficulty '{claim.get('difficulty')}', "
+                    f"expected one of {sorted(ALLOWED_DIFFICULTY)}"
+                )
+
+            if claim_id in seen_ids:
+                errors.append(f"{row_ref}: duplicate claim id '{claim_id}'")
+            seen_ids.add(claim_id)
+
+            claim_text = str(claim.get("claim", "")).strip().lower()
+            if not claim_text:
+                errors.append(f"{row_ref}: empty claim text")
+            elif claim_text in seen_claim_text:
+                warnings.append(
+                    f"{row_ref}: duplicate claim text also in id '{seen_claim_text[claim_text]}'"
+                )
+            else:
+                seen_claim_text[claim_text] = claim_id
+
+        label_counts: Dict[str, int] = {label: 0 for label in CANONICAL_LABELS}
+        for claim in self.claims:
+            try:
+                canonical = normalize_label(str(claim.get("label", "")))
+                label_counts[canonical] = label_counts.get(canonical, 0) + 1
+            except ValueError:
+                # Already reported above as error
+                pass
+        for label in CANONICAL_LABELS:
+            if label_counts.get(label, 0) == 0:
+                warnings.append(f"No claims found for label '{label}'")
+
+        return {
+            "ok": len(errors) == 0,
+            "errors": errors,
+            "warnings": warnings,
+            "summary": {
+                "total_claims": len(self.claims),
+                "unique_ids": len(seen_ids),
+                "label_distribution": label_counts,
+            },
+        }
+
+    def export_canonical_dataset(self, output_path: str) -> str:
+        """
+        Export dataset with canonical labels for reproducible evaluation.
+
+        Args:
+            output_path: Destination JSON path
+
+        Returns:
+            Path to exported file.
+        """
+        out_path = Path(output_path)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+
+        normalized_claims = []
+        for claim in self.claims:
+            normalized = dict(claim)
+            normalized["label"] = normalize_label(str(claim.get("label", "")))
+            normalized["difficulty"] = str(claim.get("difficulty", "")).lower().strip()
+            normalized_claims.append(normalized)
+
+        payload = {
+            "version": "research-v1",
+            "description": "Canonical benchmark dataset for reproducible evaluation",
+            "claims": normalized_claims,
+        }
+        with open(out_path, "w") as f:
+            json.dump(payload, f, indent=2)
+
+        return str(out_path)
     
     def get_dataset_info(self) -> Dict:
         """Get dataset statistics."""

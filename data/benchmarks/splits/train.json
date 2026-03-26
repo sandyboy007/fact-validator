@@ -1,0 +1,91 @@
+{
+  "claims": [
+    {
+      "id": "media-001",
+      "claim": "The Onion is a satire publication.",
+      "label": "SUPPORTED",
+      "category": "general",
+      "difficulty": "easy"
+    },
+    {
+      "id": "science-002",
+      "claim": "Humans use only 10% of their brains.",
+      "label": "REFUTED",
+      "category": "science",
+      "difficulty": "medium"
+    },
+    {
+      "id": "politics-001",
+      "claim": "The U.S. president serves a six-year term.",
+      "label": "REFUTED",
+      "category": "politics",
+      "difficulty": "easy"
+    },
+    {
+      "id": "mixed-001",
+      "claim": "Remote work always increases productivity.",
+      "label": "NEI",
+      "category": "work",
+      "difficulty": "hard"
+    },
+    {
+      "id": "finance-002",
+      "claim": "Bitcoin is backed by the U.S. government.",
+      "label": "REFUTED",
+      "category": "finance",
+      "difficulty": "easy"
+    },
+    {
+      "id": "history-002",
+      "claim": "The Roman Empire fell in 476 CE in the West.",
+      "label": "SUPPORTED",
+      "category": "history",
+      "difficulty": "medium"
+    },
+    {
+      "id": "numbers-002",
+      "claim": "India became the world\u00e2\u20ac\u2122s most populous country in 2023.",
+      "label": "SUPPORTED",
+      "category": "demographics",
+      "difficulty": "medium"
+    },
+    {
+      "id": "politics-002",
+      "claim": "The UK held a general election in 2019.",
+      "label": "SUPPORTED",
+      "category": "politics",
+      "difficulty": "easy"
+    },
+    {
+      "id": "health-001",
+      "claim": "Vaccines cause autism in children.",
+      "label": "REFUTED",
+      "category": "health",
+      "difficulty": "easy"
+    },
+    {
+      "id": "mixed-002",
+      "claim": "Coffee is bad for everyone\u00e2\u20ac\u2122s health.",
+      "label": "NEI",
+      "category": "health",
+      "difficulty": "hard"
+    },
+    {
+      "id": "science-001",
+      "claim": "Water boils at 100 degrees Celsius at standard atmospheric pressure.",
+      "label": "SUPPORTED",
+      "category": "science",
+      "difficulty": "easy"
+    }
+  ],
+  "metadata": {
+    "seed": 42,
+    "stratification_key": "label",
+    "train_count": 11,
+    "val_count": 2,
+    "test_count": 7,
+    "train_ratio": 0.55,
+    "val_ratio": 0.1,
+    "test_ratio": 0.35
+  }
+}

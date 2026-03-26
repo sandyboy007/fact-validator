@@ -1,0 +1,63 @@
+{
+  "claims": [
+    {
+      "id": "unverifiable-002",
+      "claim": "An undisclosed alien signal was intercepted in 2025.",
+      "label": "NEI",
+      "category": "science",
+      "difficulty": "hard"
+    },
+    {
+      "id": "health-002",
+      "claim": "WHO declared COVID-19 a pandemic in March 2020.",
+      "label": "SUPPORTED",
+      "category": "health",
+      "difficulty": "easy"
+    },
+    {
+      "id": "numbers-001",
+      "claim": "The Earth is 6,000 years old.",
+      "label": "REFUTED",
+      "category": "science",
+      "difficulty": "medium"
+    },
+    {
+      "id": "unverifiable-001",
+      "claim": "A secret committee controls all global elections.",
+      "label": "REFUTED",
+      "category": "politics",
+      "difficulty": "hard"
+    },
+    {
+      "id": "climate-001",
+      "claim": "Global average temperature has risen by about 1.1\u00c2\u00b0C since the late 19th century.",
+      "label": "SUPPORTED",
+      "category": "climate",
+      "difficulty": "medium"
+    },
+    {
+      "id": "history-001",
+      "claim": "Napoleon died on Saint Helena.",
+      "label": "SUPPORTED",
+      "category": "history",
+      "difficulty": "easy"
+    },
+    {
+      "id": "conflict-001",
+      "claim": "A ceasefire was reached in every major conflict in 2024.",
+      "label": "NEI",
+      "category": "conflict",
+      "difficulty": "hard"
+    }
+  ],
+  "metadata": {
+    "seed": 42,
+    "stratification_key": "label",
+    "train_count": 11,
+    "val_count": 2,
+    "test_count": 7,
+    "train_ratio": 0.55,
+    "val_ratio": 0.1,
+    "test_ratio": 0.35
+  }
+}

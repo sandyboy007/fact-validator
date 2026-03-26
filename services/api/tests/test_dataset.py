@@ -7,6 +7,7 @@ import tempfile
 import json
 from pathlib import Path
 from app.dataset import DatasetManager, create_standard_split
+from app.dataset import normalize_label
 
 
 class TestDatasetManager:
@@ -138,6 +139,82 @@ class TestCrossValidation:
         assert len(split.train_indices) == 12
         assert len(split.val_indices) == 4
         assert len(split.test_indices) == 4
+
+
+class TestDatasetQuality:
+    """Test dataset normalization and quality validation."""
+
+    def test_normalize_label_aliases(self):
+        """Test common label aliases are normalized correctly."""
+        assert normalize_label("Supported") == "SUPPORTED"
+        assert normalize_label("False") == "REFUTED"
+        assert normalize_label("Insufficient evidence") == "NEI"
+        assert normalize_label("Mixed / disputed") == "NEI"
+
+    def test_validate_dataset_quality_ok(self, tmp_path):
+        """Validation should pass for well-formed dataset."""
+        dataset = {
+            "claims": [
+                {
+                    "id": "ok-1",
+                    "claim": "Claim one",
+                    "label": "Supported",
+                    "category": "health",
+                    "difficulty": "easy",
+                },
+                {
+                    "id": "ok-2",
+                    "claim": "Claim two",
+                    "label": "False",
+                    "category": "science",
+                    "difficulty": "medium",
+                },
+                {
+                    "id": "ok-3",
+                    "claim": "Claim three",
+                    "label": "NEI",
+                    "category": "politics",
+                    "difficulty": "hard",
+                },
+            ]
+        }
+        dataset_file = tmp_path / "quality_ok.json"
+        with open(dataset_file, "w") as f:
+            json.dump(dataset, f)
+
+        manager = DatasetManager(str(dataset_file))
+        report = manager.validate_dataset_quality()
+        assert report["ok"] is True
+        assert len(report["errors"]) == 0
+
+    def test_validate_dataset_quality_duplicate_id(self, tmp_path):
+        """Validation should fail on duplicate claim IDs."""
+        dataset = {
+            "claims": [
+                {
+                    "id": "dup-1",
+                    "claim": "Claim one",
+                    "label": "Supported",
+                    "category": "health",
+                    "difficulty": "easy",
+                },
+                {
+                    "id": "dup-1",
+                    "claim": "Claim two",
+                    "label": "Refuted",
+                    "category": "science",
+                    "difficulty": "medium",
+                },
+            ]
+        }
+        dataset_file = tmp_path / "quality_bad.json"
+        with open(dataset_file, "w") as f:
+            json.dump(dataset, f)
+
+        manager = DatasetManager(str(dataset_file))
+        report = manager.validate_dataset_quality()
+        assert report["ok"] is False
+        assert any("duplicate claim id" in e for e in report["errors"])
 
 
 if __name__ == "__main__":

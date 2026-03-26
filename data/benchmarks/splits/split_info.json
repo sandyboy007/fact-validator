@@ -1,0 +1,82 @@
+{
+  "metadata": {
+    "seed": 42,
+    "stratification_key": "label",
+    "train_count": 11,
+    "val_count": 2,
+    "test_count": 7,
+    "train_ratio": 0.55,
+    "val_ratio": 0.1,
+    "test_ratio": 0.35
+  },
+  "train_indices": [
+    12,
+    8,
+    5,
+    16,
+    4,
+    10,
+    15,
+    6,
+    1,
+    17,
+    7
+  ],
+  "val_indices": [
+    3,
+    13
+  ],
+  "test_indices": [
+    19,
+    2,
+    14,
+    18,
+    0,
+    9,
+    11
+  ],
+  "balance_verification": {
+    "balanced": true,
+    "details": {
+      "SUPPORTED": {
+        "counts": {
+          "train": 5,
+          "val": 1,
+          "test": 3
+        },
+        "ratios": {
+          "train": 0.556,
+          "val": 0.111,
+          "test": 0.333
+        },
+        "balanced": true
+      },
+      "REFUTED": {
+        "counts": {
+          "train": 4,
+          "val": 1,
+          "test": 2
+        },
+        "ratios": {
+          "train": 0.571,
+          "val": 0.143,
+          "test": 0.286
+        },
+        "balanced": true
+      },
+      "NEI": {
+        "counts": {
+          "train": 2,
+          "val": 0,
+          "test": 2
+        },
+        "ratios": {
+          "train": 0.5,
+          "val": 0.0,
+          "test": 0.5
+        },
+        "balanced": true
+      }
+    }
+  }
+}

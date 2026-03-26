@@ -1,0 +1,28 @@
+{
+  "claims": [
+    {
+      "id": "finance-001",
+      "claim": "The U.S. inflation rate was above 9% in mid-2022.",
+      "label": "SUPPORTED",
+      "category": "finance",
+      "difficulty": "medium"
+    },
+    {
+      "id": "media-002",
+      "claim": "Every viral image online is authentic if it appears on multiple accounts.",
+      "label": "REFUTED",
+      "category": "general",
+      "difficulty": "medium"
+    }
+  ],
+  "metadata": {
+    "seed": 42,
+    "stratification_key": "label",
+    "train_count": 11,
+    "val_count": 2,
+    "test_count": 7,
+    "train_ratio": 0.55,
+    "val_ratio": 0.1,
+    "test_ratio": 0.35
+  }
+}

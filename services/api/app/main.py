@@ -660,6 +660,38 @@ def evaluation_ablations():
     return data
 
 
+@app.get("/evaluation/comparative")
+def evaluation_comparative():
+    """Return Step 4 comparative analysis report if generated."""
+    report_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "..",
+        "..",
+        "data",
+        "benchmarks",
+        "results",
+        "comparative_analysis_report.json",
+    )
+    try:
+        with open(report_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "detail": "Comparative analysis report not found. Run Scripts/run_comparative_analysis.py first.",
+                "expected_path": report_path,
+            },
+        )
+    except Exception as exc:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Failed to load comparative report: {exc}"},
+        )
+    return data
+
+
 @app.get("/runs")
 def runs(limit: int = 50):
     return {"items": list_runs(limit=limit)}

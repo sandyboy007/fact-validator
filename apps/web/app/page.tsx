@@ -88,6 +88,38 @@ type RunRow = {
   url?: string;
 };
 
+type ComparativeRankingRow = {
+  system: string;
+  n_claims: number;
+  accuracy: number;
+  avg_confidence: number;
+  calibration_error: number;
+  ece: number;
+};
+
+type ComparativeComparisonRow = {
+  baseline_name: string;
+  improvement_pct_points: number;
+  significance_test?: {
+    p_value?: number | null;
+    is_significant_alpha_0_05?: boolean;
+  };
+};
+
+type ComparativeReport = {
+  metadata?: {
+    generated_utc?: string;
+    claims_compared?: number;
+    full_variant?: string;
+  };
+  ranking?: ComparativeRankingRow[];
+  comparisons?: ComparativeComparisonRow[];
+  debate_lift?: {
+    accuracy_delta_pct_points?: number;
+    prediction_change_rate?: number;
+  };
+};
+
 function fmtPct(x?: number) {
   if (typeof x !== "number") return "-";
   const v = Math.max(0, Math.min(1, x));
@@ -169,6 +201,10 @@ export default function Page() {
   const [runs, setRuns] = useState<RunRow[]>([]);
   const [runsError, setRunsError] = useState<string | null>(null);
   const [runsLoading, setRunsLoading] = useState(false);
+
+  const [comparative, setComparative] = useState<ComparativeReport | null>(null);
+  const [comparativeError, setComparativeError] = useState<string | null>(null);
+  const [comparativeLoading, setComparativeLoading] = useState(false);
 
   const [openClaimIdx, setOpenClaimIdx] = useState<number | null>(0);
   const [resultTab, setResultTab] = useState<"overview" | "claims" | "evidence">("overview");
@@ -298,8 +334,29 @@ export default function Page() {
     }
   }
 
+  async function fetchComparative() {
+    setComparativeLoading(true);
+    setComparativeError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/evaluation/comparative`);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Comparative API error ${res.status}: ${text}`);
+      }
+      const json = (await res.json()) as ComparativeReport;
+      setComparative(json);
+    } catch (e: unknown) {
+      setComparative(null);
+      setComparativeError(e instanceof Error ? e.message : "Could not load comparative summary.");
+    } finally {
+      setComparativeLoading(false);
+    }
+  }
+
   useEffect(() => {
     fetchRuns();
+    fetchComparative();
   }, []);
 
   const examples = [
@@ -334,15 +391,108 @@ export default function Page() {
                 Professional-grade claim intelligence with credibility scoring, counter-evidence analysis, uncertainty disclosure, and explainable verdicts.
               </p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs md:text-sm w-full sm:w-auto">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-xs md:text-sm w-full sm:w-auto">
               <a href="/source" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center">Source Checker</a>
               <a href={`${API_BASE}/docs`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center">API Docs</a>
               <a href={`${API_BASE}/evaluation/benchmark`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center md:col-span-1 col-span-2">Benchmark</a>
               <a href={`${API_BASE}/evaluation/baselines`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center md:col-span-1 col-span-2">Baselines</a>
               <a href={`${API_BASE}/evaluation/ablations`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center md:col-span-1 col-span-2">Ablations</a>
+              <a href={`${API_BASE}/evaluation/comparative`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center md:col-span-1 col-span-2">Comparative</a>
             </div>
           </div>
         </header>
+
+        <section className="glass-panel rounded-2xl border p-5 mb-6 section-fade-in">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+            <h3 className="text-base font-semibold text-white">📈 Comparative Snapshot (Step 4)</h3>
+            <div className="flex items-center gap-2">
+              <a href={`${API_BASE}/evaluation/comparative`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs text-slate-200 hover:border-cyan-300/40 transition">
+                Open JSON
+              </a>
+              <button
+                className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs hover:border-cyan-300/40 transition disabled:opacity-50"
+                onClick={fetchComparative}
+                disabled={comparativeLoading}
+              >
+                {comparativeLoading ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
+          </div>
+
+          {comparativeLoading && !comparative ? (
+            <div className="h-20 rounded-xl bg-slate-700/30 animate-pulse" />
+          ) : comparativeError ? (
+            <Alert type="warn" title="Comparative data unavailable" message={comparativeError} />
+          ) : comparative ? (
+            <div className="space-y-4">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Top system</div>
+                  <div className="text-sm text-cyan-100 font-semibold mt-1">{comparative.ranking?.[0]?.system || "-"}</div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Top accuracy</div>
+                  <div className="text-sm text-slate-100 mt-1">{fmtPct(comparative.ranking?.[0]?.accuracy)}</div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Claims compared</div>
+                  <div className="text-sm text-slate-100 mt-1">{comparative.metadata?.claims_compared ?? "-"}</div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Debate lift</div>
+                  <div className="text-sm text-slate-100 mt-1">
+                    {typeof comparative.debate_lift?.accuracy_delta_pct_points === "number"
+                      ? `${comparative.debate_lift.accuracy_delta_pct_points >= 0 ? "+" : ""}${comparative.debate_lift.accuracy_delta_pct_points.toFixed(2)} pp`
+                      : "-"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-slate-900/70 text-slate-300 border-b border-slate-700">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-semibold">Rank</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold">System</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold">Accuracy</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold">Avg Conf.</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold">ECE</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(comparative.ranking || []).slice(0, 5).map((row, idx) => (
+                      <tr key={`${row.system}_${idx}`} className="border-t border-slate-700/50 hover:bg-slate-900/40 transition">
+                        <td className="px-3 py-2 text-slate-300">#{idx + 1}</td>
+                        <td className="px-3 py-2 text-slate-100 font-medium">{row.system}</td>
+                        <td className="px-3 py-2 text-slate-200">{fmtPct(row.accuracy)}</td>
+                        <td className="px-3 py-2 text-slate-300">{typeof row.avg_confidence === "number" ? `${row.avg_confidence.toFixed(1)}%` : "-"}</td>
+                        <td className="px-3 py-2 text-slate-300">{typeof row.ece === "number" ? row.ece.toFixed(3) : "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {comparative.comparisons && comparative.comparisons.length > 0 && (
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3 text-xs text-slate-300">
+                  <span className="text-slate-400 uppercase tracking-wider">Best delta vs comparator:</span>{" "}
+                  {(() => {
+                    const sorted = [...comparative.comparisons!].sort(
+                      (a, b) => (b.improvement_pct_points || 0) - (a.improvement_pct_points || 0)
+                    );
+                    const best = sorted[0];
+                    if (!best) return "-";
+                    const pVal = best.significance_test?.p_value;
+                    const pTxt = typeof pVal === "number" ? pVal.toFixed(4) : "NA";
+                    return `${best.baseline_name}: ${best.improvement_pct_points >= 0 ? "+" : ""}${best.improvement_pct_points.toFixed(2)} pp (p=${pTxt})`;
+                  })()}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-sm text-slate-400">No comparative report loaded yet.</div>
+          )}
+        </section>
 
         {/* Main Layout */}
         <section className="grid xl:grid-cols-[1.1fr_1.5fr] gap-6">

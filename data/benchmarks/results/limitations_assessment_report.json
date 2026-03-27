@@ -1,0 +1,62 @@
+{
+  "metadata": {
+    "generated_utc": "2026-03-27T20:28:18.084521",
+    "limitation_count": 6,
+    "high_severity_count": 1,
+    "sources": {
+      "ablation_report": "C:\\Fact_Validator\\data\\benchmarks\\results\\ablation_study_report.json",
+      "production_report": "C:\\Fact_Validator\\data\\benchmarks\\results\\production_metrics_report.json",
+      "explainability_report": "C:\\Fact_Validator\\data\\benchmarks\\results\\explainability_demo_report.json"
+    }
+  },
+  "limitations": [
+    {
+      "id": "L1",
+      "title": "Residual classification errors",
+      "severity": "medium",
+      "impact": "Incorrect verdicts remain possible in real-world usage.",
+      "evidence": "Observed error rate is 0.286 (28.6 errors per 100 claims).",
+      "mitigation": "Route low-confidence outputs to human review; expand evaluation set and tune calibration."
+    },
+    {
+      "id": "L2",
+      "title": "Category-specific generalization gaps",
+      "severity": "medium",
+      "impact": "Performance is uneven across claim domains.",
+      "evidence": "Categories below threshold 0.60: climate=0.00 (n=1); science=0.50 (n=2)",
+      "mitigation": "Increase domain-balanced benchmark size and add domain-specific retrieval prompts/models."
+    },
+    {
+      "id": "L3",
+      "title": "Debate arbitration can introduce regressions",
+      "severity": "low",
+      "impact": "Debate mode may change verdicts without guaranteed net improvement.",
+      "evidence": "Debate changed 2/7 cases (0.29); regressions observed in 1/7 (0.14).",
+      "mitigation": "Trigger debate selectively (only uncertain baseline cases) and validate with guardrail thresholds."
+    },
+    {
+      "id": "L4",
+      "title": "Confidence calibration mismatch",
+      "severity": "medium",
+      "impact": "Displayed confidence may overstate or understate true correctness.",
+      "evidence": "Calibration error=0.262, ECE=0.326 in current split.",
+      "mitigation": "Apply post-hoc calibration (temperature scaling / isotonic regression) on larger validation data."
+    },
+    {
+      "id": "L5",
+      "title": "Source-selection and credibility-rubric bias",
+      "severity": "medium",
+      "impact": "System trust signals may favor mainstream indexed domains and under-represent local/novel sources.",
+      "evidence": "Credibility scoring relies on domain rubric and search-retrieved evidence, not exhaustive ground truth.",
+      "mitigation": "Introduce external expert calibration panel and diversify retrieval sources beyond a single search index."
+    },
+    {
+      "id": "L6",
+      "title": "Limited statistical power from small evaluation split",
+      "severity": "high",
+      "impact": "Point estimates and p-values are sensitive to a few cases.",
+      "evidence": "Current evaluated split contains 7 claims.",
+      "mitigation": "Expand benchmark to 100+ claims per major domain and recompute all comparison statistics."
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+section,check_id,description,passed,details,weight
+docs,D1,Required documentation present: README.md,True,OK (19065 bytes): C:\Fact_Validator\README.md,1.0
+docs,D2,Required documentation present: DEPLOYMENT.md,True,OK (5852 bytes): C:\Fact_Validator\DEPLOYMENT.md,1.0
+docs,D3,Required documentation present: METHODS.md,True,OK (9249 bytes): C:\Fact_Validator\docs\METHODS.md,1.0
+docs,D4,Required documentation present: LIMITATIONS.md,True,OK (15326 bytes): C:\Fact_Validator\docs\LIMITATIONS.md,1.0
+docs,D5,Required documentation present: COMPARATIVE_ANALYSIS.md,True,OK (11930 bytes): C:\Fact_Validator\docs\COMPARATIVE_ANALYSIS.md,1.0
+docs,D6,Required documentation present: THESIS_COMPARATIVE_EVALUATION.md,True,OK (33612 bytes): C:\Fact_Validator\docs\THESIS_COMPARATIVE_EVALUATION.md,1.0
+scripts,S1,Pipeline script present: prepare_research_benchmark.py,True,OK (3304 bytes): C:\Fact_Validator\services\api\Scripts\prepare_research_benchmark.py,1.0
+scripts,S2,Pipeline script present: run_baseline_comparison.py,True,OK (8076 bytes): C:\Fact_Validator\services\api\Scripts\run_baseline_comparison.py,1.0
+scripts,S3,Pipeline script present: run_ablation_study.py,True,OK (19293 bytes): C:\Fact_Validator\services\api\Scripts\run_ablation_study.py,1.0
+scripts,S4,Pipeline script present: run_comparative_analysis.py,True,OK (16407 bytes): C:\Fact_Validator\services\api\Scripts\run_comparative_analysis.py,1.0
+scripts,S5,Pipeline script present: run_production_metrics.py,True,OK (10817 bytes): C:\Fact_Validator\services\api\Scripts\run_production_metrics.py,1.0
+scripts,S6,Pipeline script present: run_explainability_demo.py,True,OK (17422 bytes): C:\Fact_Validator\services\api\Scripts\run_explainability_demo.py,1.0
+scripts,S7,Pipeline script present: run_limitations_assessment.py,True,OK (10387 bytes): C:\Fact_Validator\services\api\Scripts\run_limitations_assessment.py,1.0
+scripts,S8,Pipeline script present: run_reproducibility_audit.py,True,OK (9857 bytes): C:\Fact_Validator\services\api\Scripts\run_reproducibility_audit.py,1.0
+artifacts,A1,Generated artifact present: research_benchmark_v1.json,True,OK (4092 bytes): C:\Fact_Validator\data\benchmarks\research_benchmark_v1.json,1.5
+artifacts,A2,Generated artifact present: baseline_comparison_report.json,True,OK (8341 bytes): C:\Fact_Validator\data\benchmarks\results\baseline_comparison_report.json,1.5
+artifacts,A3,Generated artifact present: ablation_study_report.json,True,OK (10157 bytes): C:\Fact_Validator\data\benchmarks\results\ablation_study_report.json,1.5
+artifacts,A4,Generated artifact present: comparative_analysis_report.json,True,OK (16225 bytes): C:\Fact_Validator\data\benchmarks\results\comparative_analysis_report.json,1.5
+artifacts,A5,Generated artifact present: production_metrics_report.json,True,OK (1352 bytes): C:\Fact_Validator\data\benchmarks\results\production_metrics_report.json,1.5
+artifacts,A6,Generated artifact present: explainability_demo_report.json,True,OK (11007 bytes): C:\Fact_Validator\data\benchmarks\results\explainability_demo_report.json,1.5
+artifacts,A7,Generated artifact present: limitations_assessment_report.json,True,OK (3000 bytes): C:\Fact_Validator\data\benchmarks\results\limitations_assessment_report.json,1.5
+runtime,R1,Endpoint available: /health,True,HTTP 200: http://127.0.0.1:8000/health,1.5
+runtime,R2,Endpoint available: /evaluation/benchmark,True,HTTP 200: http://127.0.0.1:8000/evaluation/benchmark,1.5
+runtime,R3,Endpoint available: /evaluation/baselines,True,HTTP 200: http://127.0.0.1:8000/evaluation/baselines,1.5
+runtime,R4,Endpoint available: /evaluation/ablations,True,HTTP 200: http://127.0.0.1:8000/evaluation/ablations,1.5
+runtime,R5,Endpoint available: /evaluation/comparative,True,HTTP 200: http://127.0.0.1:8000/evaluation/comparative,1.5
+runtime,R6,Endpoint available: /evaluation/production-metrics,True,HTTP 200: http://127.0.0.1:8000/evaluation/production-metrics,1.5
+runtime,R7,Endpoint available: /evaluation/explainability,True,HTTP 200: http://127.0.0.1:8000/evaluation/explainability,1.5
+runtime,R8,Endpoint available: /evaluation/limitations,True,HTTP 200: http://127.0.0.1:8000/evaluation/limitations,1.5

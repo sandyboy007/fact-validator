@@ -1,0 +1,8 @@
+claim_id,category,ground_truth_label,full_label,full_confidence,no_debate_label,baseline_label,full_correct,baseline_correct,debate_changed_prediction
+unverifiable-002,science,NEI,NEI,46.0,SUPPORTED,SUPPORTED,True,False,True
+conflict-001,conflict,NEI,NEI,34.5,NEI,SUPPORTED,True,False,False
+unverifiable-001,politics,REFUTED,REFUTED,57.5,REFUTED,SUPPORTED,True,False,False
+climate-001,climate,SUPPORTED,NEI,22.5,SUPPORTED,SUPPORTED,False,True,True
+numbers-001,science,REFUTED,NEI,58.0,NEI,SUPPORTED,False,False,False
+health-002,health,SUPPORTED,SUPPORTED,44.5,SUPPORTED,SUPPORTED,True,True,False
+history-001,history,SUPPORTED,SUPPORTED,53.5,SUPPORTED,SUPPORTED,True,True,False

@@ -1,0 +1,113 @@
+{
+  "metadata": {
+    "generated_utc": "2026-03-27T20:40:29.888970",
+    "sources": {
+      "comparative_report": "C:\\Fact_Validator\\data\\benchmarks\\results\\comparative_analysis_report.json",
+      "production_report": "C:\\Fact_Validator\\data\\benchmarks\\results\\production_metrics_report.json",
+      "limitations_report": "C:\\Fact_Validator\\data\\benchmarks\\results\\limitations_assessment_report.json",
+      "ethics_report": "C:\\Fact_Validator\\data\\benchmarks\\results\\ethics_assessment_report.json"
+    }
+  },
+  "qa": [
+    {
+      "question": "What is your main empirical contribution?",
+      "answer": "Our full system variant (full_proxy) ranks highest on the current benchmark with accuracy 0.714, while integrating comparative evaluation, production metrics, explainability, limitations, reproducibility, and ethics workflows in one deployable stack.",
+      "evidence": "comparative_analysis_report.json + production_metrics_report.json",
+      "category": "contribution"
+    },
+    {
+      "question": "How do you justify practical value beyond accuracy?",
+      "answer": "Caching-aware operation reduces estimated monthly API spend by about $55.00 (71.4% savings at the configured workload), with explicit latency and throughput reporting.",
+      "evidence": "production_metrics_report.json",
+      "category": "practicality"
+    },
+    {
+      "question": "What are your system's biggest weaknesses?",
+      "answer": "Current error rate is 0.286, and the most critical limitation is small-sample statistical fragility. We explicitly track these in a limitations register and attach mitigation actions.",
+      "evidence": "limitations_assessment_report.json",
+      "category": "limitations"
+    },
+    {
+      "question": "How do you address bias and societal risk?",
+      "answer": "We maintain an ethics risk register with explicit guardrails, ownership, and phased mitigation. Current report flags 3 high-severity ethics risks, primarily around source-selection bias and overconfidence harms.",
+      "evidence": "ethics_assessment_report.json",
+      "category": "ethics"
+    },
+    {
+      "question": "How reproducible are your results?",
+      "answer": "The project includes dedicated scripts and machine-readable artifacts for each evaluation step, plus a reproducibility audit endpoint that validates report presence and runtime availability.",
+      "evidence": "reproducibility_audit_report.json",
+      "category": "reproducibility"
+    },
+    {
+      "question": "What is your defense strategy when asked about small benchmark size?",
+      "answer": "We acknowledge the limitation directly (high-severity items: 1) and frame current results as controlled pilot evidence. Our next milestone is expanding to domain-balanced 100+ claim slices with repeated significance analysis.",
+      "evidence": "limitations_assessment_report.json + comparative_analysis_report.json",
+      "category": "defense"
+    },
+    {
+      "question": "What should evaluators remember in one line?",
+      "answer": "This work is not just a classifier; it is an evidence-aware fact-checking platform with measurable tradeoffs, explicit uncertainty, and governance-ready reporting.",
+      "evidence": "steps 1-10 integrated outputs",
+      "category": "summary"
+    }
+  ],
+  "metrics_cheatsheet": [
+    {
+      "metric": "Top System",
+      "value": "full_proxy",
+      "source": "comparative"
+    },
+    {
+      "metric": "Top Accuracy",
+      "value": "0.714",
+      "source": "comparative"
+    },
+    {
+      "metric": "Error Rate",
+      "value": "0.286",
+      "source": "production"
+    },
+    {
+      "metric": "Macro F1",
+      "value": "0.711",
+      "source": "production"
+    },
+    {
+      "metric": "Baseline Latency (sec)",
+      "value": "8.20",
+      "source": "production"
+    },
+    {
+      "metric": "Debate Latency (sec)",
+      "value": "72.00",
+      "source": "production"
+    },
+    {
+      "metric": "Baseline Throughput (claims/hour)",
+      "value": "439.02",
+      "source": "production"
+    },
+    {
+      "metric": "Debate Throughput (claims/hour)",
+      "value": "50.00",
+      "source": "production"
+    },
+    {
+      "metric": "Monthly Savings (USD)",
+      "value": "55.00",
+      "source": "production"
+    },
+    {
+      "metric": "High-Severity Limitations",
+      "value": "1",
+      "source": "limitations"
+    },
+    {
+      "metric": "High-Severity Ethics Risks",
+      "value": "3",
+      "source": "ethics"
+    }
+  ],
+  "closing_statement": "The system demonstrates a full research-to-production pipeline with measurable performance, explicit uncertainty, artifact-level reproducibility, and a concrete ethics governance layer."
+}

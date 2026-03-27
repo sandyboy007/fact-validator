@@ -120,10 +120,154 @@ type ComparativeReport = {
   };
 };
 
+type ProductionMetricsReport = {
+  metadata?: {
+    generated_utc?: string;
+    claims_in_split?: number;
+  };
+  latency?: {
+    baseline_avg_sec?: number;
+    debate_avg_sec?: number;
+    debate_over_baseline_ratio?: number;
+  };
+  throughput?: {
+    baseline_claims_per_hour?: number;
+    debate_claims_per_hour?: number;
+  };
+  cost?: {
+    monthly_usd_no_cache?: number;
+    monthly_usd_with_cache?: number;
+    monthly_savings_usd?: number;
+    monthly_savings_pct?: number;
+  };
+  quality?: {
+    accuracy?: number;
+    error_rate?: number;
+    macro_f1?: number;
+    calibration_error?: number;
+    ece?: number;
+  };
+};
+
+type ExplainabilityCase = {
+  claim_id: string;
+  claim_text: string;
+  ground_truth_label: string;
+  predictions?: {
+    full?: { label: string; confidence: number };
+    baseline?: { label: string; confidence: number };
+    no_debate?: { label: string; confidence: number };
+  };
+  scoring_logic?: string[];
+  debate_trace?: {
+    prover?: string;
+    skeptic?: string;
+    judge?: string;
+  };
+};
+
+type ExplainabilityReport = {
+  metadata?: {
+    generated_utc?: string;
+    case_count?: number;
+    best_baseline?: string;
+  };
+  case_studies?: ExplainabilityCase[];
+};
+
+type LimitationsReport = {
+  metadata?: {
+    limitation_count?: number;
+    high_severity_count?: number;
+    generated_utc?: string;
+  };
+  limitations?: Array<{
+    id: string;
+    title: string;
+    severity: string;
+    impact: string;
+    evidence: string;
+    mitigation: string;
+  }>;
+};
+
+type ReproducibilityReport = {
+  summary?: {
+    passed_checks?: number;
+    total_checks?: number;
+  };
+  score?: {
+    score_percent?: number;
+  };
+  metadata?: {
+    git_commit?: string;
+    git_branch?: string;
+    generated_utc?: string;
+  };
+};
+
+type EthicsReport = {
+  metadata?: {
+    risk_count?: number;
+    high_severity_count?: number;
+    generated_utc?: string;
+  };
+  ethical_risks?: Array<{
+    id: string;
+    title: string;
+    severity: string;
+    owner: string;
+    mitigation: string;
+  }>;
+};
+
+type DefenseReport = {
+  qa?: Array<{
+    category: string;
+    question: string;
+    answer: string;
+    evidence: string;
+  }>;
+  metrics_cheatsheet?: Array<{
+    metric: string;
+    value: string;
+    source: string;
+  }>;
+  metadata?: {
+    generated_utc?: string;
+  };
+};
+
 function fmtPct(x?: number) {
   if (typeof x !== "number") return "-";
   const v = Math.max(0, Math.min(1, x));
   return `${Math.round(v * 100)}%`;
+}
+
+function fmtCount(x?: number) {
+  if (typeof x !== "number") return "-";
+  return Math.round(x).toLocaleString();
+}
+
+function fmtSeconds(x?: number, digits = 2) {
+  if (typeof x !== "number") return "-";
+  return `${x.toFixed(digits)} s`;
+}
+
+function fmtRatePerHour(x?: number) {
+  if (typeof x !== "number") return "-";
+  return `${x.toFixed(1)} claims/hour`;
+}
+
+function fmtMoney(x?: number) {
+  if (typeof x !== "number") return "-";
+  return `$${x.toFixed(2)}`;
+}
+
+function fmtDateTime(utc?: string) {
+  if (!utc) return "-";
+  const normalized = utc.replace("T", " ").replace("Z", "");
+  return normalized.slice(0, 19);
 }
 
 function safeHostFromUrl(u?: string) {
@@ -146,6 +290,28 @@ function evQuality(ev: EvidenceItem): number {
   return evScore(ev);
 }
 
+function formatSystemName(raw?: string) {
+  if (!raw) return "-";
+  const normalized = raw.toLowerCase();
+  if (normalized === "full_proxy") return "Full Verifier";
+  if (normalized === "baseline") return "Baseline Verifier";
+  if (normalized === "no_debate") return "Verifier (Debate Off)";
+  return raw.replace(/_/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
+}
+
+function formatDebateDelta(delta?: number) {
+  if (typeof delta !== "number") return "-";
+  if (Math.abs(delta) < 0.005) {
+    return `No measurable gain (0.00 percentage points)`;
+  }
+  const magnitude = Math.abs(delta).toFixed(2);
+  const signed = `${delta >= 0 ? "+" : ""}${delta.toFixed(2)}`;
+  if (delta > 0) {
+    return `Improved by ${magnitude} percentage points (${signed})`;
+  }
+  return `Declined by ${magnitude} percentage points (${signed})`;
+}
+
 function sortEvidence(evs: EvidenceItem[]) {
   return [...(evs || [])].sort((a, b) => {
     const qa = evQuality(a);
@@ -160,6 +326,31 @@ function sortEvidence(evs: EvidenceItem[]) {
 
 function staggerStyle(index: number, stepMs = 70) {
   return { animationDelay: `${index * stepMs}ms` };
+}
+
+function ModuleStatusChip({
+  loading,
+  error,
+  ready,
+}: {
+  loading: boolean;
+  error: string | null;
+  ready: boolean;
+}) {
+  const label = loading ? "Refreshing" : error ? "Unavailable" : ready ? "Live" : "Pending";
+  const tone = loading
+    ? "border-cyan-300/40 bg-cyan-400/10 text-cyan-100"
+    : error
+      ? "border-rose-300/40 bg-rose-400/10 text-rose-100"
+      : ready
+        ? "border-emerald-300/40 bg-emerald-400/10 text-emerald-100"
+        : "border-slate-400/30 bg-slate-500/10 text-slate-200";
+
+  return (
+    <span className={cx("rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider", tone)}>
+      {label}
+    </span>
+  );
 }
 
 function filterClaimsBySentiment(
@@ -206,8 +397,35 @@ export default function Page() {
   const [comparativeError, setComparativeError] = useState<string | null>(null);
   const [comparativeLoading, setComparativeLoading] = useState(false);
 
+  const [productionMetrics, setProductionMetrics] = useState<ProductionMetricsReport | null>(null);
+  const [productionMetricsError, setProductionMetricsError] = useState<string | null>(null);
+  const [productionMetricsLoading, setProductionMetricsLoading] = useState(false);
+
+  const [explainability, setExplainability] = useState<ExplainabilityReport | null>(null);
+  const [explainabilityError, setExplainabilityError] = useState<string | null>(null);
+  const [explainabilityLoading, setExplainabilityLoading] = useState(false);
+
+  const [limitations, setLimitations] = useState<LimitationsReport | null>(null);
+  const [limitationsError, setLimitationsError] = useState<string | null>(null);
+  const [limitationsLoading, setLimitationsLoading] = useState(false);
+
+  const [reproAudit, setReproAudit] = useState<ReproducibilityReport | null>(null);
+  const [reproAuditError, setReproAuditError] = useState<string | null>(null);
+  const [reproAuditLoading, setReproAuditLoading] = useState(false);
+
+  const [ethics, setEthics] = useState<EthicsReport | null>(null);
+  const [ethicsError, setEthicsError] = useState<string | null>(null);
+  const [ethicsLoading, setEthicsLoading] = useState(false);
+
+  const [defense, setDefense] = useState<DefenseReport | null>(null);
+  const [defenseError, setDefenseError] = useState<string | null>(null);
+  const [defenseLoading, setDefenseLoading] = useState(false);
+
   const [openClaimIdx, setOpenClaimIdx] = useState<number | null>(0);
   const [resultTab, setResultTab] = useState<"overview" | "claims" | "evidence">("overview");
+  const [audienceMode, setAudienceMode] = useState<"citizen" | "analyst">("citizen");
+  const [workspaceView, setWorkspaceView] = useState<"evaluation" | "operations" | "governance" | "defense">("evaluation");
+  const [showDetailedWorkspace, setShowDetailedWorkspace] = useState(false);
   const [sentimentFilter, setSentimentFilter] = useState<"all" | "positive" | "negative" | "neutral">("all");
   const [biasRiskFilter, setBiasRiskFilter] = useState<"all" | "low" | "medium" | "high">("all");
 
@@ -240,6 +458,42 @@ export default function Page() {
   }, [tab, isValidUrl, isValidText]);
 
   const debateEnabled = debateModeActive && verifier === "debate";
+  const primaryClaim = result?.claims?.[0] ?? null;
+  const primaryEvidence = sortEvidence(primaryClaim?.evidence || []);
+  const supportEvidence = primaryEvidence.filter((ev) => ev.stance === "support").slice(0, 3);
+  const refuteEvidence = primaryEvidence.filter((ev) => ev.stance === "refute").slice(0, 3);
+  const neutralEvidence = primaryEvidence
+    .filter((ev) => ev.stance !== "support" && ev.stance !== "refute")
+    .slice(0, 3);
+
+  const workspaceSummary = useMemo(() => {
+    switch (workspaceView) {
+      case "evaluation":
+        return {
+          title: "Model Quality Workspace",
+          description: "Track comparative performance, accuracy lift, and confidence calibration across evaluator variants.",
+          moduleCount: 1,
+        };
+      case "operations":
+        return {
+          title: "Runtime Operations Workspace",
+          description: "Monitor latency, throughput, cost efficiency, and inspect explainability traces for live readiness.",
+          moduleCount: 2,
+        };
+      case "governance":
+        return {
+          title: "Risk & Governance Workspace",
+          description: "Review ethics risk posture, reproducibility guarantees, and active limitations with mitigation context.",
+          moduleCount: 3,
+        };
+      default:
+        return {
+          title: "Presentation Workspace",
+          description: "Prepare defense-ready narratives with evidence-backed Q&A and metric talking points.",
+          moduleCount: 1,
+        };
+    }
+  }, [workspaceView]);
 
   async function analyze() {
     setLoading(true);
@@ -354,9 +608,135 @@ export default function Page() {
     }
   }
 
+  async function fetchProductionMetrics() {
+    setProductionMetricsLoading(true);
+    setProductionMetricsError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/evaluation/production-metrics`);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Production metrics API error ${res.status}: ${text}`);
+      }
+      const json = (await res.json()) as ProductionMetricsReport;
+      setProductionMetrics(json);
+    } catch (e: unknown) {
+      setProductionMetrics(null);
+      setProductionMetricsError(e instanceof Error ? e.message : "Could not load production metrics.");
+    } finally {
+      setProductionMetricsLoading(false);
+    }
+  }
+
+  async function fetchExplainability() {
+    setExplainabilityLoading(true);
+    setExplainabilityError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/evaluation/explainability`);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Explainability API error ${res.status}: ${text}`);
+      }
+      const json = (await res.json()) as ExplainabilityReport;
+      setExplainability(json);
+    } catch (e: unknown) {
+      setExplainability(null);
+      setExplainabilityError(e instanceof Error ? e.message : "Could not load explainability demo.");
+    } finally {
+      setExplainabilityLoading(false);
+    }
+  }
+
+  async function fetchLimitations() {
+    setLimitationsLoading(true);
+    setLimitationsError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/evaluation/limitations`);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Limitations API error ${res.status}: ${text}`);
+      }
+      const json = (await res.json()) as LimitationsReport;
+      setLimitations(json);
+    } catch (e: unknown) {
+      setLimitations(null);
+      setLimitationsError(e instanceof Error ? e.message : "Could not load limitations report.");
+    } finally {
+      setLimitationsLoading(false);
+    }
+  }
+
+  async function fetchReproAudit() {
+    setReproAuditLoading(true);
+    setReproAuditError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/evaluation/reproducibility`);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Reproducibility API error ${res.status}: ${text}`);
+      }
+      const json = (await res.json()) as ReproducibilityReport;
+      setReproAudit(json);
+    } catch (e: unknown) {
+      setReproAudit(null);
+      setReproAuditError(e instanceof Error ? e.message : "Could not load reproducibility audit.");
+    } finally {
+      setReproAuditLoading(false);
+    }
+  }
+
+  async function fetchEthics() {
+    setEthicsLoading(true);
+    setEthicsError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/evaluation/ethics`);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Ethics API error ${res.status}: ${text}`);
+      }
+      const json = (await res.json()) as EthicsReport;
+      setEthics(json);
+    } catch (e: unknown) {
+      setEthics(null);
+      setEthicsError(e instanceof Error ? e.message : "Could not load ethics assessment.");
+    } finally {
+      setEthicsLoading(false);
+    }
+  }
+
+  async function fetchDefense() {
+    setDefenseLoading(true);
+    setDefenseError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/evaluation/defense`);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Defense API error ${res.status}: ${text}`);
+      }
+      const json = (await res.json()) as DefenseReport;
+      setDefense(json);
+    } catch (e: unknown) {
+      setDefense(null);
+      setDefenseError(e instanceof Error ? e.message : "Could not load defense talking points.");
+    } finally {
+      setDefenseLoading(false);
+    }
+  }
+
   useEffect(() => {
     fetchRuns();
     fetchComparative();
+    fetchProductionMetrics();
+    fetchExplainability();
+    fetchLimitations();
+    fetchReproAudit();
+    fetchEthics();
+    fetchDefense();
   }, []);
 
   const examples = [
@@ -375,9 +755,9 @@ export default function Page() {
       <div className="pointer-events-none absolute top-10 right-0 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
       <div className="pointer-events-none absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-emerald-400/10 blur-3xl" />
 
-      <div className="relative mx-auto max-w-7xl px-4 py-8 md:py-10 section-fade-in">
+      <div className="relative mx-auto max-w-7xl px-4 py-8 md:py-10 section-fade-in flex flex-col gap-6">
         {/* Header */}
-        <header className="glass-panel rounded-3xl p-5 md:p-7 border mb-6">
+        <header className="glass-panel rounded-3xl p-5 md:p-7 border order-1">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3 py-1 text-[11px] uppercase tracking-wider text-cyan-200">
@@ -390,21 +770,282 @@ export default function Page() {
               <p className="mt-2 max-w-2xl text-sm md:text-base text-slate-300">
                 Professional-grade claim intelligence with credibility scoring, counter-evidence analysis, uncertainty disclosure, and explainable verdicts.
               </p>
+              <div className="mt-3 inline-flex rounded-xl border border-slate-300/20 overflow-hidden">
+                <button
+                  className={cx("px-3 py-1.5 text-xs font-semibold transition", audienceMode === "citizen" ? "bg-cyan-400/15 text-cyan-100" : "text-slate-300 hover:bg-slate-800/50")}
+                  onClick={() => setAudienceMode("citizen")}
+                >
+                  Citizen View
+                </button>
+                <button
+                  className={cx("px-3 py-1.5 text-xs font-semibold transition", audienceMode === "analyst" ? "bg-cyan-400/15 text-cyan-100" : "text-slate-300 hover:bg-slate-800/50")}
+                  onClick={() => setAudienceMode("analyst")}
+                >
+                  Analyst View
+                </button>
+              </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-xs md:text-sm w-full sm:w-auto">
-              <a href="/source" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center">Source Checker</a>
-              <a href={`${API_BASE}/docs`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center">API Docs</a>
-              <a href={`${API_BASE}/evaluation/benchmark`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center md:col-span-1 col-span-2">Benchmark</a>
-              <a href={`${API_BASE}/evaluation/baselines`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center md:col-span-1 col-span-2">Baselines</a>
-              <a href={`${API_BASE}/evaluation/ablations`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center md:col-span-1 col-span-2">Ablations</a>
-              <a href={`${API_BASE}/evaluation/comparative`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center md:col-span-1 col-span-2">Comparative</a>
+            <div className="w-full lg:w-auto flex flex-col gap-2 text-xs md:text-sm">
+              <div className="flex flex-wrap gap-2">
+                <a href="/source" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-2.5 text-slate-100 hover:border-cyan-300/40 transition border text-center">Source Checker</a>
+                {audienceMode === "analyst" && (
+                  <>
+                    <a href={`${API_BASE}/docs`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-2.5 text-slate-100 hover:border-cyan-300/40 transition border text-center">API Docs</a>
+                    <a href={`${API_BASE}/evaluation/comparative`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-2.5 text-slate-100 hover:border-cyan-300/40 transition border text-center">Comparative</a>
+                    <a href={`${API_BASE}/evaluation/production-metrics`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-2.5 text-slate-100 hover:border-cyan-300/40 transition border text-center">Operations</a>
+                  </>
+                )}
+              </div>
+              <details className={cx("rounded-xl border border-slate-300/20 bg-slate-900/35 px-3 py-2 text-slate-200", audienceMode === "citizen" ? "hidden" : "block")}>
+                <summary className="cursor-pointer select-none text-sm">More reports</summary>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <a href={`${API_BASE}/evaluation/benchmark`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-2.5 py-1.5 hover:border-cyan-300/40 transition">Benchmark</a>
+                  <a href={`${API_BASE}/evaluation/baselines`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-2.5 py-1.5 hover:border-cyan-300/40 transition">Baselines</a>
+                  <a href={`${API_BASE}/evaluation/ablations`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-2.5 py-1.5 hover:border-cyan-300/40 transition">Ablation</a>
+                  <a href={`${API_BASE}/evaluation/explainability`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-2.5 py-1.5 hover:border-cyan-300/40 transition">Explainability</a>
+                  <a href={`${API_BASE}/evaluation/limitations`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-2.5 py-1.5 hover:border-cyan-300/40 transition">Limitations</a>
+                  <a href={`${API_BASE}/evaluation/reproducibility`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-2.5 py-1.5 hover:border-cyan-300/40 transition">Reproducibility</a>
+                  <a href={`${API_BASE}/evaluation/ethics`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-2.5 py-1.5 hover:border-cyan-300/40 transition">Ethics</a>
+                  <a href={`${API_BASE}/evaluation/defense`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-2.5 py-1.5 hover:border-cyan-300/40 transition">Defense</a>
+                </div>
+              </details>
             </div>
           </div>
         </header>
 
+        {audienceMode === "analyst" && (
+        <div className="order-2">
+
+        <section className="glass-panel rounded-2xl border p-3 md:p-4 mb-6 section-fade-in">
+          <Tabs
+            tabs={[
+              { label: "Evaluation", value: "evaluation", icon: "📈" },
+              { label: "Operations", value: "operations", icon: "⚙️" },
+              { label: "Governance", value: "governance", icon: "🛡️" },
+              { label: "Defense", value: "defense", icon: "🎤" },
+            ]}
+            activeTab={workspaceView}
+            onTabChange={(v) => setWorkspaceView(v as "evaluation" | "operations" | "governance" | "defense")}
+          />
+          <div className="mt-3 rounded-xl border border-slate-700/40 bg-slate-900/35 px-3 py-2.5 md:px-4 md:py-3">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="text-sm font-semibold text-slate-100">{workspaceSummary.title}</div>
+              <div className="flex items-center gap-2">
+                <div className="text-[11px] uppercase tracking-wider text-slate-400">{workspaceSummary.moduleCount} active module{workspaceSummary.moduleCount > 1 ? "s" : ""}</div>
+                <button
+                  className="rounded-lg border border-slate-400/30 px-2.5 py-1 text-[11px] font-semibold text-slate-200 hover:border-cyan-300/40 transition"
+                  onClick={() => setShowDetailedWorkspace((v) => !v)}
+                >
+                  {showDetailedWorkspace ? "Simple View" : "Detailed View"}
+                </button>
+              </div>
+            </div>
+            <p className="mt-1 text-xs md:text-sm text-slate-300">{workspaceSummary.description}</p>
+          </div>
+        </section>
+
+        {workspaceView === "defense" && (
         <section className="glass-panel rounded-2xl border p-5 mb-6 section-fade-in">
           <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
-            <h3 className="text-base font-semibold text-white">📈 Comparative Snapshot (Step 4)</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-semibold text-white">🎤 Defense Briefing</h3>
+              <ModuleStatusChip loading={defenseLoading} error={defenseError} ready={Boolean(defense)} />
+            </div>
+            <div className="flex items-center gap-2">
+              <a href={`${API_BASE}/evaluation/defense`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs text-slate-200 hover:border-cyan-300/40 transition">
+                Open JSON
+              </a>
+              <button
+                className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs hover:border-cyan-300/40 transition disabled:opacity-50"
+                onClick={fetchDefense}
+                disabled={defenseLoading}
+              >
+                {defenseLoading ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
+          </div>
+
+          {defenseLoading && !defense ? (
+            <div className="h-20 rounded-xl bg-slate-700/30 animate-pulse" />
+          ) : defenseError ? (
+            <Alert type="warn" title="Defense data unavailable" message={defenseError} />
+          ) : defense ? (
+            <div className="space-y-3">
+              <div className="rounded-lg border border-cyan-400/20 bg-cyan-500/5 p-3">
+                <div className="text-xs uppercase tracking-wider text-cyan-200/90 mb-1">Quick interpretation</div>
+                <div className="text-sm text-slate-100">
+                  Defense pack is ready with <span className="font-semibold">{defense.qa?.length ?? 0}</span> prepared Q&A responses and <span className="font-semibold">{defense.metrics_cheatsheet?.length ?? 0}</span> supporting metrics.
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Prepared answers</div>
+                  <div className="text-sm text-slate-100 mt-1">{fmtCount(defense.qa?.length)}</div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Ready metrics</div>
+                  <div className="text-sm text-slate-100 mt-1">{fmtCount(defense.metrics_cheatsheet?.length)}</div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Last updated</div>
+                  <div className="text-sm text-slate-100 mt-1">{fmtDateTime(defense.metadata?.generated_utc)}</div>
+                </div>
+              </div>
+
+              {showDetailedWorkspace && defense.qa && defense.qa.length > 0 && (
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400 mb-2">Featured Q&A</div>
+                  <div className="text-sm text-slate-100 mb-1">Q: {defense.qa[0].question}</div>
+                  <div className="text-xs text-slate-300 mb-1">A: {defense.qa[0].answer}</div>
+                  <div className="text-xs text-slate-400">Evidence: {defense.qa[0].evidence}</div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-sm text-slate-400">No defense report loaded yet.</div>
+          )}
+        </section>
+        )}
+
+        {workspaceView === "governance" && (
+        <section className="glass-panel rounded-2xl border p-5 mb-6 section-fade-in">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-semibold text-white">⚖️ Ethics & Societal Impact</h3>
+              <ModuleStatusChip loading={ethicsLoading} error={ethicsError} ready={Boolean(ethics)} />
+            </div>
+            <div className="flex items-center gap-2">
+              <a href={`${API_BASE}/evaluation/ethics`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs text-slate-200 hover:border-cyan-300/40 transition">
+                Open JSON
+              </a>
+              <button
+                className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs hover:border-cyan-300/40 transition disabled:opacity-50"
+                onClick={fetchEthics}
+                disabled={ethicsLoading}
+              >
+                {ethicsLoading ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
+          </div>
+
+          {ethicsLoading && !ethics ? (
+            <div className="h-20 rounded-xl bg-slate-700/30 animate-pulse" />
+          ) : ethicsError ? (
+            <Alert type="warn" title="Ethics data unavailable" message={ethicsError} />
+          ) : ethics ? (
+            <div className="space-y-4">
+              <div className="rounded-lg border border-cyan-400/20 bg-cyan-500/5 p-3">
+                <div className="text-xs uppercase tracking-wider text-cyan-200/90 mb-1">Quick interpretation</div>
+                <div className="text-sm text-slate-100">
+                  Governance scan found <span className="font-semibold">{fmtCount(ethics.metadata?.risk_count)}</span> total ethics risks, including <span className="font-semibold">{fmtCount(ethics.metadata?.high_severity_count)}</span> high-priority items to monitor closely.
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Risks identified</div>
+                  <div className="text-sm text-slate-100 mt-1">{fmtCount(ethics.metadata?.risk_count)}</div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">High-priority risks</div>
+                  <div className="text-sm text-rose-200 mt-1">{fmtCount(ethics.metadata?.high_severity_count)}</div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Last updated</div>
+                  <div className="text-sm text-slate-100 mt-1">{fmtDateTime(ethics.metadata?.generated_utc)}</div>
+                </div>
+              </div>
+
+              {showDetailedWorkspace && ethics.ethical_risks && ethics.ethical_risks.length > 0 && (
+                <div className="sm:col-span-2 lg:col-span-3 rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400 mb-2">Top ethical risk</div>
+                  <div className="text-sm text-slate-100 mb-1">
+                    {ethics.ethical_risks[0].id}: {ethics.ethical_risks[0].title}
+                  </div>
+                  <div className="text-xs text-slate-300 mb-1">Owner: {ethics.ethical_risks[0].owner}</div>
+                  <div className="text-xs text-slate-300">Mitigation: {ethics.ethical_risks[0].mitigation}</div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-sm text-slate-400">No ethics report loaded yet.</div>
+          )}
+        </section>
+        )}
+
+        {workspaceView === "governance" && (
+        <section className="glass-panel rounded-2xl border p-5 mb-6 section-fade-in">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-semibold text-white">🧪 Reproducibility Audit</h3>
+              <ModuleStatusChip loading={reproAuditLoading} error={reproAuditError} ready={Boolean(reproAudit)} />
+            </div>
+            <div className="flex items-center gap-2">
+              <a href={`${API_BASE}/evaluation/reproducibility`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs text-slate-200 hover:border-cyan-300/40 transition">
+                Open JSON
+              </a>
+              <button
+                className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs hover:border-cyan-300/40 transition disabled:opacity-50"
+                onClick={fetchReproAudit}
+                disabled={reproAuditLoading}
+              >
+                {reproAuditLoading ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
+          </div>
+
+          {reproAuditLoading && !reproAudit ? (
+            <div className="h-20 rounded-xl bg-slate-700/30 animate-pulse" />
+          ) : reproAuditError ? (
+            <Alert type="warn" title="Reproducibility data unavailable" message={reproAuditError} />
+          ) : reproAudit ? (
+            <div className="space-y-4">
+              <div className="rounded-lg border border-cyan-400/20 bg-cyan-500/5 p-3">
+                <div className="text-xs uppercase tracking-wider text-cyan-200/90 mb-1">Quick interpretation</div>
+                <div className="text-sm text-slate-100">
+                  Reproducibility confidence is <span className="font-semibold">{typeof reproAudit.score?.score_percent === "number" ? `${reproAudit.score.score_percent.toFixed(1)}%` : "-"}</span> with <span className="font-semibold">{fmtCount(reproAudit.summary?.passed_checks)}</span> of <span className="font-semibold">{fmtCount(reproAudit.summary?.total_checks)}</span> checklist items passing.
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Reproducibility confidence</div>
+                  <div className="text-sm text-cyan-100 mt-1">
+                    {typeof reproAudit.score?.score_percent === "number"
+                      ? `${reproAudit.score.score_percent.toFixed(1)}%`
+                      : "-"}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Checklist pass count</div>
+                  <div className="text-sm text-slate-100 mt-1">
+                    {fmtCount(reproAudit.summary?.passed_checks)}/{fmtCount(reproAudit.summary?.total_checks)}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Source branch</div>
+                  <div className="text-sm text-slate-100 mt-1">{reproAudit.metadata?.git_branch || "-"}</div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Source revision</div>
+                  <div className="text-sm text-slate-100 mt-1">{reproAudit.metadata?.git_commit || "-"}</div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-slate-400">No reproducibility report loaded yet.</div>
+          )}
+        </section>
+        )}
+
+        {workspaceView === "evaluation" && (
+        <section className="glass-panel rounded-2xl border p-5 mb-6 section-fade-in">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-semibold text-white">📈 Comparative Evaluation</h3>
+              <ModuleStatusChip loading={comparativeLoading} error={comparativeError} ready={Boolean(comparative)} />
+            </div>
             <div className="flex items-center gap-2">
               <a href={`${API_BASE}/evaluation/comparative`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs text-slate-200 hover:border-cyan-300/40 transition">
                 Open JSON
@@ -425,55 +1066,80 @@ export default function Page() {
             <Alert type="warn" title="Comparative data unavailable" message={comparativeError} />
           ) : comparative ? (
             <div className="space-y-4">
+              {(() => {
+                const top = comparative.ranking?.[0];
+                const topAcc = typeof top?.accuracy === "number" ? top.accuracy : undefined;
+                const claims = comparative.metadata?.claims_compared;
+                const correct = typeof topAcc === "number" && typeof claims === "number"
+                  ? Math.round(topAcc * claims)
+                  : null;
+                const delta = comparative.debate_lift?.accuracy_delta_pct_points;
+
+                return (
+                  <div className="rounded-lg border border-cyan-400/20 bg-cyan-500/5 p-3">
+                    <div className="text-xs uppercase tracking-wider text-cyan-200/90 mb-1">Quick interpretation</div>
+                    <div className="text-sm text-slate-100">
+                      Best current setup is <span className="font-semibold">{formatSystemName(top?.system)}</span>
+                      {typeof topAcc === "number" ? ` with ${Math.round(topAcc * 100)}% correct verdicts` : ""}
+                      {typeof correct === "number" && typeof claims === "number" ? ` (${fmtCount(correct)}/${fmtCount(claims)})` : ""}
+                      {typeof delta === "number" ? ` and debate impact is ${formatDebateDelta(delta).toLowerCase()}.` : "."}
+                    </div>
+                    {typeof claims === "number" && claims < 30 && (
+                      <div className="mt-2 text-xs text-amber-200/90">
+                        Small sample notice: only {claims} claims were evaluated, so this is directional and may change with larger runs.
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
-                  <div className="text-xs uppercase tracking-wider text-slate-400">Top system</div>
-                  <div className="text-sm text-cyan-100 font-semibold mt-1">{comparative.ranking?.[0]?.system || "-"}</div>
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Best model setup</div>
+                  <div className="text-sm text-cyan-100 font-semibold mt-1">{formatSystemName(comparative.ranking?.[0]?.system)}</div>
                 </div>
                 <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
-                  <div className="text-xs uppercase tracking-wider text-slate-400">Top accuracy</div>
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Correct verdict rate</div>
                   <div className="text-sm text-slate-100 mt-1">{fmtPct(comparative.ranking?.[0]?.accuracy)}</div>
                 </div>
                 <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
-                  <div className="text-xs uppercase tracking-wider text-slate-400">Claims compared</div>
-                  <div className="text-sm text-slate-100 mt-1">{comparative.metadata?.claims_compared ?? "-"}</div>
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Claims evaluated</div>
+                  <div className="text-sm text-slate-100 mt-1">{fmtCount(comparative.metadata?.claims_compared)}</div>
                 </div>
                 <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
-                  <div className="text-xs uppercase tracking-wider text-slate-400">Debate lift</div>
-                  <div className="text-sm text-slate-100 mt-1">
-                    {typeof comparative.debate_lift?.accuracy_delta_pct_points === "number"
-                      ? `${comparative.debate_lift.accuracy_delta_pct_points >= 0 ? "+" : ""}${comparative.debate_lift.accuracy_delta_pct_points.toFixed(2)} pp`
-                      : "-"}
-                  </div>
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Gain from debate mode</div>
+                  <div className="text-sm text-slate-100 mt-1">{formatDebateDelta(comparative.debate_lift?.accuracy_delta_pct_points)}</div>
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-slate-900/70 text-slate-300 border-b border-slate-700">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-xs font-semibold">Rank</th>
-                      <th className="px-3 py-2 text-left text-xs font-semibold">System</th>
-                      <th className="px-3 py-2 text-left text-xs font-semibold">Accuracy</th>
-                      <th className="px-3 py-2 text-left text-xs font-semibold">Avg Conf.</th>
-                      <th className="px-3 py-2 text-left text-xs font-semibold">ECE</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(comparative.ranking || []).slice(0, 5).map((row, idx) => (
-                      <tr key={`${row.system}_${idx}`} className="border-t border-slate-700/50 hover:bg-slate-900/40 transition">
-                        <td className="px-3 py-2 text-slate-300">#{idx + 1}</td>
-                        <td className="px-3 py-2 text-slate-100 font-medium">{row.system}</td>
-                        <td className="px-3 py-2 text-slate-200">{fmtPct(row.accuracy)}</td>
-                        <td className="px-3 py-2 text-slate-300">{typeof row.avg_confidence === "number" ? `${row.avg_confidence.toFixed(1)}%` : "-"}</td>
-                        <td className="px-3 py-2 text-slate-300">{typeof row.ece === "number" ? row.ece.toFixed(3) : "-"}</td>
+              {showDetailedWorkspace && (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-slate-900/70 text-slate-300 border-b border-slate-700">
+                      <tr>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Rank</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">System</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Accuracy</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">Avg Conf.</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold">ECE</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {(comparative.ranking || []).slice(0, 5).map((row, idx) => (
+                        <tr key={`${row.system}_${idx}`} className="border-t border-slate-700/50 hover:bg-slate-900/40 transition">
+                          <td className="px-3 py-2 text-slate-300">#{idx + 1}</td>
+                          <td className="px-3 py-2 text-slate-100 font-medium">{row.system}</td>
+                          <td className="px-3 py-2 text-slate-200">{fmtPct(row.accuracy)}</td>
+                          <td className="px-3 py-2 text-slate-300">{typeof row.avg_confidence === "number" ? `${row.avg_confidence.toFixed(1)}%` : "-"}</td>
+                          <td className="px-3 py-2 text-slate-300">{typeof row.ece === "number" ? row.ece.toFixed(3) : "-"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
-              {comparative.comparisons && comparative.comparisons.length > 0 && (
+              {showDetailedWorkspace && comparative.comparisons && comparative.comparisons.length > 0 && (
                 <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3 text-xs text-slate-300">
                   <span className="text-slate-400 uppercase tracking-wider">Best delta vs comparator:</span>{" "}
                   {(() => {
@@ -484,7 +1150,7 @@ export default function Page() {
                     if (!best) return "-";
                     const pVal = best.significance_test?.p_value;
                     const pTxt = typeof pVal === "number" ? pVal.toFixed(4) : "NA";
-                    return `${best.baseline_name}: ${best.improvement_pct_points >= 0 ? "+" : ""}${best.improvement_pct_points.toFixed(2)} pp (p=${pTxt})`;
+                    return `${formatSystemName(best.baseline_name)}: ${formatDebateDelta(best.improvement_pct_points)} (p=${pTxt})`;
                   })()}
                 </div>
               )}
@@ -493,11 +1159,214 @@ export default function Page() {
             <div className="text-sm text-slate-400">No comparative report loaded yet.</div>
           )}
         </section>
+        )}
+
+        {workspaceView === "operations" && (
+        <section className="glass-panel rounded-2xl border p-5 mb-6 section-fade-in">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-semibold text-white">⚙️ Operational Metrics</h3>
+              <ModuleStatusChip loading={productionMetricsLoading} error={productionMetricsError} ready={Boolean(productionMetrics)} />
+            </div>
+            <div className="flex items-center gap-2">
+              <a href={`${API_BASE}/evaluation/production-metrics`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs text-slate-200 hover:border-cyan-300/40 transition">
+                Open JSON
+              </a>
+              <button
+                className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs hover:border-cyan-300/40 transition disabled:opacity-50"
+                onClick={fetchProductionMetrics}
+                disabled={productionMetricsLoading}
+              >
+                {productionMetricsLoading ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
+          </div>
+
+          {productionMetricsLoading && !productionMetrics ? (
+            <div className="h-20 rounded-xl bg-slate-700/30 animate-pulse" />
+          ) : productionMetricsError ? (
+            <Alert type="warn" title="Production metrics unavailable" message={productionMetricsError} />
+          ) : productionMetrics ? (
+            <div className="space-y-4">
+              <div className="rounded-lg border border-cyan-400/20 bg-cyan-500/5 p-3">
+                <div className="text-xs uppercase tracking-wider text-cyan-200/90 mb-1">Quick interpretation</div>
+                <div className="text-sm text-slate-100">
+                  Current pipeline processes about <span className="font-semibold">{fmtRatePerHour(productionMetrics.throughput?.debate_claims_per_hour)}</span> with an estimated <span className="font-semibold">{fmtPct(productionMetrics.quality?.error_rate)}</span> wrong-verdict rate.
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Average response time</div>
+                  <div className="text-sm text-slate-100 mt-1">
+                    {fmtSeconds(productionMetrics.latency?.baseline_avg_sec)}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Processing capacity</div>
+                  <div className="text-sm text-slate-100 mt-1">
+                    {fmtRatePerHour(productionMetrics.throughput?.debate_claims_per_hour)}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Estimated monthly savings</div>
+                  <div className="text-sm text-emerald-200 mt-1">
+                    {fmtMoney(productionMetrics.cost?.monthly_savings_usd)}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Wrong verdict rate</div>
+                  <div className="text-sm text-slate-100 mt-1">{fmtPct(productionMetrics.quality?.error_rate)}</div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-slate-400">No production metrics loaded yet.</div>
+          )}
+        </section>
+        )}
+
+        {workspaceView === "operations" && (
+        <section className="glass-panel rounded-2xl border p-5 mb-6 section-fade-in">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-semibold text-white">🧠 Explainability Cases</h3>
+              <ModuleStatusChip loading={explainabilityLoading} error={explainabilityError} ready={Boolean(explainability)} />
+            </div>
+            <div className="flex items-center gap-2">
+              <a href={`${API_BASE}/evaluation/explainability`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs text-slate-200 hover:border-cyan-300/40 transition">
+                Open JSON
+              </a>
+              <button
+                className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs hover:border-cyan-300/40 transition disabled:opacity-50"
+                onClick={fetchExplainability}
+                disabled={explainabilityLoading}
+              >
+                {explainabilityLoading ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
+          </div>
+
+          {explainabilityLoading && !explainability ? (
+            <div className="h-20 rounded-xl bg-slate-700/30 animate-pulse" />
+          ) : explainabilityError ? (
+            <Alert type="warn" title="Explainability data unavailable" message={explainabilityError} />
+          ) : explainability ? (
+            <div className="space-y-4">
+              <div className="rounded-lg border border-cyan-400/20 bg-cyan-500/5 p-3">
+                <div className="text-xs uppercase tracking-wider text-cyan-200/90 mb-1">Quick interpretation</div>
+                <div className="text-sm text-slate-100">
+                  Explainability includes <span className="font-semibold">{fmtCount(explainability.metadata?.case_count)}</span> annotated examples so you can see why verdicts were made, compared against <span className="font-semibold">{formatSystemName(explainability.metadata?.best_baseline)}</span>.
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Explained examples</div>
+                  <div className="text-sm text-slate-100 mt-1">{fmtCount(explainability.metadata?.case_count)}</div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Compared against</div>
+                  <div className="text-sm text-slate-100 mt-1">{formatSystemName(explainability.metadata?.best_baseline)}</div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Last updated</div>
+                  <div className="text-sm text-slate-100 mt-1">{fmtDateTime(explainability.metadata?.generated_utc)}</div>
+                </div>
+              </div>
+
+              {showDetailedWorkspace && explainability.case_studies && explainability.case_studies.length > 0 && (
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400 mb-2">Sample case</div>
+                  <div className="text-sm text-slate-100 mb-2">{explainability.case_studies[0].claim_text}</div>
+                  <div className="text-xs text-slate-300 mb-2">
+                    Full: {explainability.case_studies[0].predictions?.full?.label || "-"} | Baseline: {explainability.case_studies[0].predictions?.baseline?.label || "-"}
+                  </div>
+                  <div className="text-xs text-slate-300">
+                    Judge: {explainability.case_studies[0].debate_trace?.judge || "-"}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-sm text-slate-400">No explainability report loaded yet.</div>
+          )}
+        </section>
+        )}
+
+        {workspaceView === "governance" && (
+        <section className="glass-panel rounded-2xl border p-5 mb-6 section-fade-in">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-semibold text-white">📉 Limitations Register</h3>
+              <ModuleStatusChip loading={limitationsLoading} error={limitationsError} ready={Boolean(limitations)} />
+            </div>
+            <div className="flex items-center gap-2">
+              <a href={`${API_BASE}/evaluation/limitations`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs text-slate-200 hover:border-cyan-300/40 transition">
+                Open JSON
+              </a>
+              <button
+                className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs hover:border-cyan-300/40 transition disabled:opacity-50"
+                onClick={fetchLimitations}
+                disabled={limitationsLoading}
+              >
+                {limitationsLoading ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
+          </div>
+
+          {limitationsLoading && !limitations ? (
+            <div className="h-20 rounded-xl bg-slate-700/30 animate-pulse" />
+          ) : limitationsError ? (
+            <Alert type="warn" title="Limitations data unavailable" message={limitationsError} />
+          ) : limitations ? (
+            <div className="space-y-4">
+              <div className="rounded-lg border border-cyan-400/20 bg-cyan-500/5 p-3">
+                <div className="text-xs uppercase tracking-wider text-cyan-200/90 mb-1">Quick interpretation</div>
+                <div className="text-sm text-slate-100">
+                  The limitations register tracks <span className="font-semibold">{fmtCount(limitations.metadata?.limitation_count)}</span> known constraints, including <span className="font-semibold">{fmtCount(limitations.metadata?.high_severity_count)}</span> high-impact items requiring mitigation.
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Known limitations</div>
+                  <div className="text-sm text-slate-100 mt-1">{fmtCount(limitations.metadata?.limitation_count)}</div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">High-impact items</div>
+                  <div className="text-sm text-rose-200 mt-1">{fmtCount(limitations.metadata?.high_severity_count)}</div>
+                </div>
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400">Last updated</div>
+                  <div className="text-sm text-slate-100 mt-1">{fmtDateTime(limitations.metadata?.generated_utc)}</div>
+                </div>
+              </div>
+
+              {showDetailedWorkspace && limitations.limitations && limitations.limitations.length > 0 && (
+                <div className="rounded-lg border border-slate-700/40 bg-slate-900/35 p-3">
+                  <div className="text-xs uppercase tracking-wider text-slate-400 mb-2">Top limitation</div>
+                  <div className="text-sm text-slate-100 mb-1">
+                    {limitations.limitations[0].id}: {limitations.limitations[0].title}
+                  </div>
+                  <div className="text-xs text-slate-300 mb-1">Impact: {limitations.limitations[0].impact}</div>
+                  <div className="text-xs text-slate-300">Mitigation: {limitations.limitations[0].mitigation}</div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-sm text-slate-400">No limitations report loaded yet.</div>
+          )}
+        </section>
+        )}
+
+        </div>
+        )}
 
         {/* Main Layout */}
-        <section className="grid xl:grid-cols-[1.1fr_1.5fr] gap-6">
+        <section className="grid xl:grid-cols-[1.1fr_1.5fr] gap-6 order-1">
           {/* Left: Input Panel */}
-          <div className="glass-panel rounded-3xl border p-5 md:p-6 section-fade-in">
+          <div id="full-verifier" className="glass-panel rounded-3xl border p-5 md:p-6 section-fade-in">
             <div className="flex items-center justify-between mb-4">
               <div className="text-sm uppercase tracking-wider text-slate-300 font-semibold">Input Setup</div>
               <button className="text-xs px-3 py-1.5 rounded-lg border border-slate-300/20 hover:border-cyan-300/40 transition" onClick={() => setShowAdvanced((v) => !v)}>
@@ -690,8 +1559,37 @@ export default function Page() {
               </div>
             )}
 
+            {audienceMode === "citizen" && result && (
+              <div className="glass-panel rounded-2xl border p-4 md:p-5 space-y-4">
+                <div className="rounded-xl border border-cyan-400/20 bg-cyan-500/5 p-4">
+                  <div className="text-xs uppercase tracking-wider text-cyan-200/90 mb-1">Verdict</div>
+                  <div className="text-lg font-semibold text-white">
+                    {primaryClaim ? `${primaryClaim.verdict} (${fmtPct(primaryClaim.confidence)})` : "No claim extracted yet"}
+                  </div>
+                  <div className="text-sm text-slate-300 mt-2">
+                    {primaryClaim?.debate_summary || "Run a verification to get a plain-language explanation."}
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-3">
+                  <div className="rounded-lg border border-emerald-300/20 bg-emerald-500/5 p-3">
+                    <div className="text-xs uppercase tracking-wider text-emerald-200/90 mb-1">Supports Claim</div>
+                    <div className="text-sm text-slate-100">{fmtCount(supportEvidence.length)} sources</div>
+                  </div>
+                  <div className="rounded-lg border border-rose-300/20 bg-rose-500/5 p-3">
+                    <div className="text-xs uppercase tracking-wider text-rose-200/90 mb-1">Refutes Claim</div>
+                    <div className="text-sm text-slate-100">{fmtCount(refuteEvidence.length)} sources</div>
+                  </div>
+                  <div className="rounded-lg border border-slate-300/20 bg-slate-700/20 p-3">
+                    <div className="text-xs uppercase tracking-wider text-slate-300 mb-1">Neutral Context</div>
+                    <div className="text-sm text-slate-100">{fmtCount(neutralEvidence.length)} sources</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Extracted Content Preview */}
-            {result && (
+            {result && audienceMode === "analyst" && (
               <div className="glass-panel rounded-2xl border p-4 md:p-5 stagger-card hover-lift" style={staggerStyle(1)}>
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="text-sm font-semibold text-white">📄 Extracted Content</div>
@@ -704,7 +1602,7 @@ export default function Page() {
             )}
 
             {/* Results Tabs */}
-            {result && (
+            {result && audienceMode === "analyst" && (
               <div className="glass-panel rounded-2xl border overflow-hidden stagger-card" style={staggerStyle(2)}>
                 <Tabs
                   tabs={[
@@ -1047,69 +1945,75 @@ export default function Page() {
         </section>
 
         {/* Run History */}
-        <section className="glass-panel rounded-2xl border p-5 mt-8 section-fade-in">
-          <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
-            <h3 className="text-base font-semibold text-white">📊 Recent Verification Runs</h3>
-            <button
-              className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs hover:border-cyan-300/40 transition disabled:opacity-50"
-              onClick={fetchRuns}
-              disabled={runsLoading}
-            >
-              {runsLoading ? "Refreshing..." : "Refresh"}
-            </button>
-          </div>
+        <section className="glass-panel rounded-2xl border p-4 section-fade-in order-3">
+          <details>
+            <summary className="cursor-pointer select-none flex items-center justify-between gap-3 text-sm font-semibold text-white">
+              <span>📊 Recent verification</span>
+              <span className="text-xs text-slate-400">{fmtCount(runs.length)} records</span>
+            </summary>
 
-          {runsLoading && runs.length === 0 ? (
-            <div className="grid gap-2">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={`run-skeleton-${i}`} className="h-10 rounded-lg bg-slate-700/40 animate-pulse" />
-              ))}
-            </div>
-          ) : runsError ? (
-            <Alert type="warn" message={runsError} title="Could not load history" />
-          ) : runs.length === 0 ? (
-            <div className="text-center py-8 text-slate-400">
-              <div className="text-sm">No verification runs yet</div>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-900/70 text-slate-300 border-b border-slate-700">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold">#</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold">Time</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold">Type</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold">Domain</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {runs.map((r, i) => (
-                    <tr key={`${r.id}_${i}`} className="border-t border-slate-700/50 hover:bg-slate-900/50 transition">
-                      <td className="px-4 py-3 text-slate-200">{r.id}</td>
-                      <td className="px-4 py-3 text-xs text-slate-400 font-mono">{(r.time_utc || r.timestamp_utc || "-").slice(0, 19)}</td>
-                      <td className="px-4 py-3 text-slate-300">{(r.input_type || r.type || "-").slice(0, 10)}</td>
-                      <td className="px-4 py-3 text-slate-300 max-w-[150px] truncate">{r.domain || safeHostFromUrl(r.url) || "-"}</td>
-                      <td className="px-4 py-3">
-                        {r.url ? (
-                          <a
-                            className="text-xs px-2 py-1.5 rounded-lg border border-slate-300/20 text-slate-200 hover:border-cyan-300/40 transition"
-                            href={r.url}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Open
-                          </a>
-                        ) : (
-                          "-"
-                        )}
-                      </td>
-                    </tr>
+            <div className="mt-4">
+              <div className="flex items-center justify-end flex-wrap gap-3 mb-3">
+                <button
+                  className="rounded-lg border border-slate-300/20 px-3 py-1.5 text-xs hover:border-cyan-300/40 transition disabled:opacity-50"
+                  onClick={fetchRuns}
+                  disabled={runsLoading}
+                >
+                  {runsLoading ? "Refreshing..." : "Refresh"}
+                </button>
+              </div>
+
+              {runsLoading && runs.length === 0 ? (
+                <div className="grid gap-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={`run-skeleton-${i}`} className="h-10 rounded-lg bg-slate-700/40 animate-pulse" />
                   ))}
-                </tbody>
-              </table>
+                </div>
+              ) : runsError ? (
+                <Alert type="warn" message={runsError} title="Could not load history" />
+              ) : runs.length === 0 ? (
+                <div className="text-center py-6 text-slate-400 text-sm">No verification runs yet</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-slate-900/70 text-slate-300 border-b border-slate-700">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-semibold">#</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold">Time</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold">Type</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold">Domain</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {runs.map((r, i) => (
+                        <tr key={`${r.id}_${i}`} className="border-t border-slate-700/50 hover:bg-slate-900/50 transition">
+                          <td className="px-4 py-3 text-slate-200">{r.id}</td>
+                          <td className="px-4 py-3 text-xs text-slate-400 font-mono">{fmtDateTime(r.time_utc || r.timestamp_utc)}</td>
+                          <td className="px-4 py-3 text-slate-300">{(r.input_type || r.type || "-").slice(0, 10)}</td>
+                          <td className="px-4 py-3 text-slate-300 max-w-[150px] truncate">{r.domain || safeHostFromUrl(r.url) || "-"}</td>
+                          <td className="px-4 py-3">
+                            {r.url ? (
+                              <a
+                                className="text-xs px-2 py-1.5 rounded-lg border border-slate-300/20 text-slate-200 hover:border-cyan-300/40 transition"
+                                href={r.url}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                Open
+                              </a>
+                            ) : (
+                              "-"
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
-          )}
+          </details>
         </section>
       </div>
     </main>

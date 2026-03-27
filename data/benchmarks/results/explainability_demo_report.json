@@ -1,0 +1,316 @@
+{
+  "metadata": {
+    "generated_utc": "2026-03-27T20:22:13.874100",
+    "full_variant": "full_proxy",
+    "no_debate_variant": "ablate_debate",
+    "best_baseline": "length",
+    "case_count": 7,
+    "note": "Debate traces are structured explainability narratives synthesized from model outputs and lexical signals."
+  },
+  "domain_scoring_examples": [
+    {
+      "domain": "bbc.com",
+      "score": 80
+    },
+    {
+      "domain": "reuters.com",
+      "score": 80
+    },
+    {
+      "domain": "who.int",
+      "score": 85
+    },
+    {
+      "domain": "wikipedia.org",
+      "score": 65
+    },
+    {
+      "domain": "example-blog-news.net",
+      "score": 50
+    }
+  ],
+  "case_studies": [
+    {
+      "claim_id": "unverifiable-002",
+      "claim_text": "An undisclosed alien signal was intercepted in 2025.",
+      "category": "science",
+      "ground_truth_label": "NEI",
+      "predictions": {
+        "full": {
+          "label": "NEI",
+          "confidence": 46.0,
+          "is_correct": true
+        },
+        "no_debate": {
+          "label": "SUPPORTED",
+          "confidence": 46.0,
+          "is_correct": false
+        },
+        "baseline": {
+          "label": "SUPPORTED",
+          "confidence": 50.0,
+          "is_correct": false
+        }
+      },
+      "signals": {
+        "has_numeric": true,
+        "has_year": true,
+        "has_uncertainty": false,
+        "has_absolutist": false,
+        "has_conspiracy": true,
+        "has_supported_event": false
+      },
+      "scoring_logic": [
+        "Category prior increases support confidence for evidence-rich domains.",
+        "Numeric signal detected: evidence consistency weighting is increased.",
+        "Conspiracy cue detected: refutation pressure strongly increases."
+      ],
+      "debate_trace": {
+        "prover": "The claim contains quantifiable elements that can be checked against evidence.",
+        "skeptic": "Conspiracy-style language correlates with lower evidentiary reliability.",
+        "judge": "With debate arbitration, verdict is NEI (46.0 confidence), while no-debate predicts SUPPORTED. Best baseline predicts SUPPORTED."
+      }
+    },
+    {
+      "claim_id": "conflict-001",
+      "claim_text": "A ceasefire was reached in every major conflict in 2024.",
+      "category": "conflict",
+      "ground_truth_label": "NEI",
+      "predictions": {
+        "full": {
+          "label": "NEI",
+          "confidence": 34.5,
+          "is_correct": true
+        },
+        "no_debate": {
+          "label": "NEI",
+          "confidence": 34.5,
+          "is_correct": true
+        },
+        "baseline": {
+          "label": "SUPPORTED",
+          "confidence": 50.0,
+          "is_correct": false
+        }
+      },
+      "signals": {
+        "has_numeric": true,
+        "has_year": true,
+        "has_uncertainty": false,
+        "has_absolutist": true,
+        "has_conspiracy": false,
+        "has_supported_event": false
+      },
+      "scoring_logic": [
+        "Category prior increases uncertainty handling (NEI tendency) for ambiguous domains.",
+        "Numeric signal detected: evidence consistency weighting is increased.",
+        "Absolutist language detected: refutation pressure increases."
+      ],
+      "debate_trace": {
+        "prover": "The claim contains quantifiable elements that can be checked against evidence.",
+        "skeptic": "Absolute wording raises risk of overclaiming and potential refutation.",
+        "judge": "With debate arbitration, verdict is NEI (34.5 confidence), while no-debate predicts NEI. Best baseline predicts SUPPORTED."
+      }
+    },
+    {
+      "claim_id": "unverifiable-001",
+      "claim_text": "A secret committee controls all global elections.",
+      "category": "politics",
+      "ground_truth_label": "REFUTED",
+      "predictions": {
+        "full": {
+          "label": "REFUTED",
+          "confidence": 57.5,
+          "is_correct": true
+        },
+        "no_debate": {
+          "label": "REFUTED",
+          "confidence": 57.5,
+          "is_correct": true
+        },
+        "baseline": {
+          "label": "SUPPORTED",
+          "confidence": 50.0,
+          "is_correct": false
+        }
+      },
+      "signals": {
+        "has_numeric": false,
+        "has_year": false,
+        "has_uncertainty": false,
+        "has_absolutist": true,
+        "has_conspiracy": true,
+        "has_supported_event": false
+      },
+      "scoring_logic": [
+        "Category prior increases uncertainty handling (NEI tendency) for ambiguous domains.",
+        "Absolutist language detected: refutation pressure increases.",
+        "Conspiracy cue detected: refutation pressure strongly increases."
+      ],
+      "debate_trace": {
+        "prover": "Category prior and lexical evidence still support a decisive verdict.",
+        "skeptic": "Absolute wording raises risk of overclaiming and potential refutation. Conspiracy-style language correlates with lower evidentiary reliability.",
+        "judge": "With debate arbitration, verdict is REFUTED (57.5 confidence), while no-debate predicts REFUTED. Best baseline predicts SUPPORTED."
+      }
+    },
+    {
+      "claim_id": "climate-001",
+      "claim_text": "Global average temperature has risen by about 1.1\u00c2\u00b0C since the late 19th century.",
+      "category": "climate",
+      "ground_truth_label": "SUPPORTED",
+      "predictions": {
+        "full": {
+          "label": "NEI",
+          "confidence": 22.5,
+          "is_correct": false
+        },
+        "no_debate": {
+          "label": "SUPPORTED",
+          "confidence": 22.5,
+          "is_correct": true
+        },
+        "baseline": {
+          "label": "SUPPORTED",
+          "confidence": 50.0,
+          "is_correct": true
+        }
+      },
+      "signals": {
+        "has_numeric": true,
+        "has_year": false,
+        "has_uncertainty": false,
+        "has_absolutist": false,
+        "has_conspiracy": false,
+        "has_supported_event": true
+      },
+      "scoring_logic": [
+        "Numeric signal detected: evidence consistency weighting is increased."
+      ],
+      "debate_trace": {
+        "prover": "The claim contains quantifiable elements that can be checked against evidence. The phrasing implies an event-like fact pattern suited to evidence grounding.",
+        "skeptic": "Counter-signals are limited, but alternate verdicts remain plausible.",
+        "judge": "With debate arbitration, verdict is NEI (22.5 confidence), while no-debate predicts SUPPORTED. Best baseline predicts SUPPORTED."
+      }
+    },
+    {
+      "claim_id": "numbers-001",
+      "claim_text": "The Earth is 6,000 years old.",
+      "category": "science",
+      "ground_truth_label": "REFUTED",
+      "predictions": {
+        "full": {
+          "label": "NEI",
+          "confidence": 58.0,
+          "is_correct": false
+        },
+        "no_debate": {
+          "label": "NEI",
+          "confidence": 58.0,
+          "is_correct": false
+        },
+        "baseline": {
+          "label": "SUPPORTED",
+          "confidence": 50.0,
+          "is_correct": false
+        }
+      },
+      "signals": {
+        "has_numeric": true,
+        "has_year": false,
+        "has_uncertainty": false,
+        "has_absolutist": false,
+        "has_conspiracy": false,
+        "has_supported_event": false
+      },
+      "scoring_logic": [
+        "Category prior increases support confidence for evidence-rich domains.",
+        "Numeric signal detected: evidence consistency weighting is increased."
+      ],
+      "debate_trace": {
+        "prover": "The claim contains quantifiable elements that can be checked against evidence.",
+        "skeptic": "Counter-signals are limited, but alternate verdicts remain plausible.",
+        "judge": "With debate arbitration, verdict is NEI (58.0 confidence), while no-debate predicts NEI. Best baseline predicts SUPPORTED."
+      }
+    },
+    {
+      "claim_id": "health-002",
+      "claim_text": "WHO declared COVID-19 a pandemic in March 2020.",
+      "category": "health",
+      "ground_truth_label": "SUPPORTED",
+      "predictions": {
+        "full": {
+          "label": "SUPPORTED",
+          "confidence": 44.5,
+          "is_correct": true
+        },
+        "no_debate": {
+          "label": "SUPPORTED",
+          "confidence": 44.5,
+          "is_correct": true
+        },
+        "baseline": {
+          "label": "SUPPORTED",
+          "confidence": 50.0,
+          "is_correct": true
+        }
+      },
+      "signals": {
+        "has_numeric": true,
+        "has_year": true,
+        "has_uncertainty": false,
+        "has_absolutist": false,
+        "has_conspiracy": false,
+        "has_supported_event": true
+      },
+      "scoring_logic": [
+        "Category prior increases support confidence for evidence-rich domains.",
+        "Numeric signal detected: evidence consistency weighting is increased.",
+        "Temporal event signal detected: support path gets additional weight."
+      ],
+      "debate_trace": {
+        "prover": "The claim contains quantifiable elements that can be checked against evidence. The phrasing implies an event-like fact pattern suited to evidence grounding.",
+        "skeptic": "Counter-signals are limited, but alternate verdicts remain plausible.",
+        "judge": "With debate arbitration, verdict is SUPPORTED (44.5 confidence), while no-debate predicts SUPPORTED. Best baseline predicts SUPPORTED."
+      }
+    },
+    {
+      "claim_id": "history-001",
+      "claim_text": "Napoleon died on Saint Helena.",
+      "category": "history",
+      "ground_truth_label": "SUPPORTED",
+      "predictions": {
+        "full": {
+          "label": "SUPPORTED",
+          "confidence": 53.5,
+          "is_correct": true
+        },
+        "no_debate": {
+          "label": "SUPPORTED",
+          "confidence": 53.5,
+          "is_correct": true
+        },
+        "baseline": {
+          "label": "SUPPORTED",
+          "confidence": 50.0,
+          "is_correct": true
+        }
+      },
+      "signals": {
+        "has_numeric": false,
+        "has_year": false,
+        "has_uncertainty": false,
+        "has_absolutist": false,
+        "has_conspiracy": false,
+        "has_supported_event": true
+      },
+      "scoring_logic": [
+        "Category prior increases support confidence for evidence-rich domains."
+      ],
+      "debate_trace": {
+        "prover": "The phrasing implies an event-like fact pattern suited to evidence grounding.",
+        "skeptic": "Counter-signals are limited, but alternate verdicts remain plausible.",
+        "judge": "With debate arbitration, verdict is SUPPORTED (53.5 confidence), while no-debate predicts SUPPORTED. Best baseline predicts SUPPORTED."
+      }
+    }
+  ]
+}

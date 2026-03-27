@@ -1,0 +1,255 @@
+{
+  "metadata": {
+    "generated_utc": "2026-03-27T20:34:00.398235",
+    "git_commit": "20b5344",
+    "git_branch": "main",
+    "api_base": "http://127.0.0.1:8000"
+  },
+  "environment": {
+    "python_version": "3.10.0",
+    "platform": "Windows-10-10.0.26200-SP0"
+  },
+  "summary": {
+    "passed_checks": 29,
+    "total_checks": 29
+  },
+  "score": {
+    "achieved_weight": 36.5,
+    "total_weight": 36.5,
+    "score_percent": 100.0
+  },
+  "checks": [
+    {
+      "section": "docs",
+      "check_id": "D1",
+      "description": "Required documentation present: README.md",
+      "passed": true,
+      "details": "OK (19065 bytes): C:\\Fact_Validator\\README.md",
+      "weight": 1.0
+    },
+    {
+      "section": "docs",
+      "check_id": "D2",
+      "description": "Required documentation present: DEPLOYMENT.md",
+      "passed": true,
+      "details": "OK (5852 bytes): C:\\Fact_Validator\\DEPLOYMENT.md",
+      "weight": 1.0
+    },
+    {
+      "section": "docs",
+      "check_id": "D3",
+      "description": "Required documentation present: METHODS.md",
+      "passed": true,
+      "details": "OK (9249 bytes): C:\\Fact_Validator\\docs\\METHODS.md",
+      "weight": 1.0
+    },
+    {
+      "section": "docs",
+      "check_id": "D4",
+      "description": "Required documentation present: LIMITATIONS.md",
+      "passed": true,
+      "details": "OK (15326 bytes): C:\\Fact_Validator\\docs\\LIMITATIONS.md",
+      "weight": 1.0
+    },
+    {
+      "section": "docs",
+      "check_id": "D5",
+      "description": "Required documentation present: COMPARATIVE_ANALYSIS.md",
+      "passed": true,
+      "details": "OK (11930 bytes): C:\\Fact_Validator\\docs\\COMPARATIVE_ANALYSIS.md",
+      "weight": 1.0
+    },
+    {
+      "section": "docs",
+      "check_id": "D6",
+      "description": "Required documentation present: THESIS_COMPARATIVE_EVALUATION.md",
+      "passed": true,
+      "details": "OK (33612 bytes): C:\\Fact_Validator\\docs\\THESIS_COMPARATIVE_EVALUATION.md",
+      "weight": 1.0
+    },
+    {
+      "section": "scripts",
+      "check_id": "S1",
+      "description": "Pipeline script present: prepare_research_benchmark.py",
+      "passed": true,
+      "details": "OK (3304 bytes): C:\\Fact_Validator\\services\\api\\Scripts\\prepare_research_benchmark.py",
+      "weight": 1.0
+    },
+    {
+      "section": "scripts",
+      "check_id": "S2",
+      "description": "Pipeline script present: run_baseline_comparison.py",
+      "passed": true,
+      "details": "OK (8076 bytes): C:\\Fact_Validator\\services\\api\\Scripts\\run_baseline_comparison.py",
+      "weight": 1.0
+    },
+    {
+      "section": "scripts",
+      "check_id": "S3",
+      "description": "Pipeline script present: run_ablation_study.py",
+      "passed": true,
+      "details": "OK (19293 bytes): C:\\Fact_Validator\\services\\api\\Scripts\\run_ablation_study.py",
+      "weight": 1.0
+    },
+    {
+      "section": "scripts",
+      "check_id": "S4",
+      "description": "Pipeline script present: run_comparative_analysis.py",
+      "passed": true,
+      "details": "OK (16407 bytes): C:\\Fact_Validator\\services\\api\\Scripts\\run_comparative_analysis.py",
+      "weight": 1.0
+    },
+    {
+      "section": "scripts",
+      "check_id": "S5",
+      "description": "Pipeline script present: run_production_metrics.py",
+      "passed": true,
+      "details": "OK (10817 bytes): C:\\Fact_Validator\\services\\api\\Scripts\\run_production_metrics.py",
+      "weight": 1.0
+    },
+    {
+      "section": "scripts",
+      "check_id": "S6",
+      "description": "Pipeline script present: run_explainability_demo.py",
+      "passed": true,
+      "details": "OK (17422 bytes): C:\\Fact_Validator\\services\\api\\Scripts\\run_explainability_demo.py",
+      "weight": 1.0
+    },
+    {
+      "section": "scripts",
+      "check_id": "S7",
+      "description": "Pipeline script present: run_limitations_assessment.py",
+      "passed": true,
+      "details": "OK (10387 bytes): C:\\Fact_Validator\\services\\api\\Scripts\\run_limitations_assessment.py",
+      "weight": 1.0
+    },
+    {
+      "section": "scripts",
+      "check_id": "S8",
+      "description": "Pipeline script present: run_reproducibility_audit.py",
+      "passed": true,
+      "details": "OK (9857 bytes): C:\\Fact_Validator\\services\\api\\Scripts\\run_reproducibility_audit.py",
+      "weight": 1.0
+    },
+    {
+      "section": "artifacts",
+      "check_id": "A1",
+      "description": "Generated artifact present: research_benchmark_v1.json",
+      "passed": true,
+      "details": "OK (4092 bytes): C:\\Fact_Validator\\data\\benchmarks\\research_benchmark_v1.json",
+      "weight": 1.5
+    },
+    {
+      "section": "artifacts",
+      "check_id": "A2",
+      "description": "Generated artifact present: baseline_comparison_report.json",
+      "passed": true,
+      "details": "OK (8341 bytes): C:\\Fact_Validator\\data\\benchmarks\\results\\baseline_comparison_report.json",
+      "weight": 1.5
+    },
+    {
+      "section": "artifacts",
+      "check_id": "A3",
+      "description": "Generated artifact present: ablation_study_report.json",
+      "passed": true,
+      "details": "OK (10157 bytes): C:\\Fact_Validator\\data\\benchmarks\\results\\ablation_study_report.json",
+      "weight": 1.5
+    },
+    {
+      "section": "artifacts",
+      "check_id": "A4",
+      "description": "Generated artifact present: comparative_analysis_report.json",
+      "passed": true,
+      "details": "OK (16225 bytes): C:\\Fact_Validator\\data\\benchmarks\\results\\comparative_analysis_report.json",
+      "weight": 1.5
+    },
+    {
+      "section": "artifacts",
+      "check_id": "A5",
+      "description": "Generated artifact present: production_metrics_report.json",
+      "passed": true,
+      "details": "OK (1352 bytes): C:\\Fact_Validator\\data\\benchmarks\\results\\production_metrics_report.json",
+      "weight": 1.5
+    },
+    {
+      "section": "artifacts",
+      "check_id": "A6",
+      "description": "Generated artifact present: explainability_demo_report.json",
+      "passed": true,
+      "details": "OK (11007 bytes): C:\\Fact_Validator\\data\\benchmarks\\results\\explainability_demo_report.json",
+      "weight": 1.5
+    },
+    {
+      "section": "artifacts",
+      "check_id": "A7",
+      "description": "Generated artifact present: limitations_assessment_report.json",
+      "passed": true,
+      "details": "OK (3000 bytes): C:\\Fact_Validator\\data\\benchmarks\\results\\limitations_assessment_report.json",
+      "weight": 1.5
+    },
+    {
+      "section": "runtime",
+      "check_id": "R1",
+      "description": "Endpoint available: /health",
+      "passed": true,
+      "details": "HTTP 200: http://127.0.0.1:8000/health",
+      "weight": 1.5
+    },
+    {
+      "section": "runtime",
+      "check_id": "R2",
+      "description": "Endpoint available: /evaluation/benchmark",
+      "passed": true,
+      "details": "HTTP 200: http://127.0.0.1:8000/evaluation/benchmark",
+      "weight": 1.5
+    },
+    {
+      "section": "runtime",
+      "check_id": "R3",
+      "description": "Endpoint available: /evaluation/baselines",
+      "passed": true,
+      "details": "HTTP 200: http://127.0.0.1:8000/evaluation/baselines",
+      "weight": 1.5
+    },
+    {
+      "section": "runtime",
+      "check_id": "R4",
+      "description": "Endpoint available: /evaluation/ablations",
+      "passed": true,
+      "details": "HTTP 200: http://127.0.0.1:8000/evaluation/ablations",
+      "weight": 1.5
+    },
+    {
+      "section": "runtime",
+      "check_id": "R5",
+      "description": "Endpoint available: /evaluation/comparative",
+      "passed": true,
+      "details": "HTTP 200: http://127.0.0.1:8000/evaluation/comparative",
+      "weight": 1.5
+    },
+    {
+      "section": "runtime",
+      "check_id": "R6",
+      "description": "Endpoint available: /evaluation/production-metrics",
+      "passed": true,
+      "details": "HTTP 200: http://127.0.0.1:8000/evaluation/production-metrics",
+      "weight": 1.5
+    },
+    {
+      "section": "runtime",
+      "check_id": "R7",
+      "description": "Endpoint available: /evaluation/explainability",
+      "passed": true,
+      "details": "HTTP 200: http://127.0.0.1:8000/evaluation/explainability",
+      "weight": 1.5
+    },
+    {
+      "section": "runtime",
+      "check_id": "R8",
+      "description": "Endpoint available: /evaluation/limitations",
+      "passed": true,
+      "details": "HTTP 200: http://127.0.0.1:8000/evaluation/limitations",
+      "weight": 1.5
+    }
+  ]
+}

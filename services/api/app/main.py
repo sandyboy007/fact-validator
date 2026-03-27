@@ -692,6 +692,198 @@ def evaluation_comparative():
     return data
 
 
+@app.get("/evaluation/production-metrics")
+def evaluation_production_metrics():
+    """Return Step 5 production metrics report if generated."""
+    report_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "..",
+        "..",
+        "data",
+        "benchmarks",
+        "results",
+        "production_metrics_report.json",
+    )
+    try:
+        with open(report_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "detail": "Production metrics report not found. Run Scripts/run_production_metrics.py first.",
+                "expected_path": report_path,
+            },
+        )
+    except Exception as exc:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Failed to load production metrics report: {exc}"},
+        )
+    return data
+
+
+@app.get("/evaluation/explainability")
+def evaluation_explainability():
+    """Return Step 6 explainability demo report if generated."""
+    report_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "..",
+        "..",
+        "data",
+        "benchmarks",
+        "results",
+        "explainability_demo_report.json",
+    )
+    try:
+        with open(report_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "detail": "Explainability demo report not found. Run Scripts/run_explainability_demo.py first.",
+                "expected_path": report_path,
+            },
+        )
+    except Exception as exc:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Failed to load explainability report: {exc}"},
+        )
+    return data
+
+
+@app.get("/evaluation/limitations")
+def evaluation_limitations():
+    """Return Step 7 limitations assessment report if generated."""
+    report_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "..",
+        "..",
+        "data",
+        "benchmarks",
+        "results",
+        "limitations_assessment_report.json",
+    )
+    try:
+        with open(report_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "detail": "Limitations assessment report not found. Run Scripts/run_limitations_assessment.py first.",
+                "expected_path": report_path,
+            },
+        )
+    except Exception as exc:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Failed to load limitations report: {exc}"},
+        )
+    return data
+
+
+@app.get("/evaluation/reproducibility")
+def evaluation_reproducibility():
+    """Return Step 8 reproducibility audit report if generated."""
+    report_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "..",
+        "..",
+        "data",
+        "benchmarks",
+        "results",
+        "reproducibility_audit_report.json",
+    )
+    try:
+        with open(report_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "detail": "Reproducibility audit report not found. Run Scripts/run_reproducibility_audit.py first.",
+                "expected_path": report_path,
+            },
+        )
+    except Exception as exc:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Failed to load reproducibility report: {exc}"},
+        )
+    return data
+
+
+@app.get("/evaluation/ethics")
+def evaluation_ethics():
+    """Return Step 9 ethics assessment report if generated."""
+    report_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "..",
+        "..",
+        "data",
+        "benchmarks",
+        "results",
+        "ethics_assessment_report.json",
+    )
+    try:
+        with open(report_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "detail": "Ethics assessment report not found. Run Scripts/run_ethics_assessment.py first.",
+                "expected_path": report_path,
+            },
+        )
+    except Exception as exc:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Failed to load ethics report: {exc}"},
+        )
+    return data
+
+
+@app.get("/evaluation/defense")
+def evaluation_defense():
+    """Return Step 10 defense talking points report if generated."""
+    report_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "..",
+        "..",
+        "data",
+        "benchmarks",
+        "results",
+        "defense_talking_points_report.json",
+    )
+    try:
+        with open(report_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "detail": "Defense talking points report not found. Run Scripts/run_defense_talking_points.py first.",
+                "expected_path": report_path,
+            },
+        )
+    except Exception as exc:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Failed to load defense report: {exc}"},
+        )
+    return data
+
+
 @app.get("/runs")
 def runs(limit: int = 50):
     return {"items": list_runs(limit=limit)}

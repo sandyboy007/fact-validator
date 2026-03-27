@@ -1,0 +1,6 @@
+id,domain,title,likelihood,impact,severity,evidence,mitigation,owner
+E1,fairness,Source-selection bias can under-represent minority or local viewpoints,medium,high,high,Linked limitations: Source-selection and credibility-rubric bias.,Add multi-source retrieval diversification and periodic expert review of credibility rubric.,ML + Policy
+E2,safety,Overconfident outputs may mislead users in high-stakes domains,medium,high,high,"Calibration error=0.262, ECE=0.326.",Calibrate confidence and display uncertainty reasons with explicit human-review triggers.,ML + Product
+E3,harm,Residual model error can amplify misinformation if used as sole authority,medium,high,high,Observed error rate=0.286 in evaluation split.,"Position system as triage aid, not final truth authority; require human-in-loop for critical claims.",Product + Trust & Safety
+E4,governance,Debate mode may alter verdicts without guaranteed net safety improvement,medium,medium,medium,Linked limitations: Debate arbitration can introduce regressions.,Enable debate only when baseline uncertainty exceeds policy threshold.,ML
+E5,transparency,Users may misunderstand confidence and think verdicts are definitive,high,medium,medium,Current UX exposes confidence numbers but users may interpret them as certainty.,Add concise disclaimers and confidence interpretation bands in UI.,UX + Product

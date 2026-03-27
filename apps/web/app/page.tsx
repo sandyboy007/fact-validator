@@ -334,10 +334,12 @@ export default function Page() {
                 Professional-grade claim intelligence with credibility scoring, counter-evidence analysis, uncertainty disclosure, and explainable verdicts.
               </p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs md:text-sm w-full sm:w-auto">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs md:text-sm w-full sm:w-auto">
               <a href="/source" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center">Source Checker</a>
               <a href={`${API_BASE}/docs`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center">API Docs</a>
               <a href={`${API_BASE}/evaluation/benchmark`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center md:col-span-1 col-span-2">Benchmark</a>
+              <a href={`${API_BASE}/evaluation/baselines`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center md:col-span-1 col-span-2">Baselines</a>
+              <a href={`${API_BASE}/evaluation/ablations`} target="_blank" rel="noreferrer" className="glass-panel rounded-xl px-3 md:px-4 py-2 md:py-3 text-slate-100 hover:border-cyan-300/40 transition border text-center md:col-span-1 col-span-2">Ablations</a>
             </div>
           </div>
         </header>

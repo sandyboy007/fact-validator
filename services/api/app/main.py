@@ -596,6 +596,70 @@ def evaluation_benchmark():
     return data
 
 
+@app.get("/evaluation/baselines")
+def evaluation_baselines():
+    """Return Step 2 baseline comparison report if generated."""
+    report_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "..",
+        "..",
+        "data",
+        "benchmarks",
+        "results",
+        "baseline_comparison_report.json",
+    )
+    try:
+        with open(report_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "detail": "Baseline comparison report not found. Run Scripts/run_baseline_comparison.py first.",
+                "expected_path": report_path,
+            },
+        )
+    except Exception as exc:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Failed to load baseline report: {exc}"},
+        )
+    return data
+
+
+@app.get("/evaluation/ablations")
+def evaluation_ablations():
+    """Return Step 3 ablation study report if generated."""
+    report_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "..",
+        "..",
+        "data",
+        "benchmarks",
+        "results",
+        "ablation_study_report.json",
+    )
+    try:
+        with open(report_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "detail": "Ablation report not found. Run Scripts/run_ablation_study.py first.",
+                "expected_path": report_path,
+            },
+        )
+    except Exception as exc:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Failed to load ablation report: {exc}"},
+        )
+    return data
+
+
 @app.get("/runs")
 def runs(limit: int = 50):
     return {"items": list_runs(limit=limit)}

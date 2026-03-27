@@ -1,0 +1,343 @@
+{
+  "metadata": {
+    "generated_utc": "2026-03-27T19:10:43.948913",
+    "train_split": "C:\\Fact_Validator\\data\\benchmarks\\splits\\train.json",
+    "test_split": "C:\\Fact_Validator\\data\\benchmarks\\splits\\test.json",
+    "train_claim_count": 11,
+    "test_claim_count": 7,
+    "majority_label": "SUPPORTED",
+    "seed": 42
+  },
+  "results": {
+    "random": {
+      "overall_accuracy": 0.2857142857142857,
+      "macro": {
+        "precision": 0.2222222222222222,
+        "recall": 0.2222222222222222,
+        "f1": 0.2222222222222222
+      },
+      "per_class": {
+        "SUPPORTED": {
+          "accuracy": 0.7142857142857143,
+          "precision": 0.6666666666666666,
+          "recall": 0.6666666666666666,
+          "f1": 0.6666666666666666,
+          "support": 3
+        },
+        "REFUTED": {
+          "accuracy": 0.42857142857142855,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 2
+        },
+        "NEI": {
+          "accuracy": 0.42857142857142855,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 2
+        }
+      },
+      "per_category": {
+        "science": {
+          "accuracy": 0.0,
+          "count": 2
+        },
+        "health": {
+          "accuracy": 1.0,
+          "count": 1
+        },
+        "politics": {
+          "accuracy": 0.0,
+          "count": 1
+        },
+        "climate": {
+          "accuracy": 0.0,
+          "count": 1
+        },
+        "history": {
+          "accuracy": 1.0,
+          "count": 1
+        },
+        "conflict": {
+          "accuracy": 0.0,
+          "count": 1
+        }
+      },
+      "calibration": {
+        "bin_3": {
+          "avg_confidence": 34.510361569005,
+          "avg_accuracy": 0.2,
+          "calibration_gap": 34.310361569004996
+        },
+        "bin_5": {
+          "avg_confidence": 53.641095510525474,
+          "avg_accuracy": 0.5,
+          "calibration_gap": 53.141095510525474
+        }
+      },
+      "n_predictions": 7
+    },
+    "keyword": {
+      "overall_accuracy": 0.2857142857142857,
+      "macro": {
+        "precision": 0.09523809523809523,
+        "recall": 0.3333333333333333,
+        "f1": 0.14814814814814817
+      },
+      "per_class": {
+        "SUPPORTED": {
+          "accuracy": 0.5714285714285714,
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 3
+        },
+        "REFUTED": {
+          "accuracy": 0.7142857142857143,
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 2
+        },
+        "NEI": {
+          "accuracy": 0.2857142857142857,
+          "precision": 0.2857142857142857,
+          "recall": 1.0,
+          "f1": 0.4444444444444445,
+          "support": 2
+        }
+      },
+      "per_category": {
+        "science": {
+          "accuracy": 0.5,
+          "count": 2
+        },
+        "health": {
+          "accuracy": 0.0,
+          "count": 1
+        },
+        "politics": {
+          "accuracy": 0.0,
+          "count": 1
+        },
+        "climate": {
+          "accuracy": 0.0,
+          "count": 1
+        },
+        "history": {
+          "accuracy": 0.0,
+          "count": 1
+        },
+        "conflict": {
+          "accuracy": 1.0,
+          "count": 1
+        }
+      },
+      "calibration": {
+        "bin_2": {
+          "avg_confidence": 20.0,
+          "avg_accuracy": 0.2857142857142857,
+          "calibration_gap": 19.714285714285715
+        }
+      },
+      "n_predictions": 7
+    },
+    "length": {
+      "overall_accuracy": 0.42857142857142855,
+      "macro": {
+        "precision": 0.14285714285714285,
+        "recall": 0.3333333333333333,
+        "f1": 0.19999999999999998
+      },
+      "per_class": {
+        "SUPPORTED": {
+          "accuracy": 0.42857142857142855,
+          "precision": 0.42857142857142855,
+          "recall": 1.0,
+          "f1": 0.6,
+          "support": 3
+        },
+        "REFUTED": {
+          "accuracy": 0.7142857142857143,
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 2
+        },
+        "NEI": {
+          "accuracy": 0.7142857142857143,
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 2
+        }
+      },
+      "per_category": {
+        "science": {
+          "accuracy": 0.0,
+          "count": 2
+        },
+        "health": {
+          "accuracy": 1.0,
+          "count": 1
+        },
+        "politics": {
+          "accuracy": 0.0,
+          "count": 1
+        },
+        "climate": {
+          "accuracy": 1.0,
+          "count": 1
+        },
+        "history": {
+          "accuracy": 1.0,
+          "count": 1
+        },
+        "conflict": {
+          "accuracy": 0.0,
+          "count": 1
+        }
+      },
+      "calibration": {
+        "bin_5": {
+          "avg_confidence": 50.0,
+          "avg_accuracy": 0.42857142857142855,
+          "calibration_gap": 49.57142857142857
+        }
+      },
+      "n_predictions": 7
+    },
+    "sentiment": {
+      "overall_accuracy": 0.2857142857142857,
+      "macro": {
+        "precision": 0.09523809523809523,
+        "recall": 0.3333333333333333,
+        "f1": 0.14814814814814817
+      },
+      "per_class": {
+        "SUPPORTED": {
+          "accuracy": 0.5714285714285714,
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 3
+        },
+        "REFUTED": {
+          "accuracy": 0.7142857142857143,
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 2
+        },
+        "NEI": {
+          "accuracy": 0.2857142857142857,
+          "precision": 0.2857142857142857,
+          "recall": 1.0,
+          "f1": 0.4444444444444445,
+          "support": 2
+        }
+      },
+      "per_category": {
+        "science": {
+          "accuracy": 0.5,
+          "count": 2
+        },
+        "health": {
+          "accuracy": 0.0,
+          "count": 1
+        },
+        "politics": {
+          "accuracy": 0.0,
+          "count": 1
+        },
+        "climate": {
+          "accuracy": 0.0,
+          "count": 1
+        },
+        "history": {
+          "accuracy": 0.0,
+          "count": 1
+        },
+        "conflict": {
+          "accuracy": 1.0,
+          "count": 1
+        }
+      },
+      "calibration": {
+        "bin_4": {
+          "avg_confidence": 40.0,
+          "avg_accuracy": 0.2857142857142857,
+          "calibration_gap": 39.714285714285715
+        }
+      },
+      "n_predictions": 7
+    },
+    "majority": {
+      "overall_accuracy": 0.42857142857142855,
+      "macro": {
+        "precision": 0.14285714285714285,
+        "recall": 0.3333333333333333,
+        "f1": 0.19999999999999998
+      },
+      "per_class": {
+        "SUPPORTED": {
+          "accuracy": 0.42857142857142855,
+          "precision": 0.42857142857142855,
+          "recall": 1.0,
+          "f1": 0.6,
+          "support": 3
+        },
+        "REFUTED": {
+          "accuracy": 0.7142857142857143,
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 2
+        },
+        "NEI": {
+          "accuracy": 0.7142857142857143,
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 2
+        }
+      },
+      "per_category": {
+        "science": {
+          "accuracy": 0.0,
+          "count": 2
+        },
+        "health": {
+          "accuracy": 1.0,
+          "count": 1
+        },
+        "politics": {
+          "accuracy": 0.0,
+          "count": 1
+        },
+        "climate": {
+          "accuracy": 1.0,
+          "count": 1
+        },
+        "history": {
+          "accuracy": 1.0,
+          "count": 1
+        },
+        "conflict": {
+          "accuracy": 0.0,
+          "count": 1
+        }
+      },
+      "calibration": {
+        "bin_5": {
+          "avg_confidence": 50.0,
+          "avg_accuracy": 0.42857142857142855,
+          "calibration_gap": 49.57142857142857
+        }
+      },
+      "n_predictions": 7
+    }
+  }
+}

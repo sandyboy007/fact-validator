@@ -1,0 +1,360 @@
+{
+  "metadata": {
+    "generated_utc": "2026-03-27T19:41:55.531733",
+    "train_split": "C:\\Fact_Validator\\data\\benchmarks\\splits\\train.json",
+    "test_split": "C:\\Fact_Validator\\data\\benchmarks\\splits\\test.json",
+    "train_claim_count": 11,
+    "test_claim_count": 7,
+    "majority_label": "SUPPORTED",
+    "full_variant_name": "full_proxy"
+  },
+  "variants": {
+    "full_proxy": {
+      "description": "All proxy components enabled",
+      "metrics": {
+        "overall_accuracy": 0.7142857142857143,
+        "macro": {
+          "precision": 0.8333333333333334,
+          "recall": 0.7222222222222222,
+          "f1": 0.7111111111111111
+        },
+        "per_class": {
+          "VerdictLabel.SUPPORTED": {
+            "accuracy": 0.8571428571428571,
+            "precision": 1.0,
+            "recall": 0.6666666666666666,
+            "f1": 0.8,
+            "support": 3
+          },
+          "VerdictLabel.REFUTED": {
+            "accuracy": 0.8571428571428571,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666,
+            "support": 2
+          },
+          "VerdictLabel.NEI": {
+            "accuracy": 0.7142857142857143,
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6666666666666666,
+            "support": 2
+          }
+        },
+        "per_category": {
+          "science": {
+            "accuracy": 0.5,
+            "count": 2
+          },
+          "health": {
+            "accuracy": 1.0,
+            "count": 1
+          },
+          "politics": {
+            "accuracy": 1.0,
+            "count": 1
+          },
+          "climate": {
+            "accuracy": 0.0,
+            "count": 1
+          },
+          "history": {
+            "accuracy": 1.0,
+            "count": 1
+          },
+          "conflict": {
+            "accuracy": 1.0,
+            "count": 1
+          }
+        },
+        "n_predictions": 7
+      }
+    },
+    "ablate_credibility": {
+      "description": "Remove category-prior credibility signal",
+      "metrics": {
+        "overall_accuracy": 0.5714285714285714,
+        "macro": {
+          "precision": 0.7999999999999999,
+          "recall": 0.611111111111111,
+          "f1": 0.5793650793650794
+        },
+        "per_class": {
+          "VerdictLabel.SUPPORTED": {
+            "accuracy": 0.7142857142857143,
+            "precision": 1.0,
+            "recall": 0.3333333333333333,
+            "f1": 0.5,
+            "support": 3
+          },
+          "VerdictLabel.REFUTED": {
+            "accuracy": 0.8571428571428571,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666,
+            "support": 2
+          },
+          "VerdictLabel.NEI": {
+            "accuracy": 0.5714285714285714,
+            "precision": 0.4,
+            "recall": 1.0,
+            "f1": 0.5714285714285715,
+            "support": 2
+          }
+        },
+        "per_category": {
+          "science": {
+            "accuracy": 0.5,
+            "count": 2
+          },
+          "health": {
+            "accuracy": 1.0,
+            "count": 1
+          },
+          "politics": {
+            "accuracy": 1.0,
+            "count": 1
+          },
+          "climate": {
+            "accuracy": 0.0,
+            "count": 1
+          },
+          "history": {
+            "accuracy": 0.0,
+            "count": 1
+          },
+          "conflict": {
+            "accuracy": 1.0,
+            "count": 1
+          }
+        },
+        "n_predictions": 7
+      }
+    },
+    "ablate_semantic_rerank": {
+      "description": "Remove semantic reranking signal",
+      "metrics": {
+        "overall_accuracy": 0.2857142857142857,
+        "macro": {
+          "precision": 0.2333333333333333,
+          "recall": 0.27777777777777773,
+          "f1": 0.22857142857142856
+        },
+        "per_class": {
+          "VerdictLabel.SUPPORTED": {
+            "accuracy": 0.5714285714285714,
+            "precision": 0.5,
+            "recall": 0.3333333333333333,
+            "f1": 0.4,
+            "support": 3
+          },
+          "VerdictLabel.REFUTED": {
+            "accuracy": 0.7142857142857143,
+            "precision": 0,
+            "recall": 0.0,
+            "f1": 0,
+            "support": 2
+          },
+          "VerdictLabel.NEI": {
+            "accuracy": 0.2857142857142857,
+            "precision": 0.2,
+            "recall": 0.5,
+            "f1": 0.28571428571428575,
+            "support": 2
+          }
+        },
+        "per_category": {
+          "science": {
+            "accuracy": 0.0,
+            "count": 2
+          },
+          "health": {
+            "accuracy": 0.0,
+            "count": 1
+          },
+          "politics": {
+            "accuracy": 0.0,
+            "count": 1
+          },
+          "climate": {
+            "accuracy": 0.0,
+            "count": 1
+          },
+          "history": {
+            "accuracy": 1.0,
+            "count": 1
+          },
+          "conflict": {
+            "accuracy": 1.0,
+            "count": 1
+          }
+        },
+        "n_predictions": 7
+      }
+    },
+    "ablate_debate": {
+      "description": "Remove debate arbitration logic",
+      "metrics": {
+        "overall_accuracy": 0.7142857142857143,
+        "macro": {
+          "precision": 0.75,
+          "recall": 0.6666666666666666,
+          "f1": 0.6746031746031745
+        },
+        "per_class": {
+          "VerdictLabel.SUPPORTED": {
+            "accuracy": 0.8571428571428571,
+            "precision": 0.75,
+            "recall": 1.0,
+            "f1": 0.8571428571428571,
+            "support": 3
+          },
+          "VerdictLabel.REFUTED": {
+            "accuracy": 0.8571428571428571,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666,
+            "support": 2
+          },
+          "VerdictLabel.NEI": {
+            "accuracy": 0.7142857142857143,
+            "precision": 0.5,
+            "recall": 0.5,
+            "f1": 0.5,
+            "support": 2
+          }
+        },
+        "per_category": {
+          "science": {
+            "accuracy": 0.0,
+            "count": 2
+          },
+          "health": {
+            "accuracy": 1.0,
+            "count": 1
+          },
+          "politics": {
+            "accuracy": 1.0,
+            "count": 1
+          },
+          "climate": {
+            "accuracy": 1.0,
+            "count": 1
+          },
+          "history": {
+            "accuracy": 1.0,
+            "count": 1
+          },
+          "conflict": {
+            "accuracy": 1.0,
+            "count": 1
+          }
+        },
+        "n_predictions": 7
+      }
+    },
+    "ablate_quality_filter": {
+      "description": "Remove low-confidence quality filter",
+      "metrics": {
+        "overall_accuracy": 0.7142857142857143,
+        "macro": {
+          "precision": 0.7777777777777777,
+          "recall": 0.7222222222222222,
+          "f1": 0.7111111111111111
+        },
+        "per_class": {
+          "VerdictLabel.SUPPORTED": {
+            "accuracy": 0.7142857142857143,
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666,
+            "support": 3
+          },
+          "VerdictLabel.REFUTED": {
+            "accuracy": 0.8571428571428571,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666,
+            "support": 2
+          },
+          "VerdictLabel.NEI": {
+            "accuracy": 0.8571428571428571,
+            "precision": 0.6666666666666666,
+            "recall": 1.0,
+            "f1": 0.8,
+            "support": 2
+          }
+        },
+        "per_category": {
+          "science": {
+            "accuracy": 0.5,
+            "count": 2
+          },
+          "health": {
+            "accuracy": 1.0,
+            "count": 1
+          },
+          "politics": {
+            "accuracy": 1.0,
+            "count": 1
+          },
+          "climate": {
+            "accuracy": 0.0,
+            "count": 1
+          },
+          "history": {
+            "accuracy": 1.0,
+            "count": 1
+          },
+          "conflict": {
+            "accuracy": 1.0,
+            "count": 1
+          }
+        },
+        "n_predictions": 7
+      }
+    }
+  },
+  "ablation_results": [
+    {
+      "variant": "ablate_credibility",
+      "component": "credibility_scoring",
+      "description": "Remove category-prior credibility signal",
+      "accuracy_with": 0.7142857142857143,
+      "accuracy_without": 0.5714285714285714,
+      "accuracy_drop_pct": 20.000000000000007,
+      "relative_importance_pct": 20.000000000000007,
+      "prediction_change_rate_vs_full": 0.14285714285714285
+    },
+    {
+      "variant": "ablate_semantic_rerank",
+      "component": "semantic_reranking",
+      "description": "Remove semantic reranking signal",
+      "accuracy_with": 0.7142857142857143,
+      "accuracy_without": 0.2857142857142857,
+      "accuracy_drop_pct": 60.0,
+      "relative_importance_pct": 60.0,
+      "prediction_change_rate_vs_full": 0.42857142857142855
+    },
+    {
+      "variant": "ablate_debate",
+      "component": "debate_mode",
+      "description": "Remove debate arbitration logic",
+      "accuracy_with": 0.7142857142857143,
+      "accuracy_without": 0.7142857142857143,
+      "accuracy_drop_pct": 0.0,
+      "relative_importance_pct": 0.0,
+      "prediction_change_rate_vs_full": 0.2857142857142857
+    },
+    {
+      "variant": "ablate_quality_filter",
+      "component": "source_quality_filtering",
+      "description": "Remove low-confidence quality filter",
+      "accuracy_with": 0.7142857142857143,
+      "accuracy_without": 0.7142857142857143,
+      "accuracy_drop_pct": 0.0,
+      "relative_importance_pct": 0.0,
+      "prediction_change_rate_vs_full": 0.14285714285714285
+    }
+  ]
+}

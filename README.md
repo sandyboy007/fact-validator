@@ -13,6 +13,7 @@
 ## Table of Contents
 
 - [Overview](#overview)
+- [Frontend Experience](#frontend-experience)
 - [Architecture](#architecture)
 - [Tech Stack](#tech-stack)
 - [Prerequisites](#prerequisites)
@@ -45,6 +46,37 @@ Fact Validator takes a **URL or free text** as input and performs the following 
 5. **Verdict** — a baseline NLP verifier classifies each claim as `SUPPORTED`, `REFUTED`, or `NEI` (Not Enough Information), with a confidence score.
 6. **Misinformation likelihood** — a final score (0–100 %) is computed from the input source's credibility anchored baseline, then adjusted by the claim verdicts and evidence quality.
 7. **Persistent storage** — every run is written to a local SQLite database; past results are browsable and exportable.
+
+---
+
+## Frontend Experience
+
+The web app now supports two user-focused interface modes:
+
+### Citizen View (default)
+
+- Designed for non-technical users.
+- Prioritizes a verdict-first flow with plain-language explanations.
+- Hides technical API/report links from the top action bar.
+- Keeps advanced evaluation dashboards out of the main reading path.
+- Recent verification history is collapsed under a dropdown near the bottom to reduce clutter.
+
+### Analyst View
+
+- Designed for research and thesis workflows.
+- Exposes advanced tabs for:
+  - Evaluation
+  - Operations
+  - Governance
+  - Defense
+- Includes richer comparative and operational summaries used for benchmarking and reporting.
+- Makes developer/report endpoints (for example API docs and report JSON links) available for deep inspection.
+
+### Top Navigation Behavior
+
+- **Source Checker** is the primary user-facing quick action.
+- Technical/report actions are intentionally de-emphasized in Citizen View.
+- Full structured verification controls remain available in the main input panel at the top.
 
 ---
 

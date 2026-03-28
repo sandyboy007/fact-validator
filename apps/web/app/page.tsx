@@ -423,7 +423,7 @@ export default function Page() {
 
   const [openClaimIdx, setOpenClaimIdx] = useState<number | null>(0);
   const [resultTab, setResultTab] = useState<"overview" | "claims" | "evidence">("overview");
-  const [audienceMode, setAudienceMode] = useState<"citizen" | "analyst">("citizen");
+  const [audienceMode, setAudienceMode] = useState<"user" | "analyst">("user");
   const [workspaceView, setWorkspaceView] = useState<"evaluation" | "operations" | "governance" | "defense">("evaluation");
   const [showDetailedWorkspace, setShowDetailedWorkspace] = useState(false);
   const [sentimentFilter, setSentimentFilter] = useState<"all" | "positive" | "negative" | "neutral">("all");
@@ -772,10 +772,10 @@ export default function Page() {
               </p>
               <div className="mt-3 inline-flex rounded-xl border border-slate-300/20 overflow-hidden">
                 <button
-                  className={cx("px-3 py-1.5 text-xs font-semibold transition", audienceMode === "citizen" ? "bg-cyan-400/15 text-cyan-100" : "text-slate-300 hover:bg-slate-800/50")}
-                  onClick={() => setAudienceMode("citizen")}
+                  className={cx("px-3 py-1.5 text-xs font-semibold transition", audienceMode === "user" ? "bg-cyan-400/15 text-cyan-100" : "text-slate-300 hover:bg-slate-800/50")}
+                  onClick={() => setAudienceMode("user")}
                 >
-                  Citizen View
+                  User View
                 </button>
                 <button
                   className={cx("px-3 py-1.5 text-xs font-semibold transition", audienceMode === "analyst" ? "bg-cyan-400/15 text-cyan-100" : "text-slate-300 hover:bg-slate-800/50")}
@@ -796,7 +796,7 @@ export default function Page() {
                   </>
                 )}
               </div>
-              <details className={cx("rounded-xl border border-slate-300/20 bg-slate-900/35 px-3 py-2 text-slate-200", audienceMode === "citizen" ? "hidden" : "block")}>
+              <details className={cx("rounded-xl border border-slate-300/20 bg-slate-900/35 px-3 py-2 text-slate-200", audienceMode === "user" ? "hidden" : "block")}>
                 <summary className="cursor-pointer select-none text-sm">More reports</summary>
                 <div className="mt-2 flex flex-wrap gap-2">
                   <a href={`${API_BASE}/evaluation/benchmark`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300/20 px-2.5 py-1.5 hover:border-cyan-300/40 transition">Benchmark</a>
@@ -1559,7 +1559,7 @@ export default function Page() {
               </div>
             )}
 
-            {audienceMode === "citizen" && result && (
+            {audienceMode === "user" && result && (
               <div className="glass-panel rounded-2xl border p-4 md:p-5 space-y-4">
                 <div className="rounded-xl border border-cyan-400/20 bg-cyan-500/5 p-4">
                   <div className="text-xs uppercase tracking-wider text-cyan-200/90 mb-1">Verdict</div>
@@ -1584,6 +1584,82 @@ export default function Page() {
                     <div className="text-xs uppercase tracking-wider text-slate-300 mb-1">Neutral Context</div>
                     <div className="text-sm text-slate-100">{fmtCount(neutralEvidence.length)} sources</div>
                   </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-300/20 bg-slate-900/45 p-4">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="text-sm font-semibold text-white">Claim & Evidence Details</div>
+                    <div className="text-xs text-slate-400">Show claim verdicts, sentiment, and source links</div>
+                  </div>
+
+                  {result.claims && result.claims.length > 0 ? (
+                    <div className="mt-3 grid gap-3">
+                      {result.claims.slice(0, 3).map((claim, idx) => (
+                        <div key={`user-claim-${idx}`} className="rounded-lg border border-slate-300/20 bg-slate-800/40 p-3">
+                          <div className="flex items-start justify-between gap-2 flex-wrap">
+                            <div className="text-xs uppercase tracking-wider text-slate-400">Claim #{idx + 1}</div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <VerdictBadge verdict={claim.verdict} confidence={claim.confidence} />
+                              {claim.sentiment && (
+                                <SentimentBadge
+                                  label={claim.sentiment.label}
+                                  score={claim.sentiment.score}
+                                  emotionalIntensity={claim.sentiment.emotional_intensity}
+                                  biasRisk={claim.sentiment.bias_risk}
+                                />
+                              )}
+                            </div>
+                          </div>
+
+                          <p className="mt-2 text-sm text-slate-100 leading-relaxed">{claim.claim_text}</p>
+
+                          {claim.sentiment && (
+                            <div className="mt-2 text-xs text-slate-300">
+                              Sentiment score: {claim.sentiment.score.toFixed(2)} | Emotional intensity: {Math.round(claim.sentiment.emotional_intensity * 100)}% | Bias risk: {claim.sentiment.bias_risk.toUpperCase()}
+                            </div>
+                          )}
+
+                          <div className="mt-3 grid gap-2">
+                            {sortEvidence(claim.evidence || []).slice(0, 3).map((ev, evIdx) => (
+                              <a
+                                key={`user-claim-${idx}-ev-${evIdx}`}
+                                href={ev.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="rounded-lg border border-slate-300/20 bg-slate-900/55 px-3 py-2 hover:border-cyan-300/40 transition"
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="truncate text-sm font-medium text-cyan-100">{ev.domain || safeHostFromUrl(ev.url)}</div>
+                                  <div
+                                    className={cx(
+                                      "px-2 py-0.5 text-[11px] rounded-full border uppercase tracking-wider",
+                                      ev.stance === "support"
+                                        ? "border-emerald-300/40 bg-emerald-400/15 text-emerald-100"
+                                        : ev.stance === "refute"
+                                        ? "border-rose-300/40 bg-rose-400/15 text-rose-100"
+                                        : "border-slate-300/30 bg-slate-500/20 text-slate-200"
+                                    )}
+                                  >
+                                    {ev.stance || "context"}
+                                  </div>
+                                </div>
+                                <div className="mt-1 text-xs text-slate-300 line-clamp-2">{ev.snippet || "Open source link"}</div>
+                              </a>
+                            ))}
+                            {(!claim.evidence || claim.evidence.length === 0) && (
+                              <div className="text-xs text-slate-400">No evidence sources were returned for this claim.</div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+
+                      {result.claims.length > 3 && (
+                        <div className="text-xs text-slate-400">Showing top 3 claims in User View. Switch to Analyst View for all claim details and filters.</div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mt-3 text-sm text-slate-400">No claim-level details available for this run.</div>
+                  )}
                 </div>
               </div>
             )}

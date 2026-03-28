@@ -56,7 +56,7 @@ Fact Validator takes a **URL or free text** as input and performs the following 
 
 The web app now supports two user-focused interface modes:
 
-### Citizen View (default)
+### User View (default)
 
 - Designed for non-technical users.
 - Prioritizes a verdict-first flow with plain-language explanations.
@@ -78,7 +78,7 @@ The web app now supports two user-focused interface modes:
 ### Top Navigation Behavior
 
 - **Source Checker** is the primary user-facing quick action.
-- Technical/report actions are intentionally de-emphasized in Citizen View.
+- Technical/report actions are intentionally de-emphasized in User View.
 - Full structured verification controls remain available in the main input panel at the top.
 
 ---

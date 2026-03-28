@@ -42,7 +42,10 @@ Fact Validator takes a **URL or free text** as input and performs the following 
 1. **Fetch & extract** — renders the page and strips boilerplate using Trafilatura.
 2. **Claim extraction** — NLP sentence scoring selects the most fact-like claims (up to 6 per article).
 3. **Evidence search** — each claim is queried against Google via SerpAPI; results are fetched and ranked.
-4. **Source credibility scoring** — every evidence domain is scored 0–100 using a transparent heuristic rubric that rewards known reputable publishers (BBC, Reuters, NPR, Forbes, `.gov`, `.edu`, academic journals, etc.) and penalises low-signal platforms (social media, blog hosts).
+4. **Source credibility scoring** — every evidence domain is scored 0–100 using a transparent, multi-signal rubric:
+  - Heuristic trust signals (reputable domains, institutional suffixes, platform risk markers)
+  - OpenSources domain-type tags (e.g., satire, conspiracy, fake) mapped to score deltas
+  - Iffy Index (MBFC-backed factuality levels) mapped to score penalties
 5. **Verdict** — a baseline NLP verifier classifies each claim as `SUPPORTED`, `REFUTED`, or `NEI` (Not Enough Information), with a confidence score.
 6. **Misinformation likelihood** — a final score (0–100 %) is computed from the input source's credibility anchored baseline, then adjusted by the claim verdicts and evidence quality.
 7. **Persistent storage** — every run is written to a local SQLite database; past results are browsable and exportable.
@@ -174,7 +177,9 @@ fact-validator/
 │       │   ├── storage.py      # SQLite persistence helpers
 │       │   └── source_routes.py# /source endpoint router
 │       ├── data/
-│       │   └── domain_cache.json  # 14-day credibility score cache
+│       │   ├── domain_cache.json  # 14-day credibility score cache
+│       │   ├── opensources.json   # OpenSources domain-label snapshot
+│       │   └── iffy_index.json    # Iffy Index domain snapshot
 │       ├── tests/
 │       │   └── test_smoke.py   # 34 unit/smoke tests (no I/O)
 │       └── requirements.txt
@@ -359,9 +364,17 @@ curl http://127.0.0.1:8000/source/forbes.com
   "domain": "forbes.com",
   "score": 75,
   "label": "MEDIUM",
-  "reasons": { "whitelist": "Domain appears in local reputable-source list (+25)." }
+  "reasons": {
+    "whitelist": "Domain appears in local reputable-source list (+25).",
+    "opensources": "Domain found in OpenSources unreliable-news dataset (-5).",
+    "iffy_index": "Domain flagged by Iffy Index (MBFC factual rating: Low, -15)."
+  }
 }
 ```
+
+Notes:
+- `reasons` is sparse by design; only applicable signals are returned for a domain.
+- OpenSources and Iffy effects are additive with heuristic rules, then clamped to `0..100`.
 
 ---
 
@@ -474,13 +487,18 @@ Contributions are welcome. Please follow the steps below.
   ```bash
   cd apps/web && npm run build
   ```
-- If you extend the credibility whitelist in `credibility.py`, add a corresponding test in `TestScoreDomainRubric`.
+- If you update credibility logic (`whitelist`, OpenSources mapping, or Iffy penalties) in `credibility.py`, add corresponding tests in `TestScoreDomainRubric`.
 
 ---
 
-### Extending the source credibility whitelist
+### Extending source credibility signals
 
-The whitelist lives in `services/api/app/credibility.py` in the `whitelist` dict inside `score_domain_rubric()`. Each entry is:
+Credibility scoring combines three signal groups in `services/api/app/credibility.py`:
+- Heuristic whitelist/platform rules in `score_domain_rubric()`
+- OpenSources type-label deltas (`_OS_TYPE_DELTA`) backed by `services/api/data/opensources.json`
+- Iffy Index level deltas (`_IFFY_LEVEL_DELTA`) backed by `services/api/data/iffy_index.json`
+
+Whitelist entries use this shape:
 
 ```python
 "domain.tld": <bonus_points>,   # 10–35 pts above the 50-point baseline

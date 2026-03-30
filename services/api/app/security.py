@@ -24,10 +24,13 @@ class OllamaHealthCheck:
         ollama_url = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434").strip()
         
         try:
-            timeout = httpx.Timeout(connect=5.0, read=5.0)
-            async with httpx.AsyncClient(timeout=timeout, trust_env=False) as client:
-                response = await client.get(f"{ollama_url}/api/tags", follow_redirects=True)
-                success = response.status_code == 200
+            response = httpx.get(
+                f"{ollama_url}/api/tags",
+                timeout=5.0,
+                follow_redirects=True,
+                trust_env=False,
+            )
+            success = response.status_code == 200
         except Exception:
             success = False
         

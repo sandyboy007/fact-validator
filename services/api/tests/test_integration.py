@@ -209,3 +209,33 @@ async def test_analyze_error_handling():
         
         # Should be successful or return validation error
         assert response.status_code in [200, 422]
+
+
+@pytest.mark.asyncio
+async def test_analyze_short_text_fallback_triggers_search():
+    """Short natural-language text should still produce a fallback claim and run search."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test"
+    ) as client:
+        with patch("app.main.serpapi_search", new_callable=AsyncMock) as mock_search:
+            mock_search.return_value = [
+                {
+                    "title": "Nature of Leaves",
+                    "link": "https://www.britannica.com/science/leaf-plant-anatomy",
+                    "snippet": "Leaves are naturally green due to chlorophyll pigments in plant cells."
+                }
+            ]
+
+            response = await client.post("/analyze", json={
+                "text": "true or false: leaves are naturally green",
+                "mode": "live",
+                "max_claims": 3,
+                "max_evidence_per_claim": 2,
+            })
+
+            assert response.status_code == 200
+            data = response.json()
+            assert isinstance(data["claims"], list)
+            assert len(data["claims"]) >= 1
+            mock_search.assert_awaited()

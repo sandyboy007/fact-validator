@@ -10,11 +10,15 @@ import os
 import re
 import asyncio
 import time
+from pathlib import Path
 
 import httpx
 import trafilatura
 from dotenv import load_dotenv
 import tldextract
+
+# Load environment variables before importing modules that evaluate env at import time.
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
 import nltk
 from nltk.tokenize import sent_tokenize
@@ -46,8 +50,6 @@ from app.security import ollama_health, rate_limiter
 
  
 
-# Load environment variables early
-load_dotenv()
 SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY", "").strip()
 
 
@@ -596,294 +598,6 @@ def evaluation_benchmark():
     return data
 
 
-@app.get("/evaluation/baselines")
-def evaluation_baselines():
-    """Return Step 2 baseline comparison report if generated."""
-    report_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..",
-        "..",
-        "..",
-        "data",
-        "benchmarks",
-        "results",
-        "baseline_comparison_report.json",
-    )
-    try:
-        with open(report_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "detail": "Baseline comparison report not found. Run Scripts/run_baseline_comparison.py first.",
-                "expected_path": report_path,
-            },
-        )
-    except Exception as exc:
-        return JSONResponse(
-            status_code=500,
-            content={"detail": f"Failed to load baseline report: {exc}"},
-        )
-    return data
-
-
-@app.get("/evaluation/ablations")
-def evaluation_ablations():
-    """Return Step 3 ablation study report if generated."""
-    report_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..",
-        "..",
-        "..",
-        "data",
-        "benchmarks",
-        "results",
-        "ablation_study_report.json",
-    )
-    try:
-        with open(report_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "detail": "Ablation report not found. Run Scripts/run_ablation_study.py first.",
-                "expected_path": report_path,
-            },
-        )
-    except Exception as exc:
-        return JSONResponse(
-            status_code=500,
-            content={"detail": f"Failed to load ablation report: {exc}"},
-        )
-    return data
-
-
-@app.get("/evaluation/comparative")
-def evaluation_comparative():
-    """Return Step 4 comparative analysis report if generated."""
-    report_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..",
-        "..",
-        "..",
-        "data",
-        "benchmarks",
-        "results",
-        "comparative_analysis_report.json",
-    )
-    try:
-        with open(report_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "detail": "Comparative analysis report not found. Run Scripts/run_comparative_analysis.py first.",
-                "expected_path": report_path,
-            },
-        )
-    except Exception as exc:
-        return JSONResponse(
-            status_code=500,
-            content={"detail": f"Failed to load comparative report: {exc}"},
-        )
-    return data
-
-
-@app.get("/evaluation/production-metrics")
-def evaluation_production_metrics():
-    """Return Step 5 production metrics report if generated."""
-    report_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..",
-        "..",
-        "..",
-        "data",
-        "benchmarks",
-        "results",
-        "production_metrics_report.json",
-    )
-    try:
-        with open(report_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "detail": "Production metrics report not found. Run Scripts/run_production_metrics.py first.",
-                "expected_path": report_path,
-            },
-        )
-    except Exception as exc:
-        return JSONResponse(
-            status_code=500,
-            content={"detail": f"Failed to load production metrics report: {exc}"},
-        )
-    return data
-
-
-@app.get("/evaluation/explainability")
-def evaluation_explainability():
-    """Return Step 6 explainability demo report if generated."""
-    report_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..",
-        "..",
-        "..",
-        "data",
-        "benchmarks",
-        "results",
-        "explainability_demo_report.json",
-    )
-    try:
-        with open(report_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "detail": "Explainability demo report not found. Run Scripts/run_explainability_demo.py first.",
-                "expected_path": report_path,
-            },
-        )
-    except Exception as exc:
-        return JSONResponse(
-            status_code=500,
-            content={"detail": f"Failed to load explainability report: {exc}"},
-        )
-    return data
-
-
-@app.get("/evaluation/limitations")
-def evaluation_limitations():
-    """Return Step 7 limitations assessment report if generated."""
-    report_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..",
-        "..",
-        "..",
-        "data",
-        "benchmarks",
-        "results",
-        "limitations_assessment_report.json",
-    )
-    try:
-        with open(report_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "detail": "Limitations assessment report not found. Run Scripts/run_limitations_assessment.py first.",
-                "expected_path": report_path,
-            },
-        )
-    except Exception as exc:
-        return JSONResponse(
-            status_code=500,
-            content={"detail": f"Failed to load limitations report: {exc}"},
-        )
-    return data
-
-
-@app.get("/evaluation/reproducibility")
-def evaluation_reproducibility():
-    """Return Step 8 reproducibility audit report if generated."""
-    report_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..",
-        "..",
-        "..",
-        "data",
-        "benchmarks",
-        "results",
-        "reproducibility_audit_report.json",
-    )
-    try:
-        with open(report_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "detail": "Reproducibility audit report not found. Run Scripts/run_reproducibility_audit.py first.",
-                "expected_path": report_path,
-            },
-        )
-    except Exception as exc:
-        return JSONResponse(
-            status_code=500,
-            content={"detail": f"Failed to load reproducibility report: {exc}"},
-        )
-    return data
-
-
-@app.get("/evaluation/ethics")
-def evaluation_ethics():
-    """Return Step 9 ethics assessment report if generated."""
-    report_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..",
-        "..",
-        "..",
-        "data",
-        "benchmarks",
-        "results",
-        "ethics_assessment_report.json",
-    )
-    try:
-        with open(report_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "detail": "Ethics assessment report not found. Run Scripts/run_ethics_assessment.py first.",
-                "expected_path": report_path,
-            },
-        )
-    except Exception as exc:
-        return JSONResponse(
-            status_code=500,
-            content={"detail": f"Failed to load ethics report: {exc}"},
-        )
-    return data
-
-
-@app.get("/evaluation/defense")
-def evaluation_defense():
-    """Return Step 10 defense talking points report if generated."""
-    report_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..",
-        "..",
-        "..",
-        "data",
-        "benchmarks",
-        "results",
-        "defense_talking_points_report.json",
-    )
-    try:
-        with open(report_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "detail": "Defense talking points report not found. Run Scripts/run_defense_talking_points.py first.",
-                "expected_path": report_path,
-            },
-        )
-    except Exception as exc:
-        return JSONResponse(
-            status_code=500,
-            content={"detail": f"Failed to load defense report: {exc}"},
-        )
-    return data
-
-
 @app.get("/runs")
 def runs(limit: int = 50):
     return {"items": list_runs(limit=limit)}
@@ -931,6 +645,12 @@ async def analyze(req: AnalyzeRequest):
     chars = len(extracted_text)
 
     claim_texts = extract_claim_candidates(extracted_text, max_claims=req.max_claims)
+    if not claim_texts and has_text:
+        # Fallback for short natural-language queries (e.g. "true or false" style input)
+        # so evidence search can still run on at least one candidate claim.
+        fallback_claim = " ".join((req.text or "").split()).strip()
+        if len(fallback_claim) >= 10 and any(ch.isalpha() for ch in fallback_claim):
+            claim_texts = [fallback_claim[:280]]
 
     claims: List[Dict[str, Any]] = []
     debate_meta: Dict[str, Any] = {

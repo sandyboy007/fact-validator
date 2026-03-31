@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated_utc": "2026-03-27T20:15:06.256586",
+    "generated_utc": "2026-03-31T19:42:35.005982",
     "full_variant": "full_proxy",
-    "claims_in_split": 7,
+    "claims_in_split": 51,
     "source_reports": {
       "ablation_report": "C:\\Fact_Validator\\data\\benchmarks\\results\\ablation_study_report.json",
       "comparative_report": "C:\\Fact_Validator\\data\\benchmarks\\results\\comparative_analysis_report.json"
@@ -34,11 +34,11 @@
     }
   },
   "quality": {
-    "accuracy": 0.7142857142857143,
-    "error_rate": 0.2857142857142857,
-    "expected_errors_per_100_claims": 28.57142857142857,
-    "macro_f1": 0.7111111111111111,
-    "calibration_error": 0.2621428571428571,
-    "ece": 0.3264285714285714
+    "accuracy": 0.21568627450980393,
+    "error_rate": 0.7843137254901961,
+    "expected_errors_per_100_claims": 78.43137254901961,
+    "macro_f1": 0.21153846153846154,
+    "calibration_error": 0.2631177058823529,
+    "ece": 0.2951438627450981
   }
 }

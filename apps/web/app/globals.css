@@ -4,14 +4,16 @@
 @tailwind utilities;
 
 :root {
-  --background: #0f141b;
-  --foreground: #e5eaf1;
-  --muted: #9aa4b2;
-  --surface: rgba(21, 28, 38, 0.9);
-  --surface-border: rgba(120, 138, 161, 0.26);
-  --accent-cyan: #d6dde7;
-  --accent-blue: #b7c1cf;
-  --accent-teal: #95a3b8;
+  --background: #070b14;
+  --foreground: #eff4ff;
+  --muted: #afbdd4;
+  --surface: rgba(13, 20, 36, 0.8);
+  --surface-border: rgba(120, 164, 255, 0.24);
+  --accent-cyan: #54d4ff;
+  --accent-blue: #7ca8ff;
+  --accent-teal: #34d3b1;
+  --accent-rose: #ff6d8f;
+  --accent-amber: #ffb75e;
 }
 
 @theme inline {
@@ -27,16 +29,17 @@ body {
   font-family: var(--font-space-grotesk), "Segoe UI", sans-serif;
   min-height: 100vh;
   background-image:
-    radial-gradient(circle at 10% 8%, rgba(148, 163, 184, 0.2), transparent 34%),
-    radial-gradient(circle at 92% 12%, rgba(100, 116, 139, 0.12), transparent 30%),
-    linear-gradient(180deg, #19202a 0%, #0f141b 56%, #0a0f14 100%);
+    radial-gradient(circle at 8% 6%, rgba(84, 212, 255, 0.18), transparent 34%),
+    radial-gradient(circle at 90% 10%, rgba(255, 109, 143, 0.14), transparent 32%),
+    radial-gradient(circle at 56% 86%, rgba(255, 183, 94, 0.12), transparent 38%),
+    linear-gradient(180deg, #0f1730 0%, #090f20 42%, #070b14 100%);
 }
 
 .glass-panel {
   background: var(--surface);
   border: 1px solid var(--surface-border);
-  box-shadow: 0 14px 34px rgba(2, 6, 23, 0.42);
-  backdrop-filter: blur(8px);
+  box-shadow: 0 16px 42px rgba(3, 10, 26, 0.5);
+  backdrop-filter: blur(12px);
 }
 
 .section-fade-in {
@@ -54,8 +57,8 @@ body {
 
 .hover-lift:hover {
   transform: translateY(-3px) scale(1.002);
-  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.5);
-  border-color: rgba(148, 163, 184, 0.5);
+  box-shadow: 0 20px 44px rgba(4, 13, 34, 0.58);
+  border-color: rgba(124, 168, 255, 0.56);
 }
 
 .meter-fill {
@@ -107,38 +110,38 @@ body {
 
 .grid-overlay {
   background-image:
-    linear-gradient(to right, rgba(100, 116, 139, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(100, 116, 139, 0.08) 1px, transparent 1px);
+    linear-gradient(to right, rgba(124, 168, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(124, 168, 255, 0.09) 1px, transparent 1px);
   background-size: 34px 34px;
 }
 
-/* Professional editorial color remap for existing utility classes */
+/* Vivid research-console remap for existing utility classes */
 .text-white,
 .text-slate-100,
 .text-slate-200,
 .text-cyan-100,
 .text-cyan-200,
 .text-cyan-300 {
-  color: #e5eaf1 !important;
+  color: #eef3ff !important;
 }
 
 .text-slate-300,
 .text-slate-400 {
-  color: #9aa4b2 !important;
+  color: #aab8cf !important;
 }
 
 .text-rose-200,
 .text-rose-300 {
-  color: #b91c1c !important;
+  color: #ff9ab2 !important;
 }
 
 .text-amber-200,
 .text-amber-300 {
-  color: #b45309 !important;
+  color: #ffd08d !important;
 }
 
 .text-emerald-300 {
-  color: #15803d !important;
+  color: #77f1cc !important;
 }
 
 .bg-slate-900\/70,
@@ -148,7 +151,7 @@ body {
 .bg-slate-900\/30,
 .bg-slate-800\/30,
 .bg-slate-700\/30 {
-  background-color: rgba(15, 19, 26, 0.88) !important;
+  background-color: rgba(10, 18, 34, 0.82) !important;
 }
 
 .border-slate-700,
@@ -158,18 +161,39 @@ body {
 .border-slate-400\/30,
 .border-cyan-400\/20,
 .border-cyan-300\/30 {
-  border-color: rgba(71, 85, 105, 0.52) !important;
+  border-color: rgba(119, 146, 201, 0.44) !important;
 }
 
 .bg-cyan-500\/5,
 .bg-cyan-400\/10,
 .bg-cyan-400\/15,
 .bg-cyan-400\/20 {
-  background-color: rgba(71, 85, 105, 0.28) !important;
+  background-color: rgba(84, 212, 255, 0.16) !important;
 }
 
 .hover\:border-cyan-300\/40:hover {
-  border-color: rgba(148, 163, 184, 0.5) !important;
+  border-color: rgba(122, 217, 255, 0.66) !important;
+}
+
+.from-cyan-300,
+.from-cyan-400 {
+  --tw-gradient-from: #5fd6ff var(--tw-gradient-from-position) !important;
+}
+
+.to-blue-400,
+.to-blue-500 {
+  --tw-gradient-to: #7f8dff var(--tw-gradient-to-position) !important;
+}
+
+.bg-purple-400\/10,
+.bg-purple-400\/15 {
+  background-color: rgba(155, 138, 255, 0.16) !important;
+}
+
+.border-purple-300\/30,
+.border-purple-300\/40,
+.border-purple-300\/20 {
+  border-color: rgba(179, 162, 255, 0.48) !important;
 }
 
 .verdict-supported {

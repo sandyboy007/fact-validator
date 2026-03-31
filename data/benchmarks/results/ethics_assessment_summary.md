@@ -1,15 +1,15 @@
 # Ethics Assessment Summary
 
-- Generated UTC: 2026-03-27T20:37:40.902794
+- Generated UTC: 2026-03-31T19:38:05.423535
 - Total ethical risks: 5
-- High-severity risks: 3
+- High-severity risks: 2
 
 ## Ethical Risk Register
 
 | ID | Domain | Risk | Severity | Owner |
 |---|---|---|---|---|
 | E1 | fairness | Source-selection bias can under-represent minority or local viewpoints | high | ML + Policy |
-| E2 | safety | Overconfident outputs may mislead users in high-stakes domains | high | ML + Product |
+| E2 | safety | Overconfident outputs may mislead users in high-stakes domains | medium | ML + Product |
 | E3 | harm | Residual model error can amplify misinformation if used as sole authority | high | Product + Trust & Safety |
 | E4 | governance | Debate mode may alter verdicts without guaranteed net safety improvement | medium | ML |
 | E5 | transparency | Users may misunderstand confidence and think verdicts are definitive | medium | UX + Product |

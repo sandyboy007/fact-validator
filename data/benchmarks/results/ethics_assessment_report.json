@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated_utc": "2026-03-27T20:37:40.902794",
+    "generated_utc": "2026-03-31T19:38:05.423535",
     "risk_count": 5,
-    "high_severity_count": 3,
+    "high_severity_count": 2,
     "sources": {
       "limitations_report": "C:\\Fact_Validator\\data\\benchmarks\\results\\limitations_assessment_report.json",
       "production_report": "C:\\Fact_Validator\\data\\benchmarks\\results\\production_metrics_report.json"
@@ -26,8 +26,8 @@
       "title": "Overconfident outputs may mislead users in high-stakes domains",
       "likelihood": "medium",
       "impact": "high",
-      "severity": "high",
-      "evidence": "Calibration error=0.262, ECE=0.326.",
+      "severity": "medium",
+      "evidence": "Calibration error=0.174, ECE=0.223.",
       "mitigation": "Calibrate confidence and display uncertainty reasons with explicit human-review triggers.",
       "owner": "ML + Product"
     },
@@ -38,7 +38,7 @@
       "likelihood": "medium",
       "impact": "high",
       "severity": "high",
-      "evidence": "Observed error rate=0.286 in evaluation split.",
+      "evidence": "Observed error rate=0.625 in evaluation split.",
       "mitigation": "Position system as triage aid, not final truth authority; require human-in-loop for critical claims.",
       "owner": "Product + Trust & Safety"
     },

@@ -9,9 +9,9 @@ cost.monthly_usd_no_cache,77.0,USD
 cost.monthly_usd_with_cache,22.0,USD
 cost.monthly_savings_usd,55.0,USD
 cost.monthly_savings_pct,0.7143,ratio
-quality.accuracy,0.714286,ratio
-quality.error_rate,0.285714,ratio
-quality.expected_errors_per_100_claims,28.571,errors
-quality.macro_f1,0.711111,ratio
-quality.calibration_error,0.262143,ratio
-quality.ece,0.326429,ratio
+quality.accuracy,0.215686,ratio
+quality.error_rate,0.784314,ratio
+quality.expected_errors_per_100_claims,78.431,errors
+quality.macro_f1,0.211538,ratio
+quality.calibration_error,0.263118,ratio
+quality.ece,0.295144,ratio

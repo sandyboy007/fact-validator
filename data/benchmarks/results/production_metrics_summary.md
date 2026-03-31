@@ -1,8 +1,8 @@
 # Production Metrics Summary
 
-- Generated UTC: 2026-03-27T20:15:06.256586
+- Generated UTC: 2026-03-31T19:42:35.005982
 - Full system variant: full_proxy
-- Claims in evaluation split: 7
+- Claims in evaluation split: 51
 
 ## Latency & Throughput
 
@@ -28,12 +28,12 @@
 
 | Metric | Value |
 |---|---:|
-| Accuracy | 0.714 |
-| Error rate | 0.286 |
-| Expected errors / 100 claims | 28.57 |
-| Macro F1 | 0.711 |
-| Calibration error | 0.262 |
-| ECE | 0.326 |
+| Accuracy | 0.216 |
+| Error rate | 0.784 |
+| Expected errors / 100 claims | 78.43 |
+| Macro F1 | 0.212 |
+| Calibration error | 0.263 |
+| ECE | 0.295 |
 
 ## Assumptions
 

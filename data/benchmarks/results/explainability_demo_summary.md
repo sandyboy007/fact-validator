@@ -1,8 +1,8 @@
 # Explainability Demo Summary
 
-- Generated UTC: 2026-03-27T20:22:13.874100
+- Generated UTC: 2026-03-31T19:38:05.082093
 - Full variant: full_proxy
-- Best baseline: length
+- Best baseline: random
 - Case studies: 7
 
 ## Domain Credibility Examples
@@ -17,109 +17,108 @@
 
 ## Case Studies
 
-### Case 1: unverifiable-002
+### Case 1: v2-003
 
-- Claim: An undisclosed alien signal was intercepted in 2025.
+- Claim: All climate records before 1950 were fabricated by one institution.
 - Ground truth: NEI
-- Full system: NEI (46.0)
-- No-debate: SUPPORTED (46.0)
-- Baseline (length): SUPPORTED (50.0)
+- Full system: NEI (61.4)
+- No-debate: NEI (61.4)
+- Baseline (random): REFUTED (40.5)
 - Scoring logic:
-  - Category prior increases support confidence for evidence-rich domains.
-  - Numeric signal detected: evidence consistency weighting is increased.
-  - Conspiracy cue detected: refutation pressure strongly increases.
-- Debate trace:
-  - Prover: The claim contains quantifiable elements that can be checked against evidence.
-  - Skeptic: Conspiracy-style language correlates with lower evidentiary reliability.
-  - Judge: With debate arbitration, verdict is NEI (46.0 confidence), while no-debate predicts SUPPORTED. Best baseline predicts SUPPORTED.
-
-### Case 2: conflict-001
-
-- Claim: A ceasefire was reached in every major conflict in 2024.
-- Ground truth: NEI
-- Full system: NEI (34.5)
-- No-debate: NEI (34.5)
-- Baseline (length): SUPPORTED (50.0)
-- Scoring logic:
-  - Category prior increases uncertainty handling (NEI tendency) for ambiguous domains.
   - Numeric signal detected: evidence consistency weighting is increased.
   - Absolutist language detected: refutation pressure increases.
 - Debate trace:
   - Prover: The claim contains quantifiable elements that can be checked against evidence.
   - Skeptic: Absolute wording raises risk of overclaiming and potential refutation.
-  - Judge: With debate arbitration, verdict is NEI (34.5 confidence), while no-debate predicts NEI. Best baseline predicts SUPPORTED.
+  - Judge: With debate arbitration, verdict is NEI (61.4 confidence), while no-debate predicts NEI. Best baseline predicts REFUTED.
 
-### Case 3: unverifiable-001
+### Case 2: v2-014
 
-- Claim: A secret committee controls all global elections.
+- Claim: Lightning never strikes the same place twice.
 - Ground truth: REFUTED
-- Full system: REFUTED (57.5)
-- No-debate: REFUTED (57.5)
-- Baseline (length): SUPPORTED (50.0)
+- Full system: REFUTED (57.0)
+- No-debate: REFUTED (57.0)
+- Baseline (random): NEI (43.5)
 - Scoring logic:
-  - Category prior increases uncertainty handling (NEI tendency) for ambiguous domains.
+  - Category prior increases support confidence for evidence-rich domains.
   - Absolutist language detected: refutation pressure increases.
-  - Conspiracy cue detected: refutation pressure strongly increases.
 - Debate trace:
   - Prover: Category prior and lexical evidence still support a decisive verdict.
-  - Skeptic: Absolute wording raises risk of overclaiming and potential refutation. Conspiracy-style language correlates with lower evidentiary reliability.
-  - Judge: With debate arbitration, verdict is REFUTED (57.5 confidence), while no-debate predicts REFUTED. Best baseline predicts SUPPORTED.
+  - Skeptic: Absolute wording raises risk of overclaiming and potential refutation.
+  - Judge: With debate arbitration, verdict is REFUTED (57.0 confidence), while no-debate predicts REFUTED. Best baseline predicts NEI.
 
-### Case 4: climate-001
+### Case 3: v2-042
 
-- Claim: Global average temperature has risen by about 1.1Â°C since the late 19th century.
-- Ground truth: SUPPORTED
-- Full system: NEI (22.5)
-- No-debate: SUPPORTED (22.5)
-- Baseline (length): SUPPORTED (50.0)
-- Scoring logic:
-  - Numeric signal detected: evidence consistency weighting is increased.
-- Debate trace:
-  - Prover: The claim contains quantifiable elements that can be checked against evidence. The phrasing implies an event-like fact pattern suited to evidence grounding.
-  - Skeptic: Counter-signals are limited, but alternate verdicts remain plausible.
-  - Judge: With debate arbitration, verdict is NEI (22.5 confidence), while no-debate predicts SUPPORTED. Best baseline predicts SUPPORTED.
-
-### Case 5: numbers-001
-
-- Claim: The Earth is 6,000 years old.
-- Ground truth: REFUTED
-- Full system: NEI (58.0)
-- No-debate: NEI (58.0)
-- Baseline (length): SUPPORTED (50.0)
+- Claim: One hidden empire controlled every continent in 1200 CE.
+- Ground truth: NEI
+- Full system: NEI (61.4)
+- No-debate: NEI (61.4)
+- Baseline (random): REFUTED (45.8)
 - Scoring logic:
   - Category prior increases support confidence for evidence-rich domains.
   - Numeric signal detected: evidence consistency weighting is increased.
+  - Absolutist language detected: refutation pressure increases.
 - Debate trace:
   - Prover: The claim contains quantifiable elements that can be checked against evidence.
-  - Skeptic: Counter-signals are limited, but alternate verdicts remain plausible.
-  - Judge: With debate arbitration, verdict is NEI (58.0 confidence), while no-debate predicts NEI. Best baseline predicts SUPPORTED.
+  - Skeptic: Absolute wording raises risk of overclaiming and potential refutation.
+  - Judge: With debate arbitration, verdict is NEI (61.4 confidence), while no-debate predicts NEI. Best baseline predicts REFUTED.
 
-### Case 6: health-002
+### Case 4: v2-052
 
-- Claim: WHO declared COVID-19 a pandemic in March 2020.
+- Claim: The UK held a general election in 2019.
 - Ground truth: SUPPORTED
-- Full system: SUPPORTED (44.5)
-- No-debate: SUPPORTED (44.5)
-- Baseline (length): SUPPORTED (50.0)
+- Full system: SUPPORTED (69.5)
+- No-debate: SUPPORTED (69.5)
+- Baseline (random): NEI (42.6)
 - Scoring logic:
-  - Category prior increases support confidence for evidence-rich domains.
+  - Category prior increases uncertainty handling (NEI tendency) for ambiguous domains.
   - Numeric signal detected: evidence consistency weighting is increased.
   - Temporal event signal detected: support path gets additional weight.
 - Debate trace:
   - Prover: The claim contains quantifiable elements that can be checked against evidence. The phrasing implies an event-like fact pattern suited to evidence grounding.
   - Skeptic: Counter-signals are limited, but alternate verdicts remain plausible.
-  - Judge: With debate arbitration, verdict is SUPPORTED (44.5 confidence), while no-debate predicts SUPPORTED. Best baseline predicts SUPPORTED.
+  - Judge: With debate arbitration, verdict is SUPPORTED (69.5 confidence), while no-debate predicts SUPPORTED. Best baseline predicts NEI.
 
-### Case 7: history-001
+### Case 5: v2-063
 
-- Claim: Napoleon died on Saint Helena.
-- Ground truth: SUPPORTED
-- Full system: SUPPORTED (53.5)
-- No-debate: SUPPORTED (53.5)
-- Baseline (length): SUPPORTED (50.0)
+- Claim: All climate records before 1950 were fabricated by one institution.
+- Ground truth: NEI
+- Full system: NEI (61.4)
+- No-debate: NEI (61.4)
+- Baseline (random): REFUTED (31.2)
+- Scoring logic:
+  - Numeric signal detected: evidence consistency weighting is increased.
+  - Absolutist language detected: refutation pressure increases.
+- Debate trace:
+  - Prover: The claim contains quantifiable elements that can be checked against evidence.
+  - Skeptic: Absolute wording raises risk of overclaiming and potential refutation.
+  - Judge: With debate arbitration, verdict is NEI (61.4 confidence), while no-debate predicts NEI. Best baseline predicts REFUTED.
+
+### Case 6: v2-117
+
+- Claim: A hidden census proved world population is half the published figure.
+- Ground truth: NEI
+- Full system: NEI (61.4)
+- No-debate: NEI (61.4)
+- Baseline (random): SUPPORTED (55.1)
 - Scoring logic:
   - Category prior increases support confidence for evidence-rich domains.
 - Debate trace:
-  - Prover: The phrasing implies an event-like fact pattern suited to evidence grounding.
+  - Prover: Category prior and lexical evidence still support a decisive verdict.
   - Skeptic: Counter-signals are limited, but alternate verdicts remain plausible.
-  - Judge: With debate arbitration, verdict is SUPPORTED (53.5 confidence), while no-debate predicts SUPPORTED. Best baseline predicts SUPPORTED.
+  - Judge: With debate arbitration, verdict is NEI (61.4 confidence), while no-debate predicts NEI. Best baseline predicts SUPPORTED.
+
+### Case 7: v2-126
+
+- Claim: A newly found manuscript proves all major medieval timelines are incorrect.
+- Ground truth: NEI
+- Full system: NEI (53.8)
+- No-debate: NEI (53.8)
+- Baseline (random): REFUTED (36.2)
+- Scoring logic:
+  - Category prior increases support confidence for evidence-rich domains.
+  - Absolutist language detected: refutation pressure increases.
+- Debate trace:
+  - Prover: Category prior and lexical evidence still support a decisive verdict.
+  - Skeptic: Absolute wording raises risk of overclaiming and potential refutation.
+  - Judge: With debate arbitration, verdict is NEI (53.8 confidence), while no-debate predicts NEI. Best baseline predicts REFUTED.

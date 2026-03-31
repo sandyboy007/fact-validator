@@ -53,11 +53,46 @@ def parse_args() -> argparse.Namespace:
         default=42,
         help="Random seed for deterministic splits",
     )
+    parser.add_argument(
+        "--train-ratio",
+        type=float,
+        default=0.6,
+        help="Train split ratio (default: 0.6)",
+    )
+    parser.add_argument(
+        "--val-ratio",
+        type=float,
+        default=0.2,
+        help="Validation split ratio (default: 0.2)",
+    )
+    parser.add_argument(
+        "--test-ratio",
+        type=float,
+        default=0.2,
+        help="Test split ratio (default: 0.2)",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
+
+    ratio_sum = args.train_ratio + args.val_ratio + args.test_ratio
+    if abs(ratio_sum - 1.0) > 1e-8:
+        print(
+            "Split ratio error: train-ratio + val-ratio + test-ratio must sum to 1.0 "
+            f"(got {ratio_sum:.6f})."
+        )
+        return 1
+
+    for name, value in (
+        ("train-ratio", args.train_ratio),
+        ("val-ratio", args.val_ratio),
+        ("test-ratio", args.test_ratio),
+    ):
+        if value <= 0 or value >= 1:
+            print(f"Split ratio error: {name} must be in (0, 1), got {value}.")
+            return 1
 
     manager = DatasetManager(args.input)
 
@@ -72,9 +107,9 @@ def main() -> int:
     canonical_path = manager.export_canonical_dataset(args.output)
 
     split = manager.stratified_split(
-        train_ratio=0.6,
-        val_ratio=0.2,
-        test_ratio=0.2,
+        train_ratio=args.train_ratio,
+        val_ratio=args.val_ratio,
+        test_ratio=args.test_ratio,
         stratify_by="label",
         seed=args.seed,
     )
@@ -93,6 +128,10 @@ def main() -> int:
     print(f"- Labels normalized: {changed}")
     print(f"- Canonical dataset: {canonical_path}")
     print(f"- Split files: {args.splits_dir}")
+    print(
+        "- Ratios: "
+        f"train={args.train_ratio:.2f}, val={args.val_ratio:.2f}, test={args.test_ratio:.2f}"
+    )
     print(f"- Split balanced: {balance['balanced']}")
 
     if validation["warnings"]:

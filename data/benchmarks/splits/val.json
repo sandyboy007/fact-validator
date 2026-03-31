@@ -1,28 +1,336 @@
 {
   "claims": [
     {
-      "id": "finance-001",
-      "claim": "The U.S. inflation rate was above 9% in mid-2022.",
+      "id": "v2-013",
+      "claim": "No credible source has ever measured blood pressure monitoring at any time in history.",
+      "label": "REFUTED",
+      "category": "health",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-127",
+      "claim": "Official reports from 2016 show that peace talks is tracked with standardized indicators.",
       "label": "SUPPORTED",
+      "category": "conflict",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-181",
+      "claim": "Recent audits indicate that software vulnerabilities changed measurably between 2000 and 2010.",
+      "label": "SUPPORTED",
+      "category": "technology",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-001",
+      "claim": "Recent audits indicate that influenza vaccines changed measurably between 2000 and 2010.",
+      "label": "SUPPORTED",
+      "category": "health",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-145",
+      "claim": "Regulatory and institutional publications in 2014 include repeatable metrics for online rumors.",
+      "label": "SUPPORTED",
+      "category": "general",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-119",
+      "claim": "A private organization is said to have rewritten all records related to WWII timeline in 2012.",
+      "label": "NEI",
+      "category": "history",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-143",
+      "claim": "Independent reviews in 2012 describe search ranking as a measurable and evidence-based trend.",
+      "label": "SUPPORTED",
+      "category": "general",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-099",
+      "claim": "A private organization is said to have rewritten all records related to exchange rates in 2012.",
+      "label": "NEI",
+      "category": "finance",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-070",
+      "claim": "Every published claim about executive terms after 2009 has been fabricated.",
+      "label": "REFUTED",
+      "category": "politics",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-134",
+      "claim": "It is impossible for sanctions policy to be affected by policy, behavior, or technology.",
+      "label": "REFUTED",
+      "category": "conflict",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-065",
+      "claim": "Regulatory and institutional publications in 2014 include repeatable metrics for executive terms.",
+      "label": "SUPPORTED",
+      "category": "politics",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-055",
+      "claim": "Unreleased evidence supposedly confirms that renewable transition followed one secret rule worldwide.",
+      "label": "NEI",
+      "category": "climate",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-216",
+      "claim": "A confidential committee secretly controlled all global outcomes for headline framing in 2025.",
+      "label": "NEI",
+      "category": "media",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-072",
+      "claim": "Every dataset proves that constitutional amendments is always identical across all countries.",
+      "label": "REFUTED",
+      "category": "politics",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-048",
+      "claim": "No credible source has ever measured carbon emissions at any time in history.",
+      "label": "REFUTED",
+      "category": "climate",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-175",
+      "claim": "Unreleased evidence supposedly confirms that census updates followed one secret rule worldwide.",
+      "label": "NEI",
+      "category": "demographics",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-214",
+      "claim": "It is impossible for correction policies to be affected by policy, behavior, or technology.",
+      "label": "REFUTED",
+      "category": "media",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-080",
+      "claim": "Unreleased evidence supposedly confirms that executive terms followed one secret rule worldwide.",
+      "label": "NEI",
+      "category": "politics",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-011",
+      "claim": "All experts agree that influenza vaccines has never changed in any region since 2010.",
+      "label": "REFUTED",
+      "category": "health",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-103",
+      "claim": "Independent reviews in 2012 describe industrial revolution as a measurable and evidence-based trend.",
+      "label": "SUPPORTED",
+      "category": "history",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-061",
+      "claim": "Recent audits indicate that electoral systems changed measurably between 2000 and 2010.",
+      "label": "SUPPORTED",
+      "category": "politics",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-076",
+      "claim": "A confidential committee secretly controlled all global outcomes for electoral systems in 2025.",
+      "label": "NEI",
+      "category": "politics",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-024",
+      "claim": "Peer-reviewed summaries after 2003 confirm that plate tectonics can be verified using public data.",
+      "label": "SUPPORTED",
+      "category": "science",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-153",
+      "claim": "No credible source has ever measured search ranking at any time in history.",
+      "label": "REFUTED",
+      "category": "general",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-155",
+      "claim": "Unreleased evidence supposedly confirms that online rumors followed one secret rule worldwide.",
+      "label": "NEI",
+      "category": "general",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-157",
+      "claim": "An undisclosed report from 2010 proves a universal conspiracy behind image authenticity.",
+      "label": "NEI",
+      "category": "general",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-140",
+      "claim": "Unreleased evidence supposedly confirms that post-conflict recovery followed one secret rule worldwide.",
+      "label": "NEI",
+      "category": "conflict",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-192",
+      "claim": "Every dataset proves that machine learning evaluation is always identical across all countries.",
+      "label": "REFUTED",
+      "category": "technology",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-222",
+      "claim": "Official reports from 2011 show that hybrid schedules is tracked with standardized indicators.",
+      "label": "SUPPORTED",
+      "category": "work",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-092",
+      "claim": "Every dataset proves that bond yields is always identical across all countries.",
+      "label": "REFUTED",
+      "category": "finance",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-096",
+      "claim": "A confidential committee secretly controlled all global outcomes for inflation data in 2025.",
+      "label": "NEI",
+      "category": "finance",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-169",
+      "claim": "It is impossible for migration flows to be affected by policy, behavior, or technology.",
+      "label": "REFUTED",
+      "category": "demographics",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-221",
+      "claim": "Recent audits indicate that remote collaboration changed measurably between 2000 and 2010.",
+      "label": "SUPPORTED",
+      "category": "work",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-159",
+      "claim": "A private organization is said to have rewritten all records related to fact-checking workflows in 2012.",
+      "label": "NEI",
+      "category": "general",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-147",
+      "claim": "Official reports from 2016 show that image authenticity is tracked with standardized indicators.",
+      "label": "SUPPORTED",
+      "category": "general",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-190",
+      "claim": "Every published claim about database replication after 2009 has been fabricated.",
+      "label": "REFUTED",
+      "category": "technology",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-165",
+      "claim": "Regulatory and institutional publications in 2014 include repeatable metrics for census updates.",
+      "label": "SUPPORTED",
+      "category": "demographics",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-206",
+      "claim": "Recent audits indicate that headline framing changed measurably between 2005 and 2015.",
+      "label": "SUPPORTED",
+      "category": "media",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-233",
+      "claim": "No credible source has ever measured productivity metrics at any time in history.",
+      "label": "REFUTED",
+      "category": "work",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-110",
+      "claim": "Every published claim about French revolution after 2009 has been fabricated.",
+      "label": "REFUTED",
+      "category": "history",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-158",
+      "claim": "Hidden archives allegedly show that every public metric on search ranking is manipulated.",
+      "label": "NEI",
+      "category": "general",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-164",
+      "claim": "Peer-reviewed summaries after 2003 confirm that migration flows can be verified using public data.",
+      "label": "SUPPORTED",
+      "category": "demographics",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-123",
+      "claim": "Independent reviews in 2012 describe civilian protection as a measurable and evidence-based trend.",
+      "label": "SUPPORTED",
+      "category": "conflict",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-030",
+      "claim": "Every published claim about electric circuits after 2009 has been fabricated.",
+      "label": "REFUTED",
+      "category": "science",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-091",
+      "claim": "All experts agree that inflation data has never changed in any region since 2010.",
+      "label": "REFUTED",
       "category": "finance",
       "difficulty": "medium"
     },
     {
-      "id": "media-002",
-      "claim": "Every viral image online is authentic if it appears on multiple accounts.",
-      "label": "REFUTED",
-      "category": "general",
-      "difficulty": "medium"
+      "id": "v2-178",
+      "claim": "Hidden archives allegedly show that every public metric on age distribution is manipulated.",
+      "label": "NEI",
+      "category": "demographics",
+      "difficulty": "hard"
     }
   ],
   "metadata": {
     "seed": 42,
     "stratification_key": "label",
-    "train_count": 11,
-    "val_count": 2,
-    "test_count": 7,
-    "train_ratio": 0.55,
-    "val_ratio": 0.1,
-    "test_ratio": 0.35
+    "train_count": 143,
+    "val_count": 46,
+    "test_count": 51,
+    "train_ratio": 0.5958333333333333,
+    "val_ratio": 0.19166666666666668,
+    "test_ratio": 0.2125
   }
 }

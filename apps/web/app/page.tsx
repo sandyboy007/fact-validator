@@ -802,16 +802,16 @@ export default function Page() {
   return (
     <main className="min-h-screen text-slate-100 relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 grid-overlay opacity-30" />
-      <div className="pointer-events-none absolute -top-24 left-[-5rem] h-80 w-80 rounded-full bg-slate-500/20 blur-3xl" />
-      <div className="pointer-events-none absolute top-10 right-0 h-96 w-96 rounded-full bg-slate-400/20 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-slate-300/30 blur-3xl" />
+      <div className="pointer-events-none absolute -top-24 left-[-5rem] h-80 w-80 rounded-full bg-cyan-400/25 blur-3xl" />
+      <div className="pointer-events-none absolute top-10 right-0 h-96 w-96 rounded-full bg-purple-400/20 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-amber-300/20 blur-3xl" />
 
       <div className="relative mx-auto max-w-7xl px-4 py-8 md:py-10 section-fade-in flex flex-col gap-6">
         {/* Header */}
         <header className="glass-panel rounded-3xl p-5 md:p-7 border order-1">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="mt-4 text-3xl md:text-4xl font-semibold leading-tight text-white">
+              <h1 className="mt-4 text-3xl md:text-4xl font-semibold leading-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 via-slate-100 to-blue-300">
                 Fact Validator
               </h1>
               <p className="mt-2 max-w-2xl text-sm md:text-base text-slate-300">
@@ -1563,7 +1563,7 @@ export default function Page() {
                 "mt-4 w-full rounded-xl px-4 py-3 text-sm font-semibold transition",
                 !canAnalyze || loading
                   ? "bg-slate-700/60 text-slate-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-cyan-300 to-blue-400 text-slate-950 hover:brightness-110 shadow-lg hover:shadow-cyan-400/50"
+                    : "bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 text-slate-950 hover:brightness-110 shadow-lg hover:shadow-cyan-400/50"
               )}
               onClick={analyze}
               disabled={!canAnalyze || loading}

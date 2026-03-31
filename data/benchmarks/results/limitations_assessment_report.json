@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated_utc": "2026-03-27T20:28:18.084521",
+    "generated_utc": "2026-03-31T19:38:05.278637",
     "limitation_count": 6,
-    "high_severity_count": 1,
+    "high_severity_count": 2,
     "sources": {
       "ablation_report": "C:\\Fact_Validator\\data\\benchmarks\\results\\ablation_study_report.json",
       "production_report": "C:\\Fact_Validator\\data\\benchmarks\\results\\production_metrics_report.json",
@@ -13,17 +13,17 @@
     {
       "id": "L1",
       "title": "Residual classification errors",
-      "severity": "medium",
+      "severity": "high",
       "impact": "Incorrect verdicts remain possible in real-world usage.",
-      "evidence": "Observed error rate is 0.286 (28.6 errors per 100 claims).",
+      "evidence": "Observed error rate is 0.625 (62.5 errors per 100 claims).",
       "mitigation": "Route low-confidence outputs to human review; expand evaluation set and tune calibration."
     },
     {
       "id": "L2",
       "title": "Category-specific generalization gaps",
-      "severity": "medium",
+      "severity": "high",
       "impact": "Performance is uneven across claim domains.",
-      "evidence": "Categories below threshold 0.60: climate=0.00 (n=1); science=0.50 (n=2)",
+      "evidence": "Categories below threshold 0.60: general=0.00 (n=2); technology=0.00 (n=6); health=0.00 (n=3); conflict=0.00 (n=3); science=0.14 (n=7); demographics=0.25 (n=4); politics=0.25 (n=4); work=0.50 (n=4)",
       "mitigation": "Increase domain-balanced benchmark size and add domain-specific retrieval prompts/models."
     },
     {
@@ -31,7 +31,7 @@
       "title": "Debate arbitration can introduce regressions",
       "severity": "low",
       "impact": "Debate mode may change verdicts without guaranteed net improvement.",
-      "evidence": "Debate changed 2/7 cases (0.29); regressions observed in 1/7 (0.14).",
+      "evidence": "Debate changed 0/7 cases (0.00); regressions observed in 0/7 (0.00).",
       "mitigation": "Trigger debate selectively (only uncertain baseline cases) and validate with guardrail thresholds."
     },
     {
@@ -39,7 +39,7 @@
       "title": "Confidence calibration mismatch",
       "severity": "medium",
       "impact": "Displayed confidence may overstate or understate true correctness.",
-      "evidence": "Calibration error=0.262, ECE=0.326 in current split.",
+      "evidence": "Calibration error=0.174, ECE=0.223 in current split.",
       "mitigation": "Apply post-hoc calibration (temperature scaling / isotonic regression) on larger validation data."
     },
     {
@@ -53,9 +53,9 @@
     {
       "id": "L6",
       "title": "Limited statistical power from small evaluation split",
-      "severity": "high",
+      "severity": "medium",
       "impact": "Point estimates and p-values are sensitive to a few cases.",
-      "evidence": "Current evaluated split contains 7 claims.",
+      "evidence": "Current evaluated split contains 48 claims.",
       "mitigation": "Expand benchmark to 100+ claims per major domain and recompute all comparison statistics."
     }
   ]

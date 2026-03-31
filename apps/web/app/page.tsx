@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cx, Tooltip, Tabs, ProgressIndicator, ScoreBadge, VerdictBadge, SentimentBadge, Alert, StatCard } from "../components/ui";
 
 type EvidenceItem = {
@@ -372,6 +372,9 @@ function filterClaimsBySentiment(
 export default function Page() {
   const API_BASE = "http://127.0.0.1:8000";
 
+  const inputPanelRef = useRef<HTMLDivElement | null>(null);
+  const resultsPanelRef = useRef<HTMLDivElement | null>(null);
+
   const [tab, setTab] = useState<"url" | "text">("url");
   const [url, setUrl] = useState("");
   const [text, setText] = useState("");
@@ -432,6 +435,7 @@ export default function Page() {
   const [processingSteps, setProcessingSteps] = useState<
     { label: string; status: "pending" | "active" | "complete" | "error" }[]
   >([]);
+  const [copiedVerdict, setCopiedVerdict] = useState(false);
 
   // Calculate estimated time based on verifier mode
   const estimatedTime =
@@ -495,6 +499,35 @@ export default function Page() {
     }
   }, [workspaceView]);
 
+  function scrollToInput() {
+    inputPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function scrollToResults() {
+    resultsPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function fillSampleText(sample: string) {
+    setTab("text");
+    setText(sample);
+    setError(null);
+    setTimeout(() => {
+      scrollToInput();
+    }, 40);
+  }
+
+  async function copyPrimaryVerdict() {
+    if (!primaryClaim) return;
+    const summary = `${primaryClaim.verdict} (${fmtPct(primaryClaim.confidence)}) - ${primaryClaim.claim_text}`;
+    try {
+      await navigator.clipboard.writeText(summary);
+      setCopiedVerdict(true);
+      setTimeout(() => setCopiedVerdict(false), 1400);
+    } catch {
+      setCopiedVerdict(false);
+    }
+  }
+
   async function analyze() {
     setLoading(true);
     setError(null);
@@ -557,6 +590,9 @@ export default function Page() {
       setOpenClaimIdx(0);
       setProcessingTime(Date.now() - startTime);
       setProcessingSteps((p) => [...p.slice(0, -1), { ...p[p.length - 1], status: "complete" }]);
+      setTimeout(() => {
+        scrollToResults();
+      }, 80);
       fetchRuns();
     } catch (e: unknown) {
       const errorMsg = e instanceof Error ? e.message : "Failed to analyze";
@@ -744,6 +780,21 @@ export default function Page() {
     "https://www.bbc.com/news",
     "https://en.wikipedia.org/wiki/Naples",
     "https://www.who.int",
+  ];
+
+  const textSamples = [
+    {
+      label: "Health",
+      value: "Drinking coffee every day guarantees a longer lifespan.",
+    },
+    {
+      label: "Climate",
+      value: "Global sea levels rose by over 20 cm since 1900.",
+    },
+    {
+      label: "Tech",
+      value: "AI models can fact-check social media posts without any human oversight.",
+    },
   ];
 
   const showResultSkeleton = loading && !result;
@@ -1362,12 +1413,24 @@ export default function Page() {
         {/* Main Layout */}
         <section className="grid xl:grid-cols-[1.1fr_1.5fr] gap-6 order-1">
           {/* Left: Input Panel */}
-          <div id="full-verifier" className="glass-panel rounded-3xl border p-5 md:p-6 section-fade-in">
+          <div id="full-verifier" ref={inputPanelRef} className="glass-panel rounded-3xl border p-5 md:p-6 section-fade-in">
             <div className="flex items-center justify-between mb-4">
               <div className="text-sm uppercase tracking-wider text-slate-300 font-semibold">Let’s Verify Your Fact</div>
-              <button className="text-xs px-3 py-1.5 rounded-lg border border-slate-300/20 hover:border-cyan-300/40 transition" onClick={() => setShowAdvanced((v) => !v)}>
-                {showAdvanced ? "Hide" : "Show"} advanced
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  className="text-xs px-3 py-1.5 rounded-lg border border-slate-300/20 hover:border-cyan-300/40 transition"
+                  onClick={() => {
+                    if (tab === "url") setUrl("");
+                    else setText("");
+                    setError(null);
+                  }}
+                >
+                  Clear
+                </button>
+                <button className="text-xs px-3 py-1.5 rounded-lg border border-slate-300/20 hover:border-cyan-300/40 transition" onClick={() => setShowAdvanced((v) => !v)}>
+                  {showAdvanced ? "Hide" : "Show"} advanced
+                </button>
+              </div>
             </div>
 
             {/* Tab Selection */}
@@ -1471,8 +1534,26 @@ export default function Page() {
                   placeholder="Paste a claim to verify..."
                   value={text}
                   onChange={(e) => setText(e.target.value.slice(0, 10000))}
+                  onKeyDown={(e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && canAnalyze && !loading) {
+                      e.preventDefault();
+                      analyze();
+                    }
+                  }}
                   maxLength={10000}
                 />
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {textSamples.map((sample) => (
+                    <button
+                      key={sample.label}
+                      className="rounded-full border border-slate-300/20 px-2 py-1 text-xs text-slate-300 hover:border-cyan-300/40 hover:text-cyan-100 transition"
+                      onClick={() => fillSampleText(sample.value)}
+                      title={sample.value}
+                    >
+                      {sample.label} sample
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -1513,7 +1594,7 @@ export default function Page() {
           </div>
 
           {/* Right: Results Panel */}
-          <div className="grid gap-6 section-fade-in">
+          <div id="results-panel" ref={resultsPanelRef} className="grid gap-6 section-fade-in">
             {/* Summary Stats */}
             {result && (
               <div className="grid md:grid-cols-3 gap-4">
@@ -1558,7 +1639,15 @@ export default function Page() {
             {audienceMode === "user" && result && (
               <div className="glass-panel rounded-2xl border p-4 md:p-5 space-y-4">
                 <div className="rounded-xl border border-cyan-400/20 bg-cyan-500/5 p-4">
-                  <div className="text-xs uppercase tracking-wider text-cyan-200/90 mb-1">Verdict</div>
+                  <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                    <div className="text-xs uppercase tracking-wider text-cyan-200/90">Verdict</div>
+                    <button
+                      onClick={copyPrimaryVerdict}
+                      className="rounded-md border border-cyan-300/30 px-2 py-1 text-[11px] font-semibold text-cyan-100 hover:border-cyan-200/50 transition"
+                    >
+                      {copiedVerdict ? "Copied" : "Copy verdict"}
+                    </button>
+                  </div>
                   <div className="text-lg font-semibold text-white">
                     {primaryClaim ? `${primaryClaim.verdict} (${fmtPct(primaryClaim.confidence)})` : "No claim extracted yet"}
                   </div>
@@ -2015,6 +2104,34 @@ export default function Page() {
             )}
           </div>
         </section>
+
+        <div className="fixed bottom-4 right-4 z-40 hidden lg:flex flex-col gap-2">
+          <button
+            className="rounded-xl border border-slate-300/20 bg-slate-900/85 px-3 py-2 text-xs font-semibold text-slate-100 hover:border-cyan-300/40 transition"
+            onClick={scrollToInput}
+          >
+            Input
+          </button>
+          <button
+            className="rounded-xl border border-slate-300/20 bg-slate-900/85 px-3 py-2 text-xs font-semibold text-slate-100 hover:border-cyan-300/40 transition"
+            onClick={scrollToResults}
+          >
+            Results
+          </button>
+          <button
+            className={cx(
+              "rounded-xl border px-3 py-2 text-xs font-semibold transition",
+              !canAnalyze || loading
+                ? "border-slate-700/70 bg-slate-800/90 text-slate-500 cursor-not-allowed"
+                : "border-cyan-300/30 bg-cyan-400/15 text-cyan-100 hover:border-cyan-200/60"
+            )}
+            onClick={analyze}
+            disabled={!canAnalyze || loading}
+            title="Shortcut: Ctrl/Cmd + Enter"
+          >
+            {loading ? "Running..." : "Run"}
+          </button>
+        </div>
 
         {/* Run History */}
         <section className="glass-panel rounded-2xl border p-4 section-fade-in order-3">

@@ -180,6 +180,36 @@ async def test_deep_health_endpoint():
 
 
 @pytest.mark.asyncio
+async def test_evaluation_endpoints_available():
+    """Evaluation endpoints used by analyst UI should be reachable."""
+    expected_keys = {
+        "/evaluation/benchmark": ["claims"],
+        "/evaluation/baselines": ["metadata", "results"],
+        "/evaluation/ablations": ["metadata", "variants"],
+        "/evaluation/comparative": ["metadata", "ranking"],
+        "/evaluation/production-metrics": ["metadata", "latency", "throughput", "cost", "quality"],
+        "/evaluation/explainability": ["metadata", "case_studies"],
+        "/evaluation/limitations": ["metadata", "limitations"],
+        "/evaluation/reproducibility": ["metadata", "summary", "score"],
+        "/evaluation/ethics": ["metadata", "ethical_risks"],
+        "/evaluation/defense": ["metadata", "qa", "metrics_cheatsheet"],
+    }
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test"
+    ) as client:
+        for path, keys in expected_keys.items():
+            response = await client.get(path)
+            assert response.status_code == 200, f"{path} returned {response.status_code}"
+
+            payload = response.json()
+            assert isinstance(payload, dict), f"{path} payload should be an object"
+            for key in keys:
+                assert key in payload, f"{path} missing expected key: {key}"
+
+
+@pytest.mark.asyncio
 async def test_analyze_with_empty_input():
     """Test that empty input is handled gracefully."""
     async with AsyncClient(
@@ -227,15 +257,17 @@ async def test_analyze_short_text_fallback_triggers_search():
                 }
             ]
 
-            response = await client.post("/analyze", json={
-                "text": "true or false: leaves are naturally green",
-                "mode": "live",
-                "max_claims": 3,
-                "max_evidence_per_claim": 2,
-            })
+            # Disable cache to ensure the mocked search path is exercised.
+            with patch("app.main.get_cache", return_value=None):
+                response = await client.post("/analyze", json={
+                    "text": "true or false: leaves are naturally green",
+                    "mode": "live",
+                    "max_claims": 3,
+                    "max_evidence_per_claim": 2,
+                })
 
-            assert response.status_code == 200
-            data = response.json()
-            assert isinstance(data["claims"], list)
-            assert len(data["claims"]) >= 1
-            mock_search.assert_awaited()
+                assert response.status_code == 200
+                data = response.json()
+                assert isinstance(data["claims"], list)
+                assert len(data["claims"]) >= 1
+                mock_search.assert_awaited()

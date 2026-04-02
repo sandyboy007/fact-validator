@@ -115,6 +115,19 @@ async def rate_limit_middleware(request: Request, call_next):
 app.include_router(source_router)
 
 
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+DOCS_DIR = PROJECT_ROOT / "docs"
+BENCHMARK_RESULTS_DIR = PROJECT_ROOT / "data" / "benchmarks" / "results"
+
+
+def _load_json_report(file_path: Path, fallback: Dict[str, Any]) -> Dict[str, Any]:
+    try:
+        with file_path.open("r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return fallback
+
+
 
 
 # ----------------------------
@@ -582,20 +595,92 @@ async def health_deep():
 
 @app.get("/evaluation/benchmark")
 def evaluation_benchmark():
-    benchmark_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..",
-        "..",
-        "..",
-        "docs",
-        "evaluation_benchmark.json",
+    return _load_json_report(
+        DOCS_DIR / "evaluation_benchmark.json",
+        {"claims": []},
     )
-    try:
-        with open(benchmark_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except Exception:
-        data = {"claims": []}
-    return data
+
+
+@app.get("/evaluation/baselines")
+def evaluation_baselines():
+    return _load_json_report(
+        BENCHMARK_RESULTS_DIR / "baseline_comparison_report.json",
+        {"metadata": {}, "results": {}},
+    )
+
+
+@app.get("/evaluation/ablations")
+def evaluation_ablations():
+    return _load_json_report(
+        BENCHMARK_RESULTS_DIR / "ablation_study_report.json",
+        {"metadata": {}, "variants": {}},
+    )
+
+
+@app.get("/evaluation/comparative")
+def evaluation_comparative():
+    return _load_json_report(
+        BENCHMARK_RESULTS_DIR / "comparative_analysis_report.json",
+        {"metadata": {}, "ranking": [], "comparisons": [], "debate_lift": {}},
+    )
+
+
+@app.get("/evaluation/production-metrics")
+def evaluation_production_metrics():
+    return _load_json_report(
+        BENCHMARK_RESULTS_DIR / "production_metrics_report.json",
+        {
+            "metadata": {},
+            "latency": {},
+            "throughput": {},
+            "cost": {},
+            "quality": {},
+        },
+    )
+
+
+@app.get("/evaluation/explainability")
+def evaluation_explainability():
+    return _load_json_report(
+        BENCHMARK_RESULTS_DIR / "explainability_demo_report.json",
+        {"metadata": {}, "case_studies": []},
+    )
+
+
+@app.get("/evaluation/limitations")
+def evaluation_limitations():
+    return _load_json_report(
+        BENCHMARK_RESULTS_DIR / "limitations_assessment_report.json",
+        {"metadata": {}, "limitations": []},
+    )
+
+
+@app.get("/evaluation/reproducibility")
+def evaluation_reproducibility():
+    return _load_json_report(
+        BENCHMARK_RESULTS_DIR / "reproducibility_audit_report.json",
+        {
+            "metadata": {},
+            "summary": {"passed_checks": 0, "total_checks": 0},
+            "score": {"score_percent": 0.0},
+        },
+    )
+
+
+@app.get("/evaluation/ethics")
+def evaluation_ethics():
+    return _load_json_report(
+        BENCHMARK_RESULTS_DIR / "ethics_assessment_report.json",
+        {"metadata": {}, "ethical_risks": []},
+    )
+
+
+@app.get("/evaluation/defense")
+def evaluation_defense():
+    return _load_json_report(
+        BENCHMARK_RESULTS_DIR / "defense_talking_points_report.json",
+        {"metadata": {}, "qa": [], "metrics_cheatsheet": []},
+    )
 
 
 @app.get("/runs")

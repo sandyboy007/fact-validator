@@ -242,6 +242,131 @@ async def test_analyze_error_handling():
 
 
 @pytest.mark.asyncio
+async def test_analyze_reflective_abstention_and_metrics_present():
+    """Reflective gate should request abstention when grounding is weak."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test"
+    ) as client:
+        with patch("app.main.serpapi_search", new_callable=AsyncMock) as mock_search:
+            mock_search.return_value = [
+                {
+                    "title": "Trend commentary",
+                    "link": "https://example.com/blog/post",
+                    "snippet": "Analysts discuss general warming trends without exact values or dates.",
+                }
+            ]
+
+            with patch("app.main.get_cache", return_value=None):
+                response = await client.post("/analyze", json={
+                    "text": "Global temperature increased by 3.14 degrees in exactly 2024.",
+                    "mode": "live",
+                    "max_claims": 1,
+                    "max_evidence_per_claim": 3,
+                    "enable_reflective_abstention": True,
+                })
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["metadata"]["reflective_abstention_enabled"] is True
+            assert len(data["claims"]) >= 1
+
+            claim = data["claims"][0]
+            assert "reflective" in claim
+            assert claim["reflective"]["decision"] == "TERMINATE"
+            assert claim["verdict"] == "NEI"
+            assert claim.get("needs_human_review") is True
+
+
+@pytest.mark.asyncio
+async def test_analyze_generates_faithful_correction_for_refuted_claim():
+    """Refuted claims should include a grounded correction candidate when enabled."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test"
+    ) as client:
+        with patch("app.main.serpapi_search", new_callable=AsyncMock) as mock_search:
+            mock_search.return_value = [
+                {
+                    "title": "Nature review",
+                    "link": "https://www.nature.com/articles/example",
+                    "snippet": "The claim is false. Photosynthesis has been measured repeatedly in controlled experiments for decades.",
+                },
+                {
+                    "title": "Encyclopedia reference",
+                    "link": "https://www.britannica.com/science/photosynthesis",
+                    "snippet": "Photosynthesis is a well-studied process with extensive measurements in plant science.",
+                },
+            ]
+
+            with patch("app.main.get_cache", return_value=None):
+                response = await client.post("/analyze", json={
+                    "text": "No credible source has ever measured photosynthesis at any time in history.",
+                    "mode": "live",
+                    "max_claims": 1,
+                    "max_evidence_per_claim": 4,
+                    "enable_faithful_correction": True,
+                })
+
+            assert response.status_code == 200
+            data = response.json()
+            assert len(data["claims"]) >= 1
+
+            claim = data["claims"][0]
+            assert claim["verdict"] == "REFUTED"
+            correction = claim.get("faithful_correction")
+            assert correction is not None
+            assert isinstance(correction.get("proposed_correction"), str)
+            assert correction["proposed_correction"]
+            assert correction.get("score", 0) >= 0.45
+
+
+@pytest.mark.asyncio
+async def test_analyze_correction_when_reflective_abstention_disabled():
+    """Faithful correction should still run when reflective abstention is disabled."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test"
+    ) as client:
+        with patch("app.main.serpapi_search", new_callable=AsyncMock) as mock_search:
+            mock_search.return_value = [
+                {
+                    "title": "Nature review",
+                    "link": "https://www.nature.com/articles/example",
+                    "snippet": "The claim is false. Photosynthesis has been measured repeatedly in controlled experiments for decades.",
+                },
+                {
+                    "title": "Encyclopedia reference",
+                    "link": "https://www.britannica.com/science/photosynthesis",
+                    "snippet": "Photosynthesis is a well-studied process with extensive measurements in plant science.",
+                },
+            ]
+
+            with patch("app.main.get_cache", return_value=None):
+                response = await client.post("/analyze", json={
+                    "text": "No credible source has ever measured photosynthesis at any time in history.",
+                    "mode": "live",
+                    "max_claims": 1,
+                    "max_evidence_per_claim": 4,
+                    "enable_reflective_abstention": False,
+                    "enable_faithful_correction": True,
+                })
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["metadata"]["reflective_abstention_enabled"] is False
+            assert len(data["claims"]) >= 1
+
+            claim = data["claims"][0]
+            assert claim["verdict"] == "REFUTED"
+            correction = claim.get("faithful_correction")
+            assert correction is not None
+            assert isinstance(correction.get("proposed_correction"), str)
+            assert correction["proposed_correction"]
+            assert correction.get("score", 0) >= 0.45
+
+
+@pytest.mark.asyncio
 async def test_analyze_short_text_fallback_triggers_search():
     """Short natural-language text should still produce a fallback claim and run search."""
     async with AsyncClient(

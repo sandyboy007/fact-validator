@@ -30,6 +30,7 @@ from app.analysis_features import (
     normalize_claim_key,
 )
 from app.credibility import score_domain_rubric
+from app.reflective import reflective_analysis, generate_faithful_correction
 from app.semantic_retrieval import semantic_rerank
 from app.sentiment import analyze_sentiment, estimate_bias_risk, calculate_sentiment_misinformation_adjustment, get_sentiment_summary
 from app.source_routes import router as source_router
@@ -150,6 +151,8 @@ class AnalyzeRequest(BaseModel):
     max_claims: int = 6
     max_evidence_per_claim: int = 5
     max_debate_claims: int = 2
+    enable_reflective_abstention: bool = True
+    enable_faithful_correction: bool = True
     
     @validator("url")
     @classmethod
@@ -223,6 +226,8 @@ class ClaimResult(BaseModel):
     adjusted_verdict: Optional[Literal["SUPPORTED", "REFUTED", "NEI"]] = None
     adjusted_confidence: Optional[float] = None
     evidence_summary: Optional[Dict[str, Any]] = None
+    reflective: Optional[Dict[str, Any]] = None
+    faithful_correction: Optional[Dict[str, Any]] = None
 
 
 class AnalyzeResponse(BaseModel):
@@ -834,6 +839,26 @@ async def analyze(req: AnalyzeRequest):
         ]
         baseline_verdict_value, baseline_conf, baseline_summary = baseline_verdict(ct, ev_for_baseline)
         structured = determine_verdict(ct, claim_profile, enriched_items)
+        reflective_report = reflective_analysis(ct, claim_profile, enriched_items)
+
+        if req.enable_reflective_abstention and reflective_report.get("decision") == "TERMINATE":
+            abstain_reason = str(
+                reflective_report.get("abstain_reason")
+                or "Reflective factor analysis requested abstention."
+            )
+            structured["legacy_verdict"] = "NEI"
+            structured["structured_verdict"] = "Insufficient evidence"
+            structured["confidence"] = round(
+                min(float(structured.get("confidence") or baseline_conf), 0.55),
+                2,
+            )
+            uncertainty = list(structured.get("uncertainty_reasons") or [])
+            if abstain_reason not in uncertainty:
+                uncertainty.insert(0, abstain_reason)
+            structured["uncertainty_reasons"] = uncertainty[:4]
+            structured["needs_human_review"] = True
+            structured["human_review_reason"] = abstain_reason
+            structured["explanation"] = f"Reflective abstention: {abstain_reason}"
 
         verdict = structured["legacy_verdict"]
         conf = structured["confidence"]
@@ -893,7 +918,12 @@ async def analyze(req: AnalyzeRequest):
         # Wire LLM debate mode if enabled
         debate_result_raw = None
         ollama_available = False
-        if req.verifier == "debate" and Config.FEATURE_DEBATE_MODE and enriched_items:
+        if (
+            req.verifier == "debate"
+            and Config.FEATURE_DEBATE_MODE
+            and enriched_items
+            and (not req.enable_reflective_abstention or reflective_report.get("decision") != "TERMINATE")
+        ):
             try:
                 log_debate_started(ct)
                 ollama_available = await ollama_health.is_available()
@@ -929,6 +959,21 @@ async def analyze(req: AnalyzeRequest):
                 "debug": debate_debug,
             })
 
+        faithful_correction = None
+        if req.enable_faithful_correction:
+            correction_reflective = (
+                reflective_report
+                if req.enable_reflective_abstention
+                else {"decision": "PROCEED"}
+            )
+            faithful_correction = generate_faithful_correction(
+                ct,
+                claim_profile,
+                enriched_items,
+                correction_reflective,
+                verdict,
+            )
+
         # Perform sentiment analysis on the claim
         sentiment_result = analyze_sentiment(ct)
         bias_risk = estimate_bias_risk(
@@ -953,6 +998,8 @@ async def analyze(req: AnalyzeRequest):
             "adjusted_verdict": adjusted_verdict,
             "adjusted_confidence": adjusted_conf,
             "evidence_summary": evidence_summary,
+            "reflective": reflective_report,
+            "faithful_correction": faithful_correction,
             "sentiment": {
                 "score": sentiment_result.score,
                 "label": sentiment_result.label,
@@ -1027,12 +1074,17 @@ async def analyze(req: AnalyzeRequest):
             "verifier": req.verifier,
             "debate": debate_meta,
             "claim_memory_enabled": True,
+            "reflective_abstention_enabled": req.enable_reflective_abstention,
+            "faithful_correction_enabled": req.enable_faithful_correction,
             "trust_features": [
                 "claim_decomposition",
                 "evidence_quality_ranking",
                 "primary_source_detection",
                 "recency_scoring",
+                "reflective_factor_analyst",
+                "abstention_gate",
                 "structured_verdicts",
+                "faithful_correction_candidates",
                 "counter_evidence_requirement",
                 "quote_grounding",
                 "uncertainty_explanations",

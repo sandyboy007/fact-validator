@@ -180,6 +180,64 @@ async def test_deep_health_endpoint():
 
 
 @pytest.mark.asyncio
+async def test_dashboard_summary_endpoint():
+    """Dashboard summary endpoint should aggregate run-level and claim-level metrics."""
+    fake_runs = [
+        {
+            "id": 11,
+            "created_utc": "2026-04-16T10:00:00Z",
+            "input_type": "url",
+            "domain": "example.com",
+            "verifier": "baseline",
+            "response": {
+                "final_misinformation_likelihood": 0.25,
+                "claims": [
+                    {"verdict": "SUPPORTED", "needs_human_review": False},
+                    {"verdict": "NEI", "needs_human_review": True},
+                ],
+            },
+        },
+        {
+            "id": 10,
+            "created_utc": "2026-04-16T09:00:00Z",
+            "input_type": "text",
+            "domain": None,
+            "verifier": "debate",
+            "response": {
+                "final_misinformation_likelihood": 0.75,
+                "claims": [
+                    {"verdict": "REFUTED", "needs_human_review": False},
+                ],
+            },
+        },
+    ]
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test"
+    ) as client:
+        with patch("app.main.export_runs", return_value=fake_runs):
+            response = await client.get("/dashboard/summary?limit=25")
+
+    assert response.status_code == 200
+    payload = response.json()
+
+    assert payload["limit"] == 25
+    assert payload["total_runs"] == 2
+    assert payload["claims_analyzed"] == 3
+    assert payload["claims_requiring_human_review"] == 1
+    assert payload["avg_misinformation_likelihood"] == 0.5
+    assert payload["input_type_counts"]["url"] == 1
+    assert payload["input_type_counts"]["text"] == 1
+    assert payload["verifier_counts"]["baseline"] == 1
+    assert payload["verifier_counts"]["debate"] == 1
+    assert payload["verdict_counts"]["SUPPORTED"] == 1
+    assert payload["verdict_counts"]["REFUTED"] == 1
+    assert payload["verdict_counts"]["NEI"] == 1
+    assert payload["top_domains"][0]["domain"] == "example.com"
+
+
+@pytest.mark.asyncio
 async def test_evaluation_endpoints_available():
     """Evaluation endpoints used by analyst UI should be reachable."""
     expected_keys = {

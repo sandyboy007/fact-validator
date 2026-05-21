@@ -1,0 +1,435 @@
+\documentclass[12pt,a4paper,oneside]{report}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage[numbers,sort&compress]{natbib}
+
+\geometry{margin=1in}
+\onehalfspacing
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=blue
+}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\Large Thesis Chapter Draft \par}
+\vspace{1.2cm}
+{\LARGE \textbf{Research-Based Comparative Evaluation of Fact Validator}\par}
+\vspace{0.6cm}
+{\Large Faithfulness, Abstention, Causal Reasoning, and Hallucination Correction\par}
+\vspace{2cm}
+
+{\large Author: Your Name\par}
+\vspace{0.4cm}
+{\large Program: Your Program Name\par}
+\vspace{0.4cm}
+{\large Institution: Your Institution\par}
+\vspace{0.4cm}
+{\large Date: April 2026\par}
+
+\vfill
+\begin{minipage}{0.9\textwidth}
+\small
+\textbf{Note:} This chapter is written in thesis style and grounded in recent literature on automated faithfulness-abstention evaluation, reflective multi-agent legal argument generation, causal fact verification, and Truth-O-Meter style hallucination correction.
+\end{minipage}
+\end{titlepage}
+
+\pagenumbering{roman}
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+This chapter proposes a research-grounded comparative evaluation framework for the Fact Validator system.
+The framework is motivated by four research streams: (i) automated faithfulness and abstention assessment for generated arguments \citep{zhang2025faithfulness}, (ii) reflective multi-agent mitigation of hallucination and manipulative generation \citep{zhang2025reflective}, (iii) causal fact verification via argument structure \citep{si2024checkwhy}, and (iv) iterative hallucination detection and correction from external evidence \citep{galitsky2023truthometer,galitsky2023repo}.
+The chapter contributes a unified protocol for open-domain fact verification, including scenario-based stress testing (arguable, mismatched, non-arguable), adapted metrics for hallucination accuracy, evidence utilization recall, and successful abstention, and an ablation-driven analysis strategy.
+A preliminary result summary is presented and explicitly framed as provisional due to synthetic benchmark constraints.
+The chapter concludes with statistically grounded recommendations for thesis-grade validation and reproducibility.
+
+\tableofcontents
+\listoftables
+\clearpage
+\pagenumbering{arabic}
+
+\chapter{Introduction}
+\label{chap:intro}
+
+\section{Problem Statement}
+Large language model based fact verification systems are often evaluated with top-line accuracy but under-report reliability properties such as:
+\begin{enumerate}
+  \item faithfulness to provided evidence,
+  \item abstention under insufficient grounding,
+  \item coverage and utilization of relevant supporting factors,
+  \item robustness on causal multi-step claims.
+\end{enumerate}
+
+Recent studies show that models can achieve high apparent faithfulness in favorable settings while still failing to abstain or under-utilizing relevant factors \citep{zhang2025faithfulness,zhang2025reflective}.
+For misinformation-sensitive deployment, this creates a methodological gap between benchmark performance and trustworthy behavior.
+
+\section{Objective}
+The objective of this chapter is to define and justify a comparative evaluation methodology for Fact Validator that is:
+\begin{enumerate}
+  \item \textbf{research-based} (aligned with current literature),
+  \item \textbf{reproducible} (explicit metrics, data protocol, and statistical tests),
+  \item \textbf{thesis-ready} (clear claims and validity boundaries).
+\end{enumerate}
+
+\section{Research Questions}
+\begin{enumerate}
+  \item \textbf{RQ1:} Does the full Fact Validator pipeline improve factual reliability over baseline and ablated variants?
+  \item \textbf{RQ2:} Does reflective abstention reduce spurious generation in ungroundable scenarios?
+  \item \textbf{RQ3:} Does faithful correction reduce residual hallucination after initial verification?
+  \item \textbf{RQ4:} How does system behavior change on causal claims requiring multi-step reasoning?
+\end{enumerate}
+
+\chapter{Related Work}
+\label{chap:related}
+
+\section{Automated Faithfulness and Abstention Pipelines}
+Zhang et al. propose an automated evaluation pipeline for legal argument generation that explicitly measures hallucination, utilization of available factors, and abstention behavior \citep{zhang2025faithfulness}.
+A key finding is that high hallucination accuracy can coexist with poor abstention compliance in non-arguable settings.
+
+\section{Reflective Multi-Agent Reliability}
+A reflective multi-agent framework introduces role-specialized agents for factor analysis and argument polishing and reports stronger abstention and improved factor utilization over single-agent and non-reflective baselines \citep{zhang2025reflective}.
+
+\section{Causal Fact Verification with Argument Structure}
+CheckWhy introduces causal fact verification and emphasizes that causal claims require explicit argument structures rather than shallow semantic overlap \citep{si2024checkwhy}.
+This is directly relevant to open-domain misinformation where cause-effect claims are common.
+
+\section{Truth-O-Meter and Iterative Correction}
+Truth-O-Meter focuses on hallucination detection and correction by comparing generated text against web evidence, including treatment of conflicting sources \citep{galitsky2023truthometer,galitsky2023repo}.
+Its correction-first perspective is complementary to abstention-first reliability design.
+
+\section{Comparative Positioning}
+Table \ref{tab:lit-comparison} maps key dimensions from prior work to this thesis framework.
+
+\begin{table}[htbp]
+\centering
+\caption{Comparison of reference works and this thesis framework.}
+\label{tab:lit-comparison}
+\begin{tabular}{p{3.2cm}p{3.6cm}p{3.2cm}p{3.6cm}}
+\toprule
+\textbf{Work} & \textbf{Primary Focus} & \textbf{Core Metrics} & \textbf{Relevance to Fact Validator} \\
+\midrule
+Zhang et al. (2025a) \citep{zhang2025faithfulness}
+& Automated faithfulness-abstention evaluation
+& Hallucination accuracy, factor utilization recall, abstention ratio
+& Direct metric template for reliability evaluation \\
+\midrule
+Zhang and Ashley (2025) \citep{zhang2025reflective}
+& Reflective multi-agent mitigation
+& Hallucination, utilization, abstention under scenario stress
+& Supports reflective gate and abstention analysis \\
+\midrule
+Si et al. (2024) \citep{si2024checkwhy}
+& Causal verification with argument structure
+& Verification and structure-oriented analysis
+& Motivates causal subset and multi-step reasoning tests \\
+\midrule
+Galitsky (2023) \citep{galitsky2023truthometer}
+& Hallucination detection and correction
+& Token or claim correction quality and error reduction
+& Motivates correction efficacy and residual hallucination metrics \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\chapter{Methodology}
+\label{chap:method}
+
+\section{Scenario-Based Evaluation Design}
+Following stress-testing logic in \citep{zhang2025faithfulness,zhang2025reflective}, claims are grouped into three scenario families:
+\begin{enumerate}
+  \item \textbf{Arguable:} sufficient and coherent grounding exists.
+  \item \textbf{Mismatched:} context exists but role or outcome consistency is violated.
+  \item \textbf{Non-arguable:} no valid grounding overlap for argument generation.
+\end{enumerate}
+
+\begin{table}[htbp]
+\centering
+\caption{Scenario families and expected behavior.}
+\label{tab:scenario}
+\begin{tabular}{p{3cm}p{7.2cm}p{4cm}}
+\toprule
+\textbf{Scenario} & \textbf{Definition} & \textbf{Expected Behavior} \\
+\midrule
+Arguable & Claim can be grounded with coherent evidence chain. & Generate evidence-grounded verdict and explanation. \\
+Mismatched & Retrieved context conflicts with target role or outcome logic. & Prefer abstention or explicit uncertainty over forced reasoning. \\
+Non-arguable & No sufficient overlap or grounding for valid argument. & Abstain (NEI or terminate), avoid fabricated support. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{System Variants}
+The evaluation compares:
+\begin{enumerate}
+  \item Full system,
+  \item Baseline verifier only,
+  \item Full system without credibility scoring,
+  \item Full system without semantic reranking,
+  \item Full system without reflective abstention,
+  \item Full system without faithful correction.
+\end{enumerate}
+
+\section{Primary Metrics}
+\subsection{Hallucination Accuracy}
+Adapting \citep{zhang2025faithfulness}:
+\begin{equation}
+\mathrm{Acc}_{H} = \left(1 - \frac{N_H}{N_{GT}}\right)\times 100
+\label{eq:acch}
+\end{equation}
+where $N_H$ is the number of unsupported factual units in outputs and $N_{GT}$ is the number of verifiable factual units in context.
+
+\subsection{Evidence Utilization Recall}
+\begin{equation}
+\mathrm{Rec}_{U} = \frac{N_U}{N_{GT}}\times 100
+\label{eq:recu}
+\end{equation}
+where $N_U$ is the number of relevant factual units actually used in generated reasoning.
+
+\subsection{Successful Abstention Ratio}
+\begin{equation}
+\mathrm{Ratio}_{\mathrm{abstain}} = \frac{N_{SA}}{N_{TA}}\times 100
+\label{eq:abstain}
+\end{equation}
+where $N_{SA}$ is successful abstentions and $N_{TA}$ is total abstention-required cases.
+
+\section{Secondary Metrics}
+\begin{enumerate}
+  \item Accuracy and Macro-F1 for SUPPORTED, REFUTED, and NEI,
+  \item class-wise Precision and Recall,
+  \item calibration metrics (ECE, Brier score),
+  \item operational metrics (latency, throughput, and cost with and without caching).
+\end{enumerate}
+
+\section{Statistical Testing Protocol}
+\begin{enumerate}
+  \item Bootstrap 95\% confidence intervals for all primary metrics.
+  \item Paired tests for variant comparisons on identical claim sets.
+  \item Holm-Bonferroni correction for multiple hypotheses.
+  \item Effect size reporting alongside $p$-values.
+\end{enumerate}
+
+\chapter{Experimental Protocol}
+\label{chap:protocol}
+
+\section{Data Construction Strategy}
+The benchmark should be composed of:
+\begin{enumerate}
+  \item standard factual claims with gold labels,
+  \item a causal subset inspired by CheckWhy-style reasoning \citep{si2024checkwhy},
+  \item scenario-balanced arguable, mismatched, and non-arguable claims.
+\end{enumerate}
+
+\section{Annotation Guidance}
+To support thesis-grade quality:
+\begin{enumerate}
+  \item use at least 3 annotators per claim,
+  \item compute inter-annotator agreement (target kappa $\geq 0.60$),
+  \item apply majority vote with adjudication for conflicts.
+\end{enumerate}
+
+\section{Sample Size Guidance}
+Pilot-level conclusions from very small sets are unstable.
+For defensible comparative claims, use larger held-out sets and report confidence intervals and statistical significance.
+As a practical thesis target:
+\begin{enumerate}
+  \item minimum publishable: 120--150 test claims,
+  \item preferred: 180--250 test claims,
+  \item strong significance and tighter uncertainty: 300+ test claims.
+\end{enumerate}
+
+\chapter{Preliminary Results and Reporting Structure}
+\label{chap:results}
+
+\section{Preliminary Comparative Snapshot}
+Table \ref{tab:prelim} records an example preliminary snapshot from pilot evaluation.
+These values are included as \textit{provisional} and primarily reflect benchmark stress-testing, not final thesis claims.
+
+\begin{table}[htbp]
+\centering
+\caption{Preliminary pilot comparative snapshot (provisional).}
+\label{tab:prelim}
+\begin{tabular}{lcc}
+\toprule
+\textbf{System} & \textbf{Accuracy} & \textbf{Macro-F1} \\
+\midrule
+Random baseline & 0.373 & 0.375 \\
+Majority baseline & 0.353 & 0.174 \\
+Length heuristic & 0.314 & 0.242 \\
+Keyword heuristic & 0.294 & 0.215 \\
+Sentiment heuristic & 0.294 & 0.152 \\
+Ablate semantic rerank & 0.235 & 0.225 \\
+Full system proxy & 0.216 & 0.212 \\
+Ablate debate & 0.216 & 0.212 \\
+Ablate quality filter & 0.196 & 0.177 \\
+Ablate credibility & 0.137 & 0.102 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Interpretation of Preliminary Findings}
+Two immediate observations are important:
+\begin{enumerate}
+  \item Credibility removal degrades performance, indicating credibility contributes signal.
+  \item The current benchmark likely contains realism and diversity limits, since simple baselines can dominate.
+\end{enumerate}
+Therefore, quality-superiority claims are deferred until expanded curated evaluation.
+
+\section{Final Results Table Template}
+Use Table \ref{tab:final-template} for final reporting once the expanded benchmark is completed.
+
+\begin{table}[htbp]
+\centering
+\caption{Final thesis comparative table template (replace dashes with final values).}
+\label{tab:final-template}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Variant} & \textbf{Acc} & \textbf{Macro-F1} & $\mathbf{Acc_H}$ & $\mathbf{Rec_U}$ & $\mathbf{Ratio_{abstain}}$ & \textbf{ECE} \\
+\midrule
+Full system & -- & -- & -- & -- & -- & -- \\
+Baseline only & -- & -- & -- & -- & -- & -- \\
+w/o credibility & -- & -- & -- & -- & -- & -- \\
+w/o rerank & -- & -- & -- & -- & -- & -- \\
+w/o reflective abstention & -- & -- & -- & -- & -- & -- \\
+w/o faithful correction & -- & -- & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Scenario-Wise Final Reporting Template}
+\begin{table}[htbp]
+\centering
+\caption{Scenario-wise reliability template.}
+\label{tab:scenario-template}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Variant} & \textbf{Arguable Macro-F1} & \textbf{Mismatched Abstain (\%)} & \textbf{Non-arguable Abstain (\%)} \\
+\midrule
+Full system & -- & -- & -- \\
+Baseline only & -- & -- & -- \\
+w/o reflective abstention & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\chapter{Discussion}
+\label{chap:discussion}
+
+\section{Key Insight}
+A central cross-paper insight is that high faithfulness in easy settings does not imply safe deployment behavior.
+Models may remain accurate on grounded cases while failing to abstain when generation is untenable \citep{zhang2025faithfulness,zhang2025reflective}.
+
+\section{Implications for Fact Validator}
+For open-domain fact verification, this implies:
+\begin{enumerate}
+  \item abstention must be treated as a first-class reliability objective,
+  \item correction quality must be measured after initial verdict generation,
+  \item causal claims require dedicated stress tests beyond lexical overlap.
+\end{enumerate}
+
+\section{Operational Relevance}
+Operational metrics (latency, throughput, and cost under caching) should be reported jointly with reliability metrics.
+A system that is accurate but prohibitively slow or unstable under load is not practical for production-like settings.
+
+\chapter{Threats to Validity}
+\label{chap:validity}
+
+\section{Internal Validity}
+Automated extraction or judge-model pipelines may introduce evaluator bias.
+Mitigation: sampled manual audit and agreement analysis.
+
+\section{Construct Validity}
+If retrieval quality is weak, reasoning metrics may be confounded by evidence scarcity.
+Mitigation: separate retrieval failure analysis from reasoning failure analysis.
+
+\section{External Validity}
+Synthetic or templated datasets may not capture the full diversity of real-world misinformation.
+Mitigation: include manually curated real-world claims and cross-domain subsets.
+
+\section{Statistical Conclusion Validity}
+Small test sets produce unstable rankings.
+Mitigation: larger test sets, confidence intervals, paired significance tests, and corrected multiple comparisons.
+
+\chapter{Conclusion and Future Work}
+\label{chap:conclusion}
+
+This chapter established a research-based comparative evaluation framework for Fact Validator.
+The framework unifies four dimensions: faithfulness, evidence utilization, abstention, and causal reasoning.
+It aligns with state-of-the-art literature while adapting those principles to open-domain fact verification.
+Preliminary evidence is informative but not yet sufficient for broad superiority claims.
+The thesis therefore prioritizes rigorous benchmark expansion, statistically grounded final evaluation, and transparent reporting of both performance and reliability limits.
+
+\section*{Future Work Priorities}
+\begin{enumerate}
+  \item Expand curated and annotated benchmark coverage.
+  \item Strengthen abstention calibration in non-arguable and mismatched scenarios.
+  \item Quantify correction efficacy by residual hallucination reduction.
+  \item Add richer causal-chain evaluation for why-claims.
+\end{enumerate}
+
+\begin{thebibliography}{99}
+
+\bibitem[Zhang et al.(2025a)]{zhang2025faithfulness}
+Zhang, L., Gray, M., Savelka, J., and Ashley, K. D. (2025a).
+Measuring Faithfulness and Abstention: An Automated Pipeline for Evaluating LLM-Generated 3-ply Case-Based Legal Arguments.
+arXiv preprint arXiv:2506.00694.
+Available at: \url{https://arxiv.org/abs/2506.00694}.
+
+\bibitem[Zhang and Ashley(2025)]{zhang2025reflective}
+Zhang, L., and Ashley, K. D. (2025).
+Mitigating Manipulation and Enhancing Persuasion: A Reflective Multi-Agent Approach for Legal Argument Generation.
+arXiv preprint arXiv:2506.02992.
+Available at: \url{https://arxiv.org/abs/2506.02992}.
+
+\bibitem[Si et al.(2024)]{si2024checkwhy}
+Si, J., Zhao, Y., Zhu, Y., Zhu, H., Lu, W., and Zhou, D. (2024).
+CheckWhy: Causal Fact Verification via Argument Structure.
+arXiv preprint arXiv:2408.10918.
+Available at: \url{https://arxiv.org/abs/2408.10918}.
+
+\bibitem[Galitsky(2023a)]{galitsky2023truthometer}
+Galitsky, B. A. (2023a).
+Truth-O-Meter: Collaborating with LLM in Fighting its Hallucinations.
+Preprints, 202307.1723.
+Available at: \url{https://www.preprints.org/manuscript/202307.1723}.
+
+\bibitem[Galitsky(2023b)]{galitsky2023repo}
+Galitsky, B. A. (2023b).
+Truth-O-Meter-Making-ChatGPT-Truthful (Repository).
+GitHub.
+Available at: \url{https://github.com/bgalitsky/Truth-O-Meter-Making-ChatGPT-Truthful}.
+
+\bibitem[Thorne et al.(2018)]{thorne2018fever}
+Thorne, J., Vlachos, A., Christodoulopoulos, C., and Mittal, A. (2018).
+FEVER: A Large-scale Dataset for Fact Extraction and Verification.
+In Proceedings of NAACL-HLT, pp. 809--819.
+
+\bibitem[Ji et al.(2023)]{ji2023hallucination}
+Ji, Z., Lee, N., Frieske, R., et al. (2023).
+Survey of Hallucination in Natural Language Generation.
+ACM Computing Surveys, 55(12), 1--38.
+
+\bibitem[Wen et al.(2024)]{wen2024abstention}
+Wen, B., Yao, J., Feng, S., et al. (2024).
+Know Your Limits: A Survey of Abstention in Large Language Models.
+arXiv preprint arXiv:2407.18418.
+
+\end{thebibliography}
+
+\end{document}

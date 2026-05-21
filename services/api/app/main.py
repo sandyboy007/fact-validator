@@ -577,6 +577,78 @@ def _label(score: int) -> str:
     return "LOW"
 
 
+def build_dashboard_summary(runs: List[Dict[str, Any]], limit: int) -> Dict[str, Any]:
+    input_type_counts: Dict[str, int] = {}
+    verifier_counts: Dict[str, int] = {}
+    verdict_counts: Dict[str, int] = {
+        "SUPPORTED": 0,
+        "REFUTED": 0,
+        "NEI": 0,
+    }
+    domain_counts: Dict[str, int] = {}
+    likelihood_values: List[float] = []
+    claims_analyzed = 0
+    claims_requiring_human_review = 0
+
+    for run in runs:
+        input_type = str(run.get("input_type") or "unknown").lower()
+        input_type_counts[input_type] = input_type_counts.get(input_type, 0) + 1
+
+        verifier = str(run.get("verifier") or "unknown").lower()
+        verifier_counts[verifier] = verifier_counts.get(verifier, 0) + 1
+
+        domain = str(run.get("domain") or "").strip().lower()
+        if domain:
+            domain_counts[domain] = domain_counts.get(domain, 0) + 1
+
+        response = run.get("response")
+        if not isinstance(response, dict):
+            continue
+
+        like_raw = response.get("final_misinformation_likelihood")
+        try:
+            if like_raw is not None:
+                likelihood_values.append(float(like_raw))
+        except (TypeError, ValueError):
+            pass
+
+        claims = response.get("claims")
+        if not isinstance(claims, list):
+            continue
+
+        for claim in claims:
+            if not isinstance(claim, dict):
+                continue
+            claims_analyzed += 1
+            if bool(claim.get("needs_human_review")):
+                claims_requiring_human_review += 1
+
+            verdict = str(claim.get("verdict") or "NEI").upper()
+            verdict_counts[verdict] = verdict_counts.get(verdict, 0) + 1
+
+    avg_likelihood = None
+    if likelihood_values:
+        avg_likelihood = round(sum(likelihood_values) / len(likelihood_values), 3)
+
+    top_domains = [
+        {"domain": domain, "count": count}
+        for domain, count in sorted(domain_counts.items(), key=lambda kv: (-kv[1], kv[0]))[:8]
+    ]
+
+    return {
+        "limit": limit,
+        "total_runs": len(runs),
+        "last_run_utc": runs[0].get("created_utc") if runs else None,
+        "claims_analyzed": claims_analyzed,
+        "claims_requiring_human_review": claims_requiring_human_review,
+        "avg_misinformation_likelihood": avg_likelihood,
+        "input_type_counts": input_type_counts,
+        "verifier_counts": verifier_counts,
+        "verdict_counts": verdict_counts,
+        "top_domains": top_domains,
+    }
+
+
 # ----------------------------
 # Routes
 # ----------------------------
@@ -705,6 +777,13 @@ def run_detail(run_id: int):
 def runs_export(limit: int = 500):
     items = export_runs(limit=limit)
     return {"items": items, "exported_at_utc": datetime.utcnow().isoformat() + "Z"}
+
+
+@app.get("/dashboard/summary")
+def dashboard_summary(limit: int = 200):
+    safe_limit = max(1, min(int(limit), 1000))
+    runs = export_runs(limit=safe_limit)
+    return build_dashboard_summary(runs, limit=safe_limit)
 
 
 @app.post("/analyze")

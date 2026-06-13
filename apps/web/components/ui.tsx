@@ -137,12 +137,14 @@ export function ScoreBadge({
 export function VerdictBadge({
   verdict,
   confidence,
+  compact = false,
 }: {
   verdict: "SUPPORTED" | "REFUTED" | "NEI" | string;
   confidence?: number;
+  compact?: boolean;
 }) {
   const v = (verdict || "NEI").toUpperCase();
-  const icon = v === "SUPPORTED" ? "✓" : v === "REFUTED" ? "✕" : "?";
+  const label = v === "SUPPORTED" ? "REAL" : v === "REFUTED" ? "FAKE" : "UNCLEAR";
   const color =
     v === "SUPPORTED"
       ? "verdict-supported"
@@ -150,9 +152,17 @@ export function VerdictBadge({
       ? "verdict-refuted"
       : "verdict-nei";
 
+  if (compact) {
+    return (
+      <span className={cx("inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold", color)}>
+        {label}
+      </span>
+    );
+  }
+
   return (
     <span className={cx("inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold", color)}>
-      <span className="text-sm">{icon}</span>
+      <span className="text-sm">{v === "SUPPORTED" ? "✓" : v === "REFUTED" ? "✕" : "?"}</span>
       <span>{v}</span>
       {typeof confidence === "number" && <span className="opacity-75">{Math.round(confidence * 100)}%</span>}
     </span>

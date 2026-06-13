@@ -43,7 +43,7 @@ from app.storage import (
     save_claim_memory,
     init_db,
 )
-from app.debate import llm_debate_verdict
+from app.debate import llm_debate_verdict, llm_final_judge
 from app.logger import log_analyze_start, log_analyze_complete, log_debate_started, log_debate_error
 from app.config import Config
 from app.cache import get_cache
@@ -994,7 +994,7 @@ async def analyze(req: AnalyzeRequest):
         if req.verifier == "debate":
             summary = summary + " | Debate mode currently uses enriched counter-evidence scoring before optional LLM debate."
         
-        # Wire LLM debate mode if enabled
+        # Wire the professional AI final judge if enabled
         debate_result_raw = None
         ollama_available = False
         if (
@@ -1008,17 +1008,25 @@ async def analyze(req: AnalyzeRequest):
                 ollama_available = await ollama_health.is_available()
                 
                 if ollama_available:
-                    # Try debate with timeout protection
+                    # Try the AI final judge first; fall back to the older debate stack if needed.
+                    ai_timeout = max(10, min(int(Config.OLLAMA_TIMEOUT), 30))
                     debate_task = asyncio.create_task(
-                        llm_debate_verdict(ct, enriched_items)
+                        llm_final_judge(
+                            ct,
+                            enriched_items,
+                            verdict,
+                            conf,
+                            structured["structured_verdict"],
+                            claim_profile,
+                        )
                     )
                     try:
                         debate_result_raw = await asyncio.wait_for(
                             debate_task, 
-                            timeout=Config.OLLAMA_TIMEOUT
+                            timeout=ai_timeout
                         )
                     except asyncio.TimeoutError:
-                        log_debate_error(ct, Exception("Debate timeout, using baseline verdict"))
+                        log_debate_error(ct, Exception("Final judge timeout, using baseline verdict"))
                         debate_result_raw = None
             except Exception as e:
                 log_debate_error(ct, e)
@@ -1029,7 +1037,7 @@ async def analyze(req: AnalyzeRequest):
             debate_verdict, debate_conf, debate_msg, debate_debug = debate_result_raw
             verdict = debate_verdict
             conf = debate_conf
-            summary = f"LLM Debate: {debate_msg} | {summary}"
+            summary = f"AI Final: {debate_msg} | {summary}"
             debate_meta["claims_debated"] += 1
             debate_meta["items"].append({
                 "claim": ct[:100],

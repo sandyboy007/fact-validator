@@ -259,6 +259,13 @@ function fmtRatePerHour(x?: number) {
   return `${x.toFixed(1)} claims/hour`;
 }
 
+function fmtVerdictLabel(verdict?: string) {
+  const v = (verdict || "NEI").toUpperCase();
+  if (v === "SUPPORTED") return "REAL";
+  if (v === "REFUTED") return "FAKE";
+  return "UNCLEAR";
+}
+
 function fmtMoney(x?: number) {
   if (typeof x !== "number") return "-";
   return `$${x.toFixed(2)}`;
@@ -518,7 +525,7 @@ export default function Page() {
 
   async function copyPrimaryVerdict() {
     if (!primaryClaim) return;
-    const summary = `${primaryClaim.verdict} (${fmtPct(primaryClaim.confidence)}) - ${primaryClaim.claim_text}`;
+    const summary = `${fmtVerdictLabel(primaryClaim.verdict)} - ${primaryClaim.claim_text}`;
     try {
       await navigator.clipboard.writeText(summary);
       setCopiedVerdict(true);
@@ -1650,7 +1657,7 @@ export default function Page() {
                     </button>
                   </div>
                   <div className="text-lg font-semibold text-white">
-                    {primaryClaim ? `${primaryClaim.verdict} (${fmtPct(primaryClaim.confidence)})` : "No claim extracted yet"}
+                    {primaryClaim ? fmtVerdictLabel(primaryClaim.verdict) : "No claim extracted yet"}
                   </div>
                   <div className="text-sm text-slate-300 mt-2">
                     {primaryClaim?.debate_summary || "Run a verification to get a plain-language explanation."}
@@ -1684,17 +1691,18 @@ export default function Page() {
                         <div key={`user-claim-${idx}`} className="rounded-lg border border-slate-300/20 bg-slate-800/40 p-3">
                           <div className="flex items-start justify-between gap-2 flex-wrap">
                             <div className="text-xs uppercase tracking-wider text-slate-400">Claim #{idx + 1}</div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <VerdictBadge verdict={claim.verdict} confidence={claim.confidence} />
-                              {claim.sentiment && (
-                                <SentimentBadge
-                                  label={claim.sentiment.label}
-                                  score={claim.sentiment.score}
-                                  emotionalIntensity={claim.sentiment.emotional_intensity}
-                                  biasRisk={claim.sentiment.bias_risk}
-                                />
-                              )}
-                            </div>
+                            {claim.sentiment && (
+                              <SentimentBadge
+                                label={claim.sentiment.label}
+                                score={claim.sentiment.score}
+                                emotionalIntensity={claim.sentiment.emotional_intensity}
+                                biasRisk={claim.sentiment.bias_risk}
+                              />
+                            )}
+                          </div>
+
+                          <div className="mt-2">
+                            <VerdictBadge verdict={claim.verdict} confidence={claim.confidence} compact />
                           </div>
 
                           <p className="mt-2 text-sm text-slate-100 leading-relaxed">{claim.claim_text}</p>
@@ -1903,9 +1911,8 @@ export default function Page() {
                                 <div className="flex items-start justify-between gap-3">
                                   <div className="flex-1 min-w-0">
                                     <div className="text-xs uppercase tracking-wider text-slate-400">Claim #{idx + 1}</div>
-                                    <div className="mt-1 text-sm text-white leading-relaxed">{c.claim_text}</div>
                                     <div className="mt-2 flex flex-wrap items-center gap-2">
-                                      <VerdictBadge verdict={c.verdict} confidence={c.confidence} />
+                                      <VerdictBadge verdict={c.verdict} confidence={c.confidence} compact />
                                       {c.sentiment && (
                                         <SentimentBadge
                                           label={c.sentiment.label}
@@ -1920,6 +1927,7 @@ export default function Page() {
                                         </span>
                                       )}
                                     </div>
+                                    <div className="mt-2 text-sm text-white leading-relaxed">{c.claim_text}</div>
                                   </div>
                                   <div className="text-slate-400 text-xs whitespace-nowrap">{open ? "↑" : "↓"}</div>
                                 </div>

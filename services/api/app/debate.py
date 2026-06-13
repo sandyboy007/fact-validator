@@ -34,6 +34,33 @@ def _compact_evidence(evidence: List[Dict[str, Any]], max_items: int = 2) -> Lis
     return out
 
 
+def _normalize_verdict(value: Any) -> Verdict:
+    verdict = str(value or "NEI").strip().upper()
+    if verdict not in ("SUPPORTED", "REFUTED", "NEI"):
+        return "NEI"
+    return verdict  # type: ignore[return-value]
+
+
+def _compact_final_context(
+    evidence: List[Dict[str, Any]],
+    max_items: int = 4,
+) -> List[Dict[str, Any]]:
+    out: List[Dict[str, Any]] = []
+    for e in evidence[:max_items]:
+        out.append(
+            {
+                "domain": e.get("domain"),
+                "domain_score": e.get("domain_score"),
+                "stance": e.get("stance"),
+                "quality_score": e.get("quality_score"),
+                "primary_source": e.get("primary_source"),
+                "snippet": (e.get("snippet") or "")[:320],
+                "url": e.get("url"),
+            }
+        )
+    return out
+
+
 def _safe_json_parse(s: str) -> Dict[str, Any]:
     s = (s or "").strip()
     if not s:
@@ -199,6 +226,84 @@ async def llm_debate_verdict(
         "judge_raw": judge_raw[:4000],
         "judge_json": j,
         "key_domains": key_domains,
+    }
+
+    return verdict, confidence, summary, debug
+
+
+async def llm_final_judge(
+    claim_text: str,
+    evidence_items: List[Dict[str, Any]],
+    baseline_verdict: str,
+    baseline_confidence: float,
+    structured_verdict: str,
+    claim_profile: Dict[str, Any] | None = None,
+) -> Tuple[Verdict, float, str, Dict[str, Any]]:
+    """
+    Professional final-answer judge.
+
+    This is a single-pass JSON judge that turns the retrieved evidence into a
+    user-facing final answer. It uses the heuristic verdict as a guardrail but
+    is free to override it when the evidence supports a different conclusion.
+    """
+    compact = _compact_final_context(evidence_items, max_items=4)
+
+    system = (
+        "You are a professional fact-checking final judge.\n"
+        "Use only the provided claim, evidence, and metadata.\n"
+        "Prefer caution when evidence is weak, conflicting, or incomplete.\n"
+        "Return strict JSON only. No markdown, no extra prose.\n"
+    )
+
+    prompt = (
+        "Decide the final verdict for the claim.\n"
+        "The output must be concise, professional, and suitable for end users.\n"
+        "You must choose one verdict from SUPPORTED, REFUTED, or NEI.\n"
+        "If the evidence does not clearly decide, choose NEI.\n\n"
+        "JSON schema:\n"
+        "{\n"
+        '  "verdict": "SUPPORTED|REFUTED|NEI",\n'
+        '  "confidence": 0.0-1.0,\n'
+        '  "summary": "one sentence, professional and neutral",\n'
+        '  "key_points": ["short bullet-like reason 1", "reason 2"],\n'
+        '  "risk_notes": ["optional caution 1", "optional caution 2"]\n'
+        "}\n\n"
+        f"CLAIM:\n{claim_text}\n\n"
+        f"CLAIM_PROFILE_JSON:\n{json.dumps(claim_profile or {}, ensure_ascii=False, indent=2)}\n\n"
+        f"BASELINE_VERDICT:\n{baseline_verdict} ({baseline_confidence:.2f})\n\n"
+        f"STRUCTURED_VERDICT:\n{structured_verdict}\n\n"
+        f"EVIDENCE_JSON:\n{json.dumps(compact, ensure_ascii=False, indent=2)}\n"
+    )
+
+    raw = await _ollama_chat(
+        [{"role": "system", "content": system}, {"role": "user", "content": prompt}],
+        temperature=0.1,
+        num_ctx=2048,
+        num_predict=220,
+    )
+
+    parsed = _safe_json_parse(raw)
+    verdict = _normalize_verdict(parsed.get("verdict"))
+
+    try:
+        confidence = float(parsed.get("confidence", baseline_confidence))
+    except Exception:
+        confidence = baseline_confidence
+
+    confidence = max(0.05, min(confidence, 0.95))
+    summary = str(parsed.get("summary") or "Professional AI final judge completed.").strip()
+    if not summary:
+        summary = "Professional AI final judge completed."
+
+    debug = {
+        "provider": "ollama",
+        "base_url": _env_ollama_base_url(),
+        "model": _env_ollama_model(),
+        "compact_evidence": compact,
+        "raw": raw[:4000],
+        "json": parsed,
+        "key_points": parsed.get("key_points", []),
+        "risk_notes": parsed.get("risk_notes", []),
     }
 
     return verdict, confidence, summary, debug

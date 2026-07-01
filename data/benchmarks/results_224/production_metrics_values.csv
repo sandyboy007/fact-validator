@@ -1,0 +1,17 @@
+metric,value,unit
+latency.baseline_avg_sec,8.2,sec
+latency.debate_avg_sec,72.0,sec
+latency.debate_over_baseline_ratio,8.7805,x
+throughput.baseline_claims_per_hour,439.02,claims/hour
+throughput.debate_claims_per_hour,50.0,claims/hour
+cost.claims_per_month,1000,claims
+cost.monthly_usd_no_cache,77.0,USD
+cost.monthly_usd_with_cache,22.0,USD
+cost.monthly_savings_usd,55.0,USD
+cost.monthly_savings_pct,0.7143,ratio
+quality.accuracy,0.354167,ratio
+quality.error_rate,0.645833,ratio
+quality.expected_errors_per_100_claims,64.583,errors
+quality.macro_f1,0.360967,ratio
+quality.calibration_error,0.16421,ratio
+quality.ece,0.179867,ratio

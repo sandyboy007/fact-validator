@@ -17,6 +17,7 @@ _DEFAULT_CACHE_PATH = os.path.join(
 )
 CACHE_PATH = os.getenv("FACTVALIDATOR_DOMAIN_CACHE", _DEFAULT_CACHE_PATH)
 CACHE_TTL_SECONDS = 60 * 60 * 24 * 14  # 14 days
+CACHE_VERSION = 2
 
 _DEFAULT_OPENSOURCES_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
@@ -172,7 +173,7 @@ def score_domain_rubric(domain: str) -> CredibilityScore:
     now = int(time.time())
 
     cached = cache.get(bd)
-    if cached and (now - int(cached.get("ts", 0))) < CACHE_TTL_SECONDS:
+    if cached and cached.get("version") == CACHE_VERSION and (now - int(cached.get("ts", 0))) < CACHE_TTL_SECONDS:
         return CredibilityScore(
             score=int(cached["score"]),
             label=cached["label"],
@@ -180,8 +181,10 @@ def score_domain_rubric(domain: str) -> CredibilityScore:
         )
 
     # Rubric components (0..100)
-    score = 50
-    reasons: Dict[str, str] = {}
+    score = 45
+    reasons: Dict[str, str] = {
+        "neutral": "No direct source signal matched; conservative default starts at 45 rather than 50."
+    }
 
     # Strong signals – covers .gov, .edu, and international gov variants
     # e.g. gov.uk, gc.ca, gouv.fr, govt.nz, gov.au, etc.
@@ -362,7 +365,7 @@ def score_domain_rubric(domain: str) -> CredibilityScore:
     score = max(0, min(score, 100))
     label = _label(score)
 
-    cache[bd] = {"score": score, "label": label, "reasons": reasons, "ts": now}
+    cache[bd] = {"version": CACHE_VERSION, "score": score, "label": label, "reasons": reasons, "ts": now}
     _save_cache(cache)
 
     return CredibilityScore(score=score, label=label, reasons=reasons)

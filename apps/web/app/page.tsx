@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cx, Tooltip, Tabs, ProgressIndicator, ScoreBadge, VerdictBadge, SentimentBadge, Alert, StatCard } from "../components/ui";
+import { getApiBaseUrl } from "../lib/api-base";
 
 type EvidenceItem = {
   url: string;
@@ -377,7 +378,7 @@ function filterClaimsBySentiment(
 }
 
 export default function Page() {
-  const API_BASE = "http://127.0.0.1:8000";
+  const API_BASE = getApiBaseUrl();
 
   const inputPanelRef = useRef<HTMLDivElement | null>(null);
   const resultsPanelRef = useRef<HTMLDivElement | null>(null);

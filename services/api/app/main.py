@@ -129,6 +129,13 @@ def _load_json_report(file_path: Path, fallback: Dict[str, Any]) -> Dict[str, An
         return fallback
 
 
+def _get_model_fields(model_class):
+    """Get model fields from Pydantic v1 or v2 models."""
+    if hasattr(model_class, 'model_fields'):
+        return model_class.model_fields
+    elif hasattr(model_class, '__fields__'):
+        return model_class.__fields__
+    return {}
 
 
 # ----------------------------
@@ -569,6 +576,80 @@ def estimate_misinformation_likelihood(
     return float(max(0.05, min(base + adjustment, 0.95)))
 
 
+def derive_input_domain_signal(
+    claims: List[ClaimResult],
+    domain: Optional[str] = None,
+) -> Tuple[int, str, Dict[str, Any]]:
+    """
+    Derive the input-domain credibility signal used for misinformation risk.
+
+    When a source URL is available, score that domain directly. When the input
+    is plain text and no source domain exists, aggregate the evidence domains
+    found during claim verification so the risk signal is still grounded in
+    retrieved evidence rather than a hard-coded neutral 50.
+    """
+    if domain:
+        input_cred = score_domain_rubric(domain)
+        return int(input_cred.score), str(input_cred.label), dict(input_cred.reasons)
+
+    weighted_scores: List[Tuple[float, float]] = []
+    sampled_domains: Dict[str, int] = {}
+    high_cred_sources = 0
+    low_cred_sources = 0
+
+    for claim in claims:
+        claim_weight = max(0.5, float(claim.confidence or 0.0) / 100.0)
+        for evidence in claim.evidence or []:
+            domain_score = getattr(evidence, "domain_score", None)
+            if domain_score is None:
+                continue
+
+            score_value = max(0.0, min(100.0, float(domain_score)))
+            weight = claim_weight
+
+            if getattr(evidence, "primary_source", False):
+                weight += 0.35
+            if getattr(evidence, "stance", None) == "support":
+                weight += 0.10
+            elif getattr(evidence, "stance", None) == "refute":
+                weight += 0.15
+            if getattr(evidence, "quote_grounded", False):
+                weight += 0.05
+            if getattr(evidence, "numeric_match", False):
+                weight += 0.05
+            if getattr(evidence, "entity_match", False):
+                weight += 0.05
+
+            weighted_scores.append((score_value, weight))
+            domain_name = str(getattr(evidence, "domain", "") or "").strip().lower()
+            if domain_name:
+                sampled_domains[domain_name] = sampled_domains.get(domain_name, 0) + 1
+
+            if score_value >= 75:
+                high_cred_sources += 1
+            elif score_value <= 45:
+                low_cred_sources += 1
+
+    if weighted_scores:
+        weighted_avg = sum(score * weight for score, weight in weighted_scores) / sum(weight for _, weight in weighted_scores)
+        score = int(round(max(25.0, min(95.0, weighted_avg - min(8.0, low_cred_sources * 0.75) + min(4.0, high_cred_sources * 0.5)))))
+        reasons: Dict[str, Any] = {
+            "source": "evidence_aggregate",
+            "message": "No input URL domain was provided; the score was derived from evidence-domain credibility signals.",
+            "evidence_items": len(weighted_scores),
+            "high_credibility_sources": high_cred_sources,
+            "low_credibility_sources": low_cred_sources,
+        }
+        if sampled_domains:
+            reasons["sampled_domains"] = dict(sorted(sampled_domains.items(), key=lambda item: (-item[1], item[0]))[:10])
+        return score, _label(score), reasons
+
+    return 45, "LOW", {
+        "source": "unknown_domain",
+        "message": "No URL domain or evidence-domain signal was available; using a cautious default of 45.",
+    }
+
+
 def _label(score: int) -> str:
     if score >= 80:
         return "HIGH"
@@ -913,7 +994,7 @@ async def analyze(req: AnalyzeRequest):
         )
 
         ev_for_baseline = [
-            EvidenceItem(**{k: v for k, v in e.items() if k in EvidenceItem.model_fields})
+            EvidenceItem(**{k: v for k, v in e.items() if k in _get_model_fields(EvidenceItem)})
             for e in enriched_items
         ]
         baseline_verdict_value, baseline_conf, baseline_summary = baseline_verdict(ct, ev_for_baseline)
@@ -967,7 +1048,7 @@ async def analyze(req: AnalyzeRequest):
                 reason = "insufficient_independent_domains"
 
             ev_for_adjusted = [
-                EvidenceItem(**{k: v for k, v in e.items() if k in EvidenceItem.model_fields})
+                EvidenceItem(**{k: v for k, v in e.items() if k in _get_model_fields(EvidenceItem)})
                 for e in filtered
             ]
             av, ac, atext = baseline_verdict(ct, ev_for_adjusted)
@@ -1104,15 +1185,10 @@ async def analyze(req: AnalyzeRequest):
         save_claim_memory(claim_key, claim_output)
 
     # input domain score
-    if domain:
-        input_cred = score_domain_rubric(domain)
-        input_domain_score = int(input_cred.score)
-        input_domain_label = str(input_cred.label)
-        input_domain_reasons = input_cred.reasons
-    else:
-        input_domain_score = 50  # neutral prior — no domain to judge
-        input_domain_label = "MEDIUM"
-        input_domain_reasons = {}
+    input_domain_score, input_domain_label, input_domain_reasons = derive_input_domain_signal(
+        [ClaimResult(**c) for c in claims],
+        domain=domain,
+    )
 
     final_like = estimate_misinformation_likelihood(
         [ClaimResult(**c) for c in claims],

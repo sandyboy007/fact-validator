@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { getApiBaseUrl } from "../../lib/api-base";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type DomainCount = {
@@ -21,7 +22,7 @@ type DashboardSummary = {
   top_domains: DomainCount[];
 };
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = getApiBaseUrl();
 
 function formatPercent(value: number | null | undefined): string {
   if (typeof value !== "number") return "-";

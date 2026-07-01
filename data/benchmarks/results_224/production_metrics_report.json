@@ -1,0 +1,47 @@
+{
+  "metadata": {
+    "generated_utc": "2026-07-01T00:37:05.078211",
+    "full_variant": "full_proxy",
+    "claims_in_split": 48,
+    "source_reports": {
+      "ablation_report": "c:\\Fact_Validator\\data\\benchmarks\\results_224\\ablation_study_report.json",
+      "comparative_report": "c:\\Fact_Validator\\data\\benchmarks\\results_224\\comparative_analysis_report.json"
+    }
+  },
+  "latency": {
+    "baseline_avg_sec": 8.2,
+    "debate_avg_sec": 72.0,
+    "debate_over_baseline_ratio": 8.78048780487805,
+    "assumptions": {
+      "baseline_latency_sec": 8.2,
+      "debate_latency_sec": 72.0
+    }
+  },
+  "throughput": {
+    "baseline_claims_per_hour": 439.0243902439025,
+    "debate_claims_per_hour": 50.0
+  },
+  "cost": {
+    "claims_per_month": 1000,
+    "monthly_usd_no_cache": 77.0,
+    "monthly_usd_with_cache": 22.0,
+    "monthly_savings_usd": 55.0,
+    "monthly_savings_pct": 0.7142857142857143,
+    "assumptions": {
+      "serpapi_cost_per_query": 0.022,
+      "baseline_calls_per_claim": 3.5,
+      "cached_calls_per_claim": 1.0
+    }
+  },
+  "quality": {
+    "accuracy": 0.3541666666666667,
+    "error_rate": 0.6458333333333333,
+    "expected_errors_per_100_claims": 64.58333333333333,
+    "macro_f1": 0.36096681610095116,
+    "calibration_error": 0.16421010416666676,
+    "ece": 0.1798666875
+  },
+  "runtime": {},
+  "resilience": {},
+  "scalability": {}
+}

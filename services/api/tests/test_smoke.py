@@ -74,6 +74,11 @@ class TestScoreDomainRubric:
             cs = score_domain_rubric(domain)
             assert 0 <= cs.score <= 100, f"{domain}: score {cs.score} out of range"
 
+    def test_unknown_domain_starts_below_neutral(self):
+        cs = score_domain_rubric("unknownxyz123.io")
+        assert cs.score <= 45, f"Expected unknown domain to stay cautious, got {cs.score}"
+        assert cs.label == "LOW"
+
     def test_label_consistency(self):
         for domain in ["bbc.com", "facebook.com", "nature.com"]:
             cs = score_domain_rubric(domain)
@@ -92,6 +97,7 @@ class TestScoreDomainRubric:
 from app.main import (
     baseline_verdict,
     estimate_misinformation_likelihood,
+    derive_input_domain_signal,
     compute_overlap,
     extract_claim_candidates,
     heuristic_claim_score,
@@ -170,6 +176,26 @@ class TestEstimateMisinformationLikelihood:
     def test_neutral_source_mid_likelihood(self):
         result = estimate_misinformation_likelihood([], input_domain_score=50)
         assert 0.45 <= result <= 0.55, f"Expected ~0.50 for domain_score=50, got {result}"
+
+    def test_evidence_aggregate_uses_claims_when_domain_missing(self):
+        claims = [
+            ClaimResult(
+                claim_text="test",
+                verdict="SUPPORTED",  # type: ignore[arg-type]
+                confidence=0.9,
+                evidence=[EvidenceItem(url="https://reuters.com/a", snippet="evidence one", domain="reuters.com", domain_score=90)],
+            ),
+            ClaimResult(
+                claim_text="test",
+                verdict="SUPPORTED",  # type: ignore[arg-type]
+                confidence=0.8,
+                evidence=[EvidenceItem(url="https://bbc.com/b", snippet="evidence two", domain="bbc.com", domain_score=85)],
+            ),
+        ]
+        score, label, reasons = derive_input_domain_signal(claims, domain=None)
+        assert score >= 80
+        assert label in {"HIGH", "MEDIUM"}
+        assert reasons.get("source") == "evidence_aggregate"
 
     def test_refuted_claims_increase_likelihood(self):
         base = estimate_misinformation_likelihood([], input_domain_score=75)

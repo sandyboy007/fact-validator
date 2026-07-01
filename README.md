@@ -272,6 +272,8 @@ npm install
 npm run dev
 ```
 
+If the frontend needs to talk to a remote or deployed backend, set `NEXT_PUBLIC_API_BASE_URL` in `apps/web/.env.local` before starting the web app. The default remains `http://127.0.0.1:8000` for local development.
+
 The UI will be available at **http://localhost:3000**.
 
 ---

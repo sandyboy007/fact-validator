@@ -1,0 +1,90 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+
+\title{Fact Validator: A Transparent and Cost-Aware Fact-Checking System for Genuine Benchmark Claims}
+
+\author{Fact Validator Project Team\\Advanced AI Systems Laboratory}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This paper presents Fact Validator, a source-aware fact-checking system that verifies claims by combining web evidence retrieval, auditable credibility scoring, optional debate arbitration, and operational safeguards such as caching and health checks. The evaluation protocol requires genuine benchmark claims drawn from public datasets such as FEVER and LIAR, with provenance retained at the claim level. The manuscript separates the primary benchmark from any paraphrase-based robustness test so that the scientific evidence remains traceable and defensible. Fact Validator returns claim-level verdicts, confidence estimates, and evidence summaries, while also exposing measurable cost and latency tradeoffs. We provide a research protocol for a 5000-claim benchmark and reusable analysis scripts for perturbation, feature-correlation, length-stratified error studies, and external-system comparison.
+\end{abstract}
+
+\noindent\textbf{Keywords:} fact checking, misinformation detection, claim verification, credibility scoring, explainable AI, benchmark evaluation
+
+\section{Introduction}
+Automated fact checking is useful only if it remains auditable, reproducible, and grounded in real claims. For any rigorous research venue, the evidence base must be genuine rather than synthetic, and the benchmark construction must be traceable back to an original public dataset or annotation process. Fact Validator is designed around this requirement: it accepts a claim, retrieves evidence, scores sources with an explicit rubric, and generates a verdict with supporting context.
+
+The key contribution of this draft is not an inflated performance claim. Instead, it is a reproducible system and evaluation protocol that can be defended under review. The manuscript emphasizes genuine claims, labeled provenance, and robustness analysis through paraphrase perturbation as a secondary test.
+
+\section{Dataset and Protocol}
+The primary benchmark should contain at least 5000 genuine claims. FEVER provides supported and refuted claims with publicly documented provenance, while LIAR, SciFact, and HealthVer can be used only after remapping and revalidation against the project label space. Every retained claim should preserve the original dataset identifier and source metadata.
+
+The protocol separates the evaluation into two layers.
+\begin{itemize}
+  \item \textbf{Primary benchmark:} original genuine claims.
+  \item \textbf{Robustness benchmark:} truth-preserving paraphrases of the same claims.
+\end{itemize}
+
+This separation avoids the common mistake of presenting paraphrases as evidence and keeps the paper honest about what is measured.
+
+\section{Comparative Positioning}
+Researchers will reasonably ask why this architecture should be used instead of adjacent systems such as Truth-O-Meter, FacTool, or a FEVER-only baseline. The short answer is that Fact Validator is not a benchmark dataset and not a single-purpose verifier; it is a deployable verification pipeline that combines retrieval, explicit source scoring, optional debate, and operational controls.
+
+Truth-O-Meter contributes a valuable formal reasoning perspective through defeasible argumentation. Fact Validator borrows the transparency goal but replaces formal DeLP machinery with a simpler, inspectable credibility rubric and a production-oriented retrieval stack. That makes the system easier to deploy and easier to instrument, at the cost of giving up some formal expressiveness.
+
+FacTool is closer architecturally because it also wraps verification around external tools. The difference is that Fact Validator makes provenance, caching, health checks, and latency tradeoffs first-class engineering concerns, so the paper can defend not only claim correctness but also operational behavior. FEVER, by contrast, is a benchmark and dataset family rather than an end-to-end architecture; it is useful as an evaluation substrate, but it does not by itself answer how a deployed system should rank sources, handle uncertainty, or expose runtime costs.
+
+Table~\ref{tab:comparison} summarizes the qualitative distinction.
+
+\begin{table}[t]
+\centering
+\caption{Qualitative comparison of Fact Validator with adjacent systems}
+\label{tab:comparison}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{p{2.1cm} p{2.2cm} p{2.1cm} p{2.3cm}}
+\toprule
+\textbf{System} & \textbf{Primary role} & \textbf{Transparency mode} & \textbf{Why it does not replace Fact Validator} \\
+\midrule
+Truth-O-Meter & Formal hallucination detection & Defeasible logic / argumentation & Strong reasoning transparency, but narrower deployment scope and heavier formal machinery \\
+FacTool & Tool-augmented fact verification & External tools with modular orchestration & Close in spirit, but does not foreground provenance, runtime controls, and cost/latency reporting in the same way \\
+FEVER & Benchmark / dataset family & Human-annotated evidence labels & Useful for evaluation, but not an architecture for retrieval, ranking, and uncertainty handling \\
+Fact Validator & Deployable verification pipeline & Inspectable credibility rubric plus optional debate & Integrates architecture, provenance, and operational constraints into one auditable system \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Method}
+Fact Validator follows a retrieval-and-rank pipeline: claim decomposition, evidence search, domain credibility scoring, semantic reranking, baseline verdicting, and optional debate arbitration. The credibility score is intentionally simple and inspectable, so the source-ranking logic can be reviewed rather than inferred from a hidden model.
+
+For external comparison, the repository now includes a file-based harness for comparing prediction dumps from GPT-4o, Gemini, Claude, FacTool, a FEVER baseline, and a RAG baseline. The comparison is claim-aligned and auditable because every system is scored on the same claim IDs and the same gold labels.
+
+The manuscript should report the following tables once the 5000-claim benchmark has been executed:
+\begin{itemize}
+  \item Table III: perturbation matrix on original versus paraphrased claims.
+  \item Table IV: correlation between shortcut features and labels.
+  \item Table V: length-tertile error analysis for the full system and the length heuristic.
+  \item Table VI: external-system comparison against GPT-4o, Gemini, Claude, FacTool, FEVER baseline, and RAG baseline.
+\end{itemize}
+
+\section{Results Placeholder}
+Insert the genuine measured outputs from \texttt{scripts/shortcut\_analysis.py} after running against the final benchmark. Do not substitute pilot numbers for the research manuscript version.
+
+\section{Conclusion}
+The paper is strongest when it treats benchmark provenance as a first-order concern. Genuine claims, explicit annotation rules, and a clean separation between primary evaluation and paraphrase robustness will make the manuscript materially more defensible to research reviewers.
+
+\section*{Acknowledgment}
+This draft is aligned with the repository's genuine-data protocol and is intended to be populated with real benchmark outputs before submission to a research venue.
+
+\end{document}

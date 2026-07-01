@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Button, Card, Divider } from "../../components/ui";
 import Link from "next/link";
+import { getApiBaseUrl } from "../../lib/api-base";
 
 type SourceScore = {
   domain: string;
@@ -15,7 +16,7 @@ type SourceScore = {
 };
 
 export default function SourcePage() {
-  const API_BASE = "http://127.0.0.1:8000";
+  const API_BASE = getApiBaseUrl();
 
   const [domain, setDomain] = useState("");
   const [loading, setLoading] = useState(false);

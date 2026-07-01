@@ -56,6 +56,11 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--baseline-calls-per-claim", type=float, default=3.5)
     parser.add_argument("--cached-calls-per-claim", type=float, default=1.0)
     parser.add_argument("--full-variant", default="full_proxy")
+    parser.add_argument(
+        "--telemetry-json",
+        default=str(REPO_ROOT / "data" / "benchmarks" / "results" / "production_telemetry.json"),
+        help="Optional runtime telemetry JSON with cache, CPU, memory, and resilience metrics",
+    )
 
     return parser.parse_args()
 
@@ -99,6 +104,20 @@ def _flatten_report_rows(report: Dict) -> List[Dict[str, str]]:
     add("quality.macro_f1", round(quality["macro_f1"], 6), "ratio")
     add("quality.calibration_error", round(quality["calibration_error"], 6), "ratio")
     add("quality.ece", round(quality["ece"], 6), "ratio")
+
+    runtime = report.get("runtime") or {}
+    if runtime:
+        add("runtime.cache_hit_rate", round(float(runtime.get("cache_hit_rate", 0.0)), 6), "ratio")
+        add("runtime.cache_miss_rate", round(float(runtime.get("cache_miss_rate", 0.0)), 6), "ratio")
+        add("runtime.cpu_utilization_mean_pct", round(float(runtime.get("cpu_utilization_mean_pct", 0.0)), 4), "pct")
+        add("runtime.cpu_utilization_peak_pct", round(float(runtime.get("cpu_utilization_peak_pct", 0.0)), 4), "pct")
+        add("runtime.memory_usage_mean_mb", round(float(runtime.get("memory_usage_mean_mb", 0.0)), 4), "MB")
+        add("runtime.memory_usage_peak_mb", round(float(runtime.get("memory_usage_peak_mb", 0.0)), 4), "MB")
+        add("runtime.concurrent_requests_tested", int(runtime.get("concurrent_requests_tested", 0)), "count")
+        add("runtime.p95_latency_sec", round(float(runtime.get("p95_latency_sec", 0.0)), 4), "sec")
+        add("runtime.failure_recovery_rate", round(float(runtime.get("failure_recovery_rate", 0.0)), 6), "ratio")
+        add("runtime.median_recovery_time_sec", round(float(runtime.get("median_recovery_time_sec", 0.0)), 4), "sec")
+        add("runtime.scaling_slope", round(float(runtime.get("scaling_slope", 0.0)), 6), "ratio")
 
     return rows
 
@@ -156,7 +175,39 @@ def _build_markdown(report: Dict) -> str:
         f"- Calls/claim with cache: {cost['assumptions']['cached_calls_per_claim']}",
     ]
 
+    if report.get("runtime"):
+        runtime = report["runtime"]
+        lines.extend([
+            "",
+            "## Runtime Telemetry",
+            "",
+            "| Metric | Value |",
+            "|---|---:|",
+            f"| Cache hit rate | {runtime.get('cache_hit_rate', 0.0) * 100:.2f}% |",
+            f"| Cache miss rate | {runtime.get('cache_miss_rate', 0.0) * 100:.2f}% |",
+            f"| Mean CPU utilization | {runtime.get('cpu_utilization_mean_pct', 0.0):.2f}% |",
+            f"| Peak CPU utilization | {runtime.get('cpu_utilization_peak_pct', 0.0):.2f}% |",
+            f"| Mean memory usage | {runtime.get('memory_usage_mean_mb', 0.0):.2f} MB |",
+            f"| Peak memory usage | {runtime.get('memory_usage_peak_mb', 0.0):.2f} MB |",
+            f"| Concurrent requests tested | {runtime.get('concurrent_requests_tested', 0)} |",
+            f"| P95 latency under load | {runtime.get('p95_latency_sec', 0.0):.2f} sec |",
+            f"| Failure recovery rate | {runtime.get('failure_recovery_rate', 0.0) * 100:.2f}% |",
+            f"| Median recovery time | {runtime.get('median_recovery_time_sec', 0.0):.2f} sec |",
+            f"| Scaling slope | {runtime.get('scaling_slope', 0.0):.3f} |",
+        ])
+
     return "\n".join(lines)
+
+
+def _load_telemetry(path_str: str | None) -> Dict:
+    if not path_str:
+        return {}
+    path = Path(path_str)
+    if not path.exists():
+        return {}
+    with open(path, "r", encoding="utf-8") as f:
+        payload = json.load(f)
+    return payload if isinstance(payload, dict) else {}
 
 
 def main() -> int:
@@ -172,6 +223,7 @@ def main() -> int:
     full_metrics = ablation_report.get("variants", {}).get(full_variant, {}).get("metrics", {})
     comparative_metrics = comparative_report.get("system_metrics", {}).get(full_variant, {})
     claims_in_split = int(ablation_report.get("metadata", {}).get("test_claim_count", 0))
+    telemetry = _load_telemetry(args.telemetry_json)
 
     accuracy = float(full_metrics.get("overall_accuracy", 0.0))
     macro_f1 = float(full_metrics.get("macro", {}).get("f1", 0.0))
@@ -238,6 +290,9 @@ def main() -> int:
             "calibration_error": calibration_error,
             "ece": ece,
         },
+        "runtime": telemetry.get("runtime", {}),
+        "resilience": telemetry.get("resilience", {}),
+        "scalability": telemetry.get("scalability", {}),
     }
 
     json_path = output_dir / "production_metrics_report.json"

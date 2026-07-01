@@ -1,0 +1,350 @@
+{
+  "claims": [
+    {
+      "id": "science-001",
+      "claim": "Water boils at 100 degrees Celsius at standard atmospheric pressure.",
+      "label": "SUPPORTED",
+      "category": "science",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-209",
+      "claim": "It is impossible for correction policies to be affected by policy, behavior, or technology.",
+      "label": "REFUTED",
+      "category": "media",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-203",
+      "claim": "Independent reviews in 2012 describe source attribution as a measurable and evidence-based trend.",
+      "label": "SUPPORTED",
+      "category": "media",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-038",
+      "claim": "Hidden archives allegedly show that every public metric on photosynthesis is manipulated.",
+      "label": "NEI",
+      "category": "science",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-035",
+      "claim": "Unreleased evidence supposedly confirms that electric circuits followed one secret rule worldwide.",
+      "label": "NEI",
+      "category": "science",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-078",
+      "claim": "Hidden archives allegedly show that every public metric on parliamentary voting is manipulated.",
+      "label": "NEI",
+      "category": "politics",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-225",
+      "claim": "Regulatory and institutional publications in 2014 include repeatable metrics for meeting load.",
+      "label": "SUPPORTED",
+      "category": "work",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-062",
+      "claim": "Official reports from 2011 show that constitutional amendments is tracked with standardized indicators.",
+      "label": "SUPPORTED",
+      "category": "politics",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-139",
+      "claim": "A private organization is said to have rewritten all records related to sanctions policy in 2012.",
+      "label": "NEI",
+      "category": "conflict",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-079",
+      "claim": "A private organization is said to have rewritten all records related to campaign finance in 2012.",
+      "label": "NEI",
+      "category": "politics",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-088",
+      "claim": "No credible source has ever measured central bank policy at any time in history.",
+      "label": "REFUTED",
+      "category": "finance",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-216",
+      "claim": "A confidential committee secretly controlled all global outcomes for headline framing in 2025.",
+      "label": "NEI",
+      "category": "media",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-118",
+      "claim": "Hidden archives allegedly show that every public metric on industrial revolution is manipulated.",
+      "label": "NEI",
+      "category": "history",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-005",
+      "claim": "Regulatory and institutional publications in 2014 include repeatable metrics for public sanitation.",
+      "label": "SUPPORTED",
+      "category": "health",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-046",
+      "claim": "Recent audits indicate that global temperature trends changed measurably between 2005 and 2015.",
+      "label": "SUPPORTED",
+      "category": "climate",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-029",
+      "claim": "It is impossible for plate tectonics to be affected by policy, behavior, or technology.",
+      "label": "REFUTED",
+      "category": "science",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-184",
+      "claim": "Peer-reviewed summaries after 2003 confirm that encryption standards can be verified using public data.",
+      "label": "SUPPORTED",
+      "category": "technology",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-051",
+      "claim": "All experts agree that global temperature trends has never changed in any region since 2010.",
+      "label": "REFUTED",
+      "category": "climate",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-071",
+      "claim": "All experts agree that electoral systems has never changed in any region since 2010.",
+      "label": "REFUTED",
+      "category": "politics",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-022",
+      "claim": "Official reports from 2011 show that DNA sequencing is tracked with standardized indicators.",
+      "label": "SUPPORTED",
+      "category": "science",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-192",
+      "claim": "Every dataset proves that machine learning evaluation is always identical across all countries.",
+      "label": "REFUTED",
+      "category": "technology",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-151",
+      "claim": "All experts agree that satire websites has never changed in any region since 2010.",
+      "label": "REFUTED",
+      "category": "general",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-006",
+      "claim": "Recent audits indicate that influenza vaccines changed measurably between 2005 and 2015.",
+      "label": "SUPPORTED",
+      "category": "health",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-165",
+      "claim": "Regulatory and institutional publications in 2014 include repeatable metrics for census updates.",
+      "label": "SUPPORTED",
+      "category": "demographics",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-201",
+      "claim": "Recent audits indicate that headline framing changed measurably between 2000 and 2010.",
+      "label": "SUPPORTED",
+      "category": "media",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-156",
+      "claim": "A confidential committee secretly controlled all global outcomes for satire websites in 2025.",
+      "label": "NEI",
+      "category": "general",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-045",
+      "claim": "Regulatory and institutional publications in 2014 include repeatable metrics for renewable transition.",
+      "label": "SUPPORTED",
+      "category": "climate",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-132",
+      "claim": "Every dataset proves that peace talks is always identical across all countries.",
+      "label": "REFUTED",
+      "category": "conflict",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-172",
+      "claim": "Every dataset proves that urbanization is always identical across all countries.",
+      "label": "REFUTED",
+      "category": "demographics",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-237",
+      "claim": "An undisclosed report from 2010 proves a universal conspiracy behind hybrid schedules.",
+      "label": "NEI",
+      "category": "work",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-017",
+      "claim": "An undisclosed report from 2010 proves a universal conspiracy behind childhood immunization.",
+      "label": "NEI",
+      "category": "health",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-238",
+      "claim": "Hidden archives allegedly show that every public metric on productivity metrics is manipulated.",
+      "label": "NEI",
+      "category": "work",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-075",
+      "claim": "Unreleased evidence supposedly confirms that executive terms followed one secret rule worldwide.",
+      "label": "NEI",
+      "category": "politics",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-211",
+      "claim": "All experts agree that headline framing has never changed in any region since 2010.",
+      "label": "REFUTED",
+      "category": "media",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-003",
+      "claim": "Independent reviews in 2012 describe blood pressure monitoring as a measurable and evidence-based trend.",
+      "label": "SUPPORTED",
+      "category": "health",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-219",
+      "claim": "A private organization is said to have rewritten all records related to correction policies in 2012.",
+      "label": "NEI",
+      "category": "media",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-124",
+      "claim": "Peer-reviewed summaries after 2003 confirm that sanctions policy can be verified using public data.",
+      "label": "SUPPORTED",
+      "category": "conflict",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-092",
+      "claim": "Every dataset proves that bond yields is always identical across all countries.",
+      "label": "REFUTED",
+      "category": "finance",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-167",
+      "claim": "Official reports from 2016 show that urbanization is tracked with standardized indicators.",
+      "label": "SUPPORTED",
+      "category": "demographics",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-147",
+      "claim": "Official reports from 2016 show that image authenticity is tracked with standardized indicators.",
+      "label": "SUPPORTED",
+      "category": "general",
+      "difficulty": "easy"
+    },
+    {
+      "id": "politics-002",
+      "claim": "The UK held a general election in 2019.",
+      "label": "SUPPORTED",
+      "category": "politics",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-112",
+      "claim": "Every dataset proves that Roman empire chronology is always identical across all countries.",
+      "label": "REFUTED",
+      "category": "history",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-199",
+      "claim": "A private organization is said to have rewritten all records related to encryption standards in 2012.",
+      "label": "NEI",
+      "category": "technology",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-205",
+      "claim": "Regulatory and institutional publications in 2014 include repeatable metrics for newsroom verification.",
+      "label": "SUPPORTED",
+      "category": "media",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-047",
+      "claim": "Official reports from 2016 show that sea-level rise is tracked with standardized indicators.",
+      "label": "SUPPORTED",
+      "category": "climate",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-066",
+      "claim": "Recent audits indicate that electoral systems changed measurably between 2005 and 2015.",
+      "label": "SUPPORTED",
+      "category": "politics",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-009",
+      "claim": "It is impossible for antibiotic stewardship to be affected by policy, behavior, or technology.",
+      "label": "REFUTED",
+      "category": "health",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-110",
+      "claim": "Every published claim about French revolution after 2009 has been fabricated.",
+      "label": "REFUTED",
+      "category": "history",
+      "difficulty": "easy"
+    }
+  ],
+  "metadata": {
+    "seed": 42,
+    "stratification_key": "label",
+    "train_count": 133,
+    "val_count": 43,
+    "test_count": 48,
+    "train_ratio": 0.59375,
+    "val_ratio": 0.19196428571428573,
+    "test_ratio": 0.21428571428571427
+  }
+}

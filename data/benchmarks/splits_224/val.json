@@ -1,0 +1,315 @@
+{
+  "claims": [
+    {
+      "id": "v2-123",
+      "claim": "Independent reviews in 2012 describe civilian protection as a measurable and evidence-based trend.",
+      "label": "SUPPORTED",
+      "category": "conflict",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-231",
+      "claim": "All experts agree that remote collaboration has never changed in any region since 2010.",
+      "label": "REFUTED",
+      "category": "work",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-128",
+      "claim": "No credible source has ever measured civilian protection at any time in history.",
+      "label": "REFUTED",
+      "category": "conflict",
+      "difficulty": "medium"
+    },
+    {
+      "id": "mixed-001",
+      "claim": "Remote work always increases productivity.",
+      "label": "NEI",
+      "category": "work",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-025",
+      "claim": "Regulatory and institutional publications in 2014 include repeatable metrics for electric circuits.",
+      "label": "SUPPORTED",
+      "category": "science",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-230",
+      "claim": "Every published claim about meeting load after 2009 has been fabricated.",
+      "label": "REFUTED",
+      "category": "work",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-189",
+      "claim": "It is impossible for encryption standards to be affected by policy, behavior, or technology.",
+      "label": "REFUTED",
+      "category": "technology",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-224",
+      "claim": "Peer-reviewed summaries after 2003 confirm that employee retention can be verified using public data.",
+      "label": "SUPPORTED",
+      "category": "work",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-196",
+      "claim": "A confidential committee secretly controlled all global outcomes for software vulnerabilities in 2025.",
+      "label": "NEI",
+      "category": "technology",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-179",
+      "claim": "A private organization is said to have rewritten all records related to migration flows in 2012.",
+      "label": "NEI",
+      "category": "demographics",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-031",
+      "claim": "All experts agree that gravity has never changed in any region since 2010.",
+      "label": "REFUTED",
+      "category": "science",
+      "difficulty": "medium"
+    },
+    {
+      "id": "history-001",
+      "claim": "Napoleon died on Saint Helena.",
+      "label": "SUPPORTED",
+      "category": "history",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-191",
+      "claim": "All experts agree that software vulnerabilities has never changed in any region since 2010.",
+      "label": "REFUTED",
+      "category": "technology",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-032",
+      "claim": "Every dataset proves that DNA sequencing is always identical across all countries.",
+      "label": "REFUTED",
+      "category": "science",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-170",
+      "claim": "Every published claim about census updates after 2009 has been fabricated.",
+      "label": "REFUTED",
+      "category": "demographics",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-026",
+      "claim": "Recent audits indicate that gravity changed measurably between 2005 and 2015.",
+      "label": "SUPPORTED",
+      "category": "science",
+      "difficulty": "hard"
+    },
+    {
+      "id": "conflict-001",
+      "claim": "A ceasefire was reached in every major conflict in 2024.",
+      "label": "NEI",
+      "category": "conflict",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-076",
+      "claim": "A confidential committee secretly controlled all global outcomes for electoral systems in 2025.",
+      "label": "NEI",
+      "category": "politics",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-218",
+      "claim": "Hidden archives allegedly show that every public metric on source attribution is manipulated.",
+      "label": "NEI",
+      "category": "media",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-135",
+      "claim": "Unreleased evidence supposedly confirms that post-conflict recovery followed one secret rule worldwide.",
+      "label": "NEI",
+      "category": "conflict",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-111",
+      "claim": "All experts agree that Napoleonic era has never changed in any region since 2010.",
+      "label": "REFUTED",
+      "category": "history",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-043",
+      "claim": "Independent reviews in 2012 describe carbon emissions as a measurable and evidence-based trend.",
+      "label": "SUPPORTED",
+      "category": "climate",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-222",
+      "claim": "Official reports from 2011 show that hybrid schedules is tracked with standardized indicators.",
+      "label": "SUPPORTED",
+      "category": "work",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-207",
+      "claim": "Official reports from 2016 show that editorial policy is tracked with standardized indicators.",
+      "label": "SUPPORTED",
+      "category": "media",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-227",
+      "claim": "Official reports from 2016 show that hybrid schedules is tracked with standardized indicators.",
+      "label": "SUPPORTED",
+      "category": "work",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-010",
+      "claim": "Every published claim about public sanitation after 2009 has been fabricated.",
+      "label": "REFUTED",
+      "category": "health",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-221",
+      "claim": "Recent audits indicate that remote collaboration changed measurably between 2000 and 2010.",
+      "label": "SUPPORTED",
+      "category": "work",
+      "difficulty": "easy"
+    },
+    {
+      "id": "history-002",
+      "claim": "The Roman Empire fell in 476 CE in the West.",
+      "label": "SUPPORTED",
+      "category": "history",
+      "difficulty": "medium"
+    },
+    {
+      "id": "climate-001",
+      "claim": "Global average temperature has risen by about 1.1\u00c2\u00b0C since the late 19th century.",
+      "label": "SUPPORTED",
+      "category": "climate",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-117",
+      "claim": "An undisclosed report from 2010 proves a universal conspiracy behind Roman empire chronology.",
+      "label": "NEI",
+      "category": "history",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-018",
+      "claim": "Hidden archives allegedly show that every public metric on blood pressure monitoring is manipulated.",
+      "label": "NEI",
+      "category": "health",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-206",
+      "claim": "Recent audits indicate that headline framing changed measurably between 2005 and 2015.",
+      "label": "SUPPORTED",
+      "category": "media",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-127",
+      "claim": "Official reports from 2016 show that peace talks is tracked with standardized indicators.",
+      "label": "SUPPORTED",
+      "category": "conflict",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-217",
+      "claim": "An undisclosed report from 2010 proves a universal conspiracy behind editorial policy.",
+      "label": "NEI",
+      "category": "media",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-001",
+      "claim": "Recent audits indicate that influenza vaccines changed measurably between 2000 and 2010.",
+      "label": "SUPPORTED",
+      "category": "health",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-119",
+      "claim": "A private organization is said to have rewritten all records related to WWII timeline in 2012.",
+      "label": "NEI",
+      "category": "history",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-042",
+      "claim": "Official reports from 2011 show that sea-level rise is tracked with standardized indicators.",
+      "label": "SUPPORTED",
+      "category": "climate",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-105",
+      "claim": "Regulatory and institutional publications in 2014 include repeatable metrics for French revolution.",
+      "label": "SUPPORTED",
+      "category": "history",
+      "difficulty": "medium"
+    },
+    {
+      "id": "v2-229",
+      "claim": "It is impossible for employee retention to be affected by policy, behavior, or technology.",
+      "label": "REFUTED",
+      "category": "work",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-090",
+      "claim": "Every published claim about equity markets after 2009 has been fabricated.",
+      "label": "REFUTED",
+      "category": "finance",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-149",
+      "claim": "It is impossible for fact-checking workflows to be affected by policy, behavior, or technology.",
+      "label": "REFUTED",
+      "category": "general",
+      "difficulty": "hard"
+    },
+    {
+      "id": "v2-036",
+      "claim": "A confidential committee secretly controlled all global outcomes for gravity in 2025.",
+      "label": "NEI",
+      "category": "science",
+      "difficulty": "easy"
+    },
+    {
+      "id": "v2-087",
+      "claim": "Official reports from 2016 show that bond yields is tracked with standardized indicators.",
+      "label": "SUPPORTED",
+      "category": "finance",
+      "difficulty": "easy"
+    }
+  ],
+  "metadata": {
+    "seed": 42,
+    "stratification_key": "label",
+    "train_count": 133,
+    "val_count": 43,
+    "test_count": 48,
+    "train_ratio": 0.59375,
+    "val_ratio": 0.19196428571428573,
+    "test_ratio": 0.21428571428571427
+  }
+}

@@ -28,6 +28,8 @@ npm run dev
 
 Then open browser to: **http://localhost:3000**
 
+If you are running the frontend against a live or remote API, set `NEXT_PUBLIC_API_BASE_URL` in `apps/web/.env.local` before starting Next.js.
+
 ---
 
 ## Troubleshooting

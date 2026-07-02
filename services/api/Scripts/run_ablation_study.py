@@ -88,9 +88,10 @@ def _load_claims(path: Path) -> List[ClaimRecord]:
 
     out: List[ClaimRecord] = []
     for row in payload.get("claims", []):
+        claim_id = row.get("id") or row.get("source_id") or ""
         out.append(
             ClaimRecord(
-                claim_id=str(row.get("id", "")),
+                claim_id=str(claim_id),
                 text=str(row.get("claim") or row.get("text") or ""),
                 category=str(row.get("category", "general")),
                 label=str(row.get("label", "NEI")).upper(),

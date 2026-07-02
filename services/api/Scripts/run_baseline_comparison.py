@@ -70,9 +70,10 @@ def _load_claims(file_path: Path) -> List[Dict[str, str]]:
     normalized = []
     for claim in claims:
         claim_text = claim.get("claim") or claim.get("text") or ""
+        claim_id = claim.get("id") or claim.get("source_id") or ""
         normalized.append(
             {
-                "id": str(claim.get("id", "")),
+                "id": str(claim_id),
                 "text": str(claim_text),
                 "category": str(claim.get("category", "general")),
                 "label": str(claim.get("label", "NEI")),

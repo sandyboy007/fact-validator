@@ -220,10 +220,20 @@ def _safe_comparison(
         p_value = 1.0
         z_stat = 0.0
     else:
-        p_tail = 0.0
+        # Use log-space summation to avoid overflow for large n.
+        log_terms = []
+        log_half = math.log(0.5)
         for k in range(wins, n_non_tie + 1):
-            p_tail += math.comb(n_non_tie, k) * (0.5 ** n_non_tie)
-        p_value = p_tail
+            log_terms.append(
+                math.lgamma(n_non_tie + 1)
+                - math.lgamma(k + 1)
+                - math.lgamma(n_non_tie - k + 1)
+                + n_non_tie * log_half
+            )
+
+        max_log = max(log_terms)
+        p_value = math.exp(max_log) * sum(math.exp(t - max_log) for t in log_terms)
+        p_value = min(1.0, max(0.0, p_value))
 
         # Continuity-corrected z approximation for directionality display.
         expected = n_non_tie * 0.5

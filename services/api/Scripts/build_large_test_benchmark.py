@@ -34,6 +34,7 @@ import argparse
 import csv
 import json
 import re
+import random
 import sys
 from collections import Counter
 from dataclasses import dataclass, asdict
@@ -84,9 +85,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", default=str(REPO_ROOT / "data" / "benchmarks" / "results" / "large_benchmark_manifest.json"))
     parser.add_argument("--splits-dir", default=str(REPO_ROOT / "data" / "benchmarks" / "splits_5000"))
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--train-ratio", type=float, default=0.0)
-    parser.add_argument("--val-ratio", type=float, default=0.0)
-    parser.add_argument("--test-ratio", type=float, default=1.0)
+    parser.add_argument("--train-ratio", type=float, default=0.8, help="Ratio for train split from remaining claims")
+    parser.add_argument("--val-ratio", type=float, default=0.2, help="Ratio for val split from remaining claims")
+    parser.add_argument("--test-ratio", type=float, default=1.0, help="Kept for backward compatibility")
     return parser.parse_args()
 
 
@@ -194,9 +195,45 @@ def deduplicate_claims(claims: Iterable[BenchmarkClaim]) -> list[dict[str, Any]]
     deduped: list[dict[str, Any]] = []
     for key, claim in seen.items():
         item = asdict(claim)
+        # Keep a stable generic id field so downstream evaluators can align rows.
+        item["id"] = claim.source_id
         item["aliases"] = aliases.get(key, [])
         deduped.append(item)
     return deduped
+
+
+def _split_remaining_claims(
+    remaining_claims: list[dict[str, Any]],
+    train_ratio: float,
+    val_ratio: float,
+    seed: int,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    if not remaining_claims:
+        return [], []
+
+    total_ratio = train_ratio + val_ratio
+    if total_ratio <= 0:
+        return [], []
+
+    train_ratio_norm = train_ratio / total_ratio
+    by_label: dict[str, list[dict[str, Any]]] = {}
+    for claim in remaining_claims:
+        label = str(claim.get("label", "NEI"))
+        by_label.setdefault(label, []).append(claim)
+
+    rng = random.Random(seed)
+    train_claims: list[dict[str, Any]] = []
+    val_claims: list[dict[str, Any]] = []
+
+    for label_claims in by_label.values():
+        rng.shuffle(label_claims)
+        cutoff = int(round(len(label_claims) * train_ratio_norm))
+        train_claims.extend(label_claims[:cutoff])
+        val_claims.extend(label_claims[cutoff:])
+
+    rng.shuffle(train_claims)
+    rng.shuffle(val_claims)
+    return train_claims, val_claims
 
 
 def main() -> int:
@@ -226,9 +263,9 @@ def main() -> int:
     canonical_path = manager.export_canonical_dataset(str(Path(args.output).with_suffix(".canonical.json")))
 
     split = manager.stratified_split(
-        train_ratio=args.train_ratio,
-        val_ratio=args.val_ratio,
-        test_ratio=args.test_ratio,
+        train_ratio=0.0,
+        val_ratio=0.0,
+        test_ratio=1.0,
         stratify_by="label",
         seed=args.seed,
     )
@@ -241,8 +278,17 @@ def main() -> int:
         )
         return 1
 
-    # Keep only the requested number of test claims and write a test-only split.
+    # Keep only the requested number of test claims for evaluation.
     test_claims = test_claims[: args.target_test_size]
+
+    test_keys = {normalize_text(str(item.get("claim", ""))) for item in test_claims}
+    remaining_claims = [item for item in deduped if normalize_text(str(item.get("claim", ""))) not in test_keys]
+    train_claims, val_claims = _split_remaining_claims(
+        remaining_claims,
+        train_ratio=args.train_ratio,
+        val_ratio=args.val_ratio,
+        seed=args.seed,
+    )
 
     test_payload = {
         "claims": test_claims,
@@ -257,7 +303,41 @@ def main() -> int:
 
     splits_dir = Path(args.splits_dir)
     splits_dir.mkdir(parents=True, exist_ok=True)
+    train_path = splits_dir / "train.json"
+    val_path = splits_dir / "val.json"
     test_path = splits_dir / "test.json"
+    train_path.write_text(
+        json.dumps(
+            {
+                "claims": train_claims,
+                "metadata": {
+                    "seed": args.seed,
+                    "split": "train",
+                    "count": len(train_claims),
+                    "source_datasets": source_datasets,
+                    "generated_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                },
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    val_path.write_text(
+        json.dumps(
+            {
+                "claims": val_claims,
+                "metadata": {
+                    "seed": args.seed,
+                    "split": "val",
+                    "count": len(val_claims),
+                    "source_datasets": source_datasets,
+                    "generated_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                },
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
     test_path.write_text(json.dumps(test_payload, indent=2), encoding="utf-8")
 
     label_counts = Counter(item["label"] for item in test_claims)
@@ -270,9 +350,13 @@ def main() -> int:
         "target_test_size": args.target_test_size,
         "retained_claims": len(deduped),
         "test_claim_count": len(test_claims),
+        "train_claim_count": len(train_claims),
+        "val_claim_count": len(val_claims),
         "label_distribution": dict(label_counts),
         "dataset_distribution": dict(dataset_counts),
         "canonical_dataset": canonical_path,
+        "train_split_path": str(train_path),
+        "val_split_path": str(val_path),
         "test_split_path": str(test_path),
         "claims": test_claims,
     }
@@ -283,6 +367,8 @@ def main() -> int:
 
     print("Large benchmark test set built successfully.")
     print(f"- Output: {output_path}")
+    print(f"- Train split: {train_path} ({len(train_claims)} claims)")
+    print(f"- Val split: {val_path} ({len(val_claims)} claims)")
     print(f"- Test split: {test_path}")
     print(f"- Test claims: {len(test_claims)}")
     print(f"- Label distribution: {dict(label_counts)}")

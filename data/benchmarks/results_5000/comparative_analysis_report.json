@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated_utc": "2026-07-02T02:12:10.642261",
+    "generated_utc": "2026-07-02T02:22:22.910689",
     "baseline_csv": "C:\\Fact_Validator\\data\\benchmarks\\results_5000\\baseline_comparison_predictions.csv",
     "ablation_csv": "C:\\Fact_Validator\\data\\benchmarks\\results_5000\\ablation_study_predictions.csv",
     "full_variant": "full_proxy",
@@ -136,6 +136,19 @@
       "avg_confidence": 88.31122949999994,
       "calibration_error": 0.3745122949999994,
       "ece": 0.37451229500000804
+    },
+    "tune_fever": {
+      "n_claims": 5000,
+      "accuracy": 0.5098,
+      "accuracy_ci95": {
+        "mean": 0.5098,
+        "lower": 0.4959433694374426,
+        "upper": 0.5236566305625574,
+        "margin_of_error": 0.013856630562557407
+      },
+      "avg_confidence": 88.53009527999993,
+      "calibration_error": 0.3755009527999993,
+      "ece": 0.3755009528000084
     }
   },
   "ranking": [
@@ -152,6 +165,20 @@
       "avg_confidence": 88.37275913999993,
       "calibration_error": 0.37032759139999927,
       "ece": 0.3703275914000081
+    },
+    {
+      "system": "tune_fever",
+      "n_claims": 5000,
+      "accuracy": 0.5098,
+      "accuracy_ci95": {
+        "mean": 0.5098,
+        "lower": 0.4959433694374426,
+        "upper": 0.5236566305625574,
+        "margin_of_error": 0.013856630562557407
+      },
+      "avg_confidence": 88.53009527999993,
+      "calibration_error": 0.3755009527999993,
+      "ece": 0.3755009528000084
     },
     {
       "system": "ablate_quality_filter",
@@ -530,6 +557,34 @@
       },
       "effect_size": {
         "cohens_d": -0.020004001200400103,
+        "interpretation": "negligible"
+      }
+    },
+    {
+      "system_name": "full_proxy",
+      "baseline_name": "tune_fever",
+      "improvement_pct_points": -0.16000000000000458,
+      "system_accuracy": 0.5082,
+      "baseline_accuracy": 0.5098,
+      "ci_system": {
+        "mean": 0.5082,
+        "lower": 0.49434257101179296,
+        "upper": 0.522057428988207
+      },
+      "ci_baseline": {
+        "mean": 0.5098,
+        "lower": 0.4959433694374426,
+        "upper": 0.5236566305625574
+      },
+      "significance_test": {
+        "name": "Paired sign test (one-sided)",
+        "t_statistic": -2.0124611797498106,
+        "p_value": 0.979305267333986,
+        "degrees_freedom": 20,
+        "is_significant_alpha_0_05": false
+      },
+      "effect_size": {
+        "cohens_d": -0.025306320600037714,
         "interpretation": "negligible"
       }
     }

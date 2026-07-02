@@ -1,6 +1,6 @@
 # Comparative Analysis Summary
 
-- Generated UTC: 2026-07-02T02:12:10.642261
+- Generated UTC: 2026-07-02T02:22:22.910689
 - Full system variant: full_proxy
 - Claims compared: 5000
 
@@ -9,6 +9,7 @@
 | System | Accuracy | 95% CI | Avg Confidence | Calibration Error | ECE |
 |---|---:|---:|---:|---:|---:|
 | ablate_debate | 0.513 | [0.500, 0.527] | 88.4 | 0.370 | 0.370 |
+| tune_fever | 0.510 | [0.496, 0.524] | 88.5 | 0.376 | 0.376 |
 | ablate_quality_filter | 0.509 | [0.495, 0.522] | 88.3 | 0.375 | 0.375 |
 | full_proxy | 0.508 | [0.494, 0.522] | 88.3 | 0.375 | 0.375 |
 | ablate_semantic_rerank | 0.507 | [0.493, 0.521] | 87.3 | 0.366 | 0.366 |
@@ -32,6 +33,7 @@
 | ablate_semantic_rerank | +0.14 | 0.2383 | 0.012 | no |
 | ablate_debate | -0.52 | 0.9975 | -0.038 | no |
 | ablate_quality_filter | -0.04 | 1.0000 | -0.020 | no |
+| tune_fever | -0.16 | 0.9793 | -0.025 | no |
 
 ## Debate Lift
 

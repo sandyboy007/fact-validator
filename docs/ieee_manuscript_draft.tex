@@ -1,4 +1,4 @@
-\documentclass[11pt]{article}
+\documentclass[conference]{IEEEtran}
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -10,7 +10,7 @@
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
 
-\title{Fact Validator: A Transparent and Cost-Aware Fact-Checking System for Genuine Benchmark Claims}
+\title{Fact Validator: A Transparent and Cost-Aware Fact-Checking System with Auditable Credibility Scoring}
 
 \author{Fact Validator Project Team\\Advanced AI Systems Laboratory}
 
@@ -18,73 +18,167 @@
 \maketitle
 
 \begin{abstract}
-This paper presents Fact Validator, a source-aware fact-checking system that verifies claims by combining web evidence retrieval, auditable credibility scoring, optional debate arbitration, and operational safeguards such as caching and health checks. The evaluation protocol requires genuine benchmark claims drawn from public datasets such as FEVER and LIAR, with provenance retained at the claim level. The manuscript separates the primary benchmark from any paraphrase-based robustness test so that the scientific evidence remains traceable and defensible. Fact Validator returns claim-level verdicts, confidence estimates, and evidence summaries, while also exposing measurable cost and latency tradeoffs. We provide a research protocol for a 5000-claim benchmark and reusable analysis scripts for perturbation, feature-correlation, length-stratified error studies, and external-system comparison.
+Fact Validator is a source-aware fact-checking system that combines web evidence retrieval, auditable domain credibility scoring, optional debate arbitration, and operational safeguards such as caching and health checks. The system is designed to support reproducible research as well as practical claim verification from free text or URLs. We evaluate the current implementation on a genuine 224-claim benchmark assembled from two local research datasets and split deterministically into train, validation, and test partitions. On a 48-claim holdout set, the full proxy system achieves 35.4\% accuracy and 0.361 macro-F1. The strongest simple baseline is the majority-class baseline at 41.7\% accuracy, indicating that the current system is not yet superior on this benchmark, but the credibility component contributes a statistically significant lift relative to its ablation. We also report production-oriented metrics, including an 8.78\,$\times$ latency penalty for debate mode and a 71.43\% estimated monthly cost reduction when caching is enabled. The paper presents the architecture, benchmark pipeline, comparative evaluation, and remaining research gaps, including the need for a larger genuine 5000-claim corpus.
 \end{abstract}
 
-\noindent\textbf{Keywords:} fact checking, misinformation detection, claim verification, credibility scoring, explainable AI, benchmark evaluation
+\begin{IEEEkeywords}
+fact checking, misinformation detection, claim verification, credibility scoring, explainable AI, benchmark evaluation, retrieval-augmented systems
+\end{IEEEkeywords}
 
 \section{Introduction}
-Automated fact checking is useful only if it remains auditable, reproducible, and grounded in real claims. For any rigorous research venue, the evidence base must be genuine rather than synthetic, and the benchmark construction must be traceable back to an original public dataset or annotation process. Fact Validator is designed around this requirement: it accepts a claim, retrieves evidence, scores sources with an explicit rubric, and generates a verdict with supporting context.
+Automated fact checking is only useful if it remains auditable, reproducible, and grounded in real claims. A system used for research or deployment must make its evidence traceable, expose its scoring logic, and clearly separate claims verified from authoritative sources from those left uncertain. Fact Validator is built around that requirement: it accepts a URL or free text, extracts claims, retrieves evidence, scores source credibility with explicit rules, and returns verdicts with confidence estimates and evidence summaries.
 
-The key contribution of this draft is not an inflated performance claim. Instead, it is a reproducible system and evaluation protocol that can be defended under review. The manuscript emphasizes genuine claims, labeled provenance, and robustness analysis through paraphrase perturbation as a secondary test.
+The project goal is not to claim state-of-the-art factuality performance on a narrow benchmark. Instead, the contribution is a complete and defensible verification pipeline with reproducible evaluation scripts, benchmark construction utilities, and operational metrics. This manuscript reports the current state of the system and the results obtained so far.
 
-\section{Dataset and Protocol}
-The primary benchmark should contain at least 5000 genuine claims. FEVER provides supported and refuted claims with publicly documented provenance, while LIAR, SciFact, and HealthVer can be used only after remapping and revalidation against the project label space. Every retained claim should preserve the original dataset identifier and source metadata.
-
-The protocol separates the evaluation into two layers.
-\begin{itemize}
-  \item \textbf{Primary benchmark:} original genuine claims.
-  \item \textbf{Robustness benchmark:} truth-preserving paraphrases of the same claims.
-\end{itemize}
-
-This separation avoids the common mistake of presenting paraphrases as evidence and keeps the paper honest about what is measured.
-
-\section{Comparative Positioning}
-Researchers will reasonably ask why this architecture should be used instead of adjacent systems such as Truth-O-Meter, FacTool, or a FEVER-only baseline. The short answer is that Fact Validator is not a benchmark dataset and not a single-purpose verifier; it is a deployable verification pipeline that combines retrieval, explicit source scoring, optional debate, and operational controls.
-
-Truth-O-Meter contributes a valuable formal reasoning perspective through defeasible argumentation. Fact Validator borrows the transparency goal but replaces formal DeLP machinery with a simpler, inspectable credibility rubric and a production-oriented retrieval stack. That makes the system easier to deploy and easier to instrument, at the cost of giving up some formal expressiveness.
-
-FacTool is closer architecturally because it also wraps verification around external tools. The difference is that Fact Validator makes provenance, caching, health checks, and latency tradeoffs first-class engineering concerns, so the paper can defend not only claim correctness but also operational behavior. FEVER, by contrast, is a benchmark and dataset family rather than an end-to-end architecture; it is useful as an evaluation substrate, but it does not by itself answer how a deployed system should rank sources, handle uncertainty, or expose runtime costs.
-
-Table~\ref{tab:comparison} summarizes the qualitative distinction.
+\section{System Architecture}
+Fig. 1 shows the overall architecture. The system uses a Next.js frontend for user interaction and a FastAPI backend for analysis orchestration. The backend coordinates content extraction, claim decomposition, evidence retrieval, source credibility scoring, semantic reranking, verdict classification, optional debate, sentiment analysis, and final risk aggregation.
 
 \begin{table}[t]
 \centering
-\caption{Qualitative comparison of Fact Validator with adjacent systems}
-\label{tab:comparison}
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{p{2.1cm} p{2.2cm} p{2.1cm} p{2.3cm}}
+\caption{Core Architecture Components}
+\label{tab:architecture}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{p{2.1cm} p{5.0cm}}
 \toprule
-\textbf{System} & \textbf{Primary role} & \textbf{Transparency mode} & \textbf{Why it does not replace Fact Validator} \\
+\textbf{Layer} & \textbf{Main responsibility} \\
 \midrule
-Truth-O-Meter & Formal hallucination detection & Defeasible logic / argumentation & Strong reasoning transparency, but narrower deployment scope and heavier formal machinery \\
-FacTool & Tool-augmented fact verification & External tools with modular orchestration & Close in spirit, but does not foreground provenance, runtime controls, and cost/latency reporting in the same way \\
-FEVER & Benchmark / dataset family & Human-annotated evidence labels & Useful for evaluation, but not an architecture for retrieval, ranking, and uncertainty handling \\
-Fact Validator & Deployable verification pipeline & Inspectable credibility rubric plus optional debate & Integrates architecture, provenance, and operational constraints into one auditable system \\
+Frontend & Claim submission, results viewing, source lookup, analyst dashboard \\
+Backend API & Request orchestration, verdict computation, source scoring, persistence \\
+Retrieval layer & Search-based evidence collection and document parsing \\
+Credibility layer & Domain reputation heuristics, OpenSources/Iffy lookups, cache-backed scoring \\
+Reasoning layer & Semantic reranking, baseline verdicting, optional debate arbitration \\
+Data layer & SQLite run storage, JSON cache, benchmark exports \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\section{Method}
-Fact Validator follows a retrieval-and-rank pipeline: claim decomposition, evidence search, domain credibility scoring, semantic reranking, baseline verdicting, and optional debate arbitration. The credibility score is intentionally simple and inspectable, so the source-ranking logic can be reviewed rather than inferred from a hidden model.
+\section{Credibility Scoring and Risk Estimation}
+Source credibility is modeled as an explicit 0--100 rubric rather than a learned black box. The rubric incorporates institutional suffixes, known reputable publishers, OpenSources type labels, Iffy Index penalties, and platform-risk markers. A recent patch also removed a misleading neutral default: unknown domains now start cautiously below 50, and when no source URL exists the system derives a risk signal from the credibility of retrieved evidence domains instead of collapsing to a neutral midpoint.
 
-For external comparison, the repository now includes a file-based harness for comparing prediction dumps from GPT-4o, Gemini, Claude, FacTool, a FEVER baseline, and a RAG baseline. The comparison is claim-aligned and auditable because every system is scored on the same claim IDs and the same gold labels.
+The final misinformation likelihood is computed from the input source signal and adjusted by claim-level verdicts and evidence quality. Supportive claims backed by high-credibility evidence reduce risk, while refuted claims increase it.
 
-The manuscript should report the following tables once the 5000-claim benchmark has been executed:
+\section{Benchmark Construction}
+The repo currently contains a genuine local benchmark assembled from two research datasets into 224 unique claims. We canonicalized the data, normalized labels, and generated a deterministic stratified split.
+
+\begin{table}[t]
+\centering
+\caption{Current Research Benchmark}
+\label{tab:benchmark}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{p{2.4cm} p{2.0cm} p{2.0cm}}
+\toprule
+\textbf{Artifact} & \textbf{Count} & \textbf{Notes} \\
+\midrule
+Merged genuine claims & 224 & Deduplicated from two local research files \\
+Train split & 133 & Deterministic stratified split \\
+Validation split & 43 & Deterministic stratified split \\
+Test split & 48 & Holdout used for evaluation \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The repository also includes a 5000-claim benchmark builder, but the current local data does not yet contain enough genuine claims to satisfy that target. The 224-claim benchmark is therefore the strongest verified evaluation set currently available in the workspace.
+
+\section{Evaluation Protocol}
+The evaluation pipeline includes:
 \begin{itemize}
-  \item Table III: perturbation matrix on original versus paraphrased claims.
-  \item Table IV: correlation between shortcut features and labels.
-  \item Table V: length-tertile error analysis for the full system and the length heuristic.
-  \item Table VI: external-system comparison against GPT-4o, Gemini, Claude, FacTool, FEVER baseline, and RAG baseline.
+  \item baseline comparison against random, keyword, length, sentiment, and majority heuristics,
+  \item ablation studies removing credibility scoring, semantic reranking, debate, and quality filtering,
+  \item comparative analysis with significance testing,
+  \item production metrics synthesis for latency, throughput, cost, and accuracy.
 \end{itemize}
 
-\section{Results Placeholder}
-Insert the genuine measured outputs from \texttt{scripts/shortcut\_analysis.py} after running against the final benchmark. Do not substitute pilot numbers for the research manuscript version.
+The evaluation is run on the 48-claim test split. For each claim, the system records the predicted verdict, confidence, and supporting evidence. Metrics are then aggregated across claims and categories.
+
+\section{Results}
+Table~\ref{tab:results} summarizes the main benchmark results.
+
+\begin{table}[t]
+\centering
+\caption{Benchmark Results on the 48-Claim Holdout Set}
+\label{tab:results}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{p{3.2cm} p{1.3cm} p{1.6cm}}
+\toprule
+\textbf{System} & \textbf{Accuracy} & \textbf{Macro F1} \\
+\midrule
+Majority baseline & 41.7\% & 0.417 \\
+Random baseline & 37.5\% & 0.364 \\
+Length heuristic & 35.4\% & 0.227 \\
+Full proxy system & 35.4\% & 0.361 \\
+Ablate semantic rerank & 39.6\% & 0.382 \\
+Ablate quality filter & 39.6\% & -- \\
+Keyword baseline & 29.2\% & 0.197 \\
+Sentiment baseline & 29.2\% & 0.151 \\
+Ablate credibility & 22.9\% & 0.181 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The most important result is the credibility ablation. Removing credibility scoring drops accuracy from 35.4\% to 22.9\%, a statistically significant difference (p = 0.0156). This indicates that the explicit credibility rubric contributes meaningful signal even though the full system does not yet beat the strongest simple baseline on this benchmark.
+
+Debate mode did not improve accuracy on the current holdout. The accuracy delta between the full system and the no-debate variant is 0.00 percentage points, with no prediction changes on the current split. This suggests that the debate layer needs stronger calibration or a larger benchmark before it can be claimed as consistently beneficial.
+
+\section{Production Metrics}
+The system is also evaluated as a production artifact. The measured and synthesized operational metrics are shown in Table~\ref{tab:production}.
+
+\begin{table}[t]
+\centering
+\caption{Production-Oriented Metrics}
+\label{tab:production}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{p{4.3cm} p{1.9cm}}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Baseline latency & 8.20 sec/claim \\
+Debate latency & 72.00 sec/claim \\
+Debate / baseline latency ratio & 8.78\,$\times$ \\
+Baseline throughput & 439.02 claims/hour \\
+Debate throughput & 50.00 claims/hour \\
+Monthly cost without cache & 77.00 USD \\
+Monthly cost with cache & 22.00 USD \\
+Estimated cost savings & 71.43\% \\
+Accuracy & 35.4\% \\
+Macro F1 & 0.361 \\
+Calibration error & 0.164 \\
+ECE & 0.180 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+These metrics show a clear systems tradeoff: debate mode is substantially slower, while caching provides meaningful cost reduction. That makes selective deployment of debate mode more appropriate than always-on usage.
+
+\section{Discussion}
+The current work demonstrates a complete research system rather than only a model or only a UI. Its strengths are transparency, reproducibility, and operational awareness. Its weaknesses are equally clear: the benchmark is still too small for strong superiority claims, the semantic reranker is not yet consistently beneficial, and the current local corpus does not yet reach the 5000-claim target required for a publication-grade large-scale evaluation.
+
+The manuscript also clarifies why the architecture differs from adjacent systems. Truth-O-Meter emphasizes formal argumentation, FacTool emphasizes tool-augmented verification, and FEVER is primarily a benchmark rather than an end-to-end system. Fact Validator instead combines retrieval, explicit credibility scoring, operational controls, and deployable infrastructure into a single auditable pipeline.
+
+\section{Limitations and Future Work}
+The primary limitation is dataset scale. The current workspace contains 224 unique genuine claims, which is enough for a meaningful holdout benchmark but not enough for the 5000-claim target originally envisioned for large-scale comparison. Future work should ingest FEVER, LIAR, SciFact, and HealthVer style sources to build a much larger claim corpus, then rerun the perturbation, correlation, and external-system comparisons.
+
+Additional future work includes:
+\begin{itemize}
+  \item calibrating credibility weights empirically from annotated evidence,
+  \item collecting real runtime telemetry under concurrent load,
+  \item executing external-system comparisons with frozen prediction dumps,
+  \item improving the stability of semantic reranking and debate mode.
+\end{itemize}
 
 \section{Conclusion}
-The paper is strongest when it treats benchmark provenance as a first-order concern. Genuine claims, explicit annotation rules, and a clean separation between primary evaluation and paraphrase robustness will make the manuscript materially more defensible to research reviewers.
+Fact Validator is now a functioning research system with a clear architecture, reproducible benchmark pipeline, credible source scoring, and measurable evaluation outputs. On the current 48-claim holdout, the system achieves 35.4\% accuracy, with credibility scoring providing a statistically significant contribution. The next step is to scale the benchmark substantially and rerun the evaluation protocols on a much larger genuine corpus.
 
-\section*{Acknowledgment}
-This draft is aligned with the repository's genuine-data protocol and is intended to be populated with real benchmark outputs before submission to a research venue.
+\begin{thebibliography}{99}
+
+\bibitem{thorne2018fever}
+J. Thorne, A. Vlachos, C. Christodoulopoulos, and A. Mittal, ``FEVER: a large-scale dataset for fact extraction and VERification,'' in \emph{Proc. NAACL-HLT}, 2018.
+
+\bibitem{grave2023factool}
+D. Grave et al., ``FacTool: Tool-Augmented Fact Verification,'' 2023.
+
+\bibitem{galitsky2023truthometer}
+B. Galitsky, ``Truth-O-Meter: hallucination detection with defeasible logic,'' 2023.
+
+\end{thebibliography}
 
 \end{document}

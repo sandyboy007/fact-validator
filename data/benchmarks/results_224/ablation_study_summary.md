@@ -1,6 +1,6 @@
 # Ablation Study Summary
 
-- Generated UTC: 2026-07-01T00:36:56.505238
+- Generated UTC: 2026-07-02T00:34:32.769383
 - Test claims: 48
 - Train claims: 133
 - Full model variant: full_proxy

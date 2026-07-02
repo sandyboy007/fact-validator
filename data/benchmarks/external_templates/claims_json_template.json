@@ -1,0 +1,22 @@
+{
+  "claims": [
+    {
+      "id": "dataset-1",
+      "claim": "Mars is known as the red planet.",
+      "label": "SUPPORTED",
+      "category": "science",
+      "difficulty": "easy",
+      "source_url": "https://example.org/reference",
+      "provenance_note": "Replace with true source dataset reference"
+    },
+    {
+      "id": "dataset-2",
+      "claim": "Humans can breathe in space without equipment.",
+      "label": "REFUTED",
+      "category": "science",
+      "difficulty": "easy",
+      "source_url": "https://example.org/reference2",
+      "provenance_note": "Replace with true source dataset reference"
+    }
+  ]
+}

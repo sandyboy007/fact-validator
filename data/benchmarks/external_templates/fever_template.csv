@@ -1,0 +1,3 @@
+id,claim,label,category,difficulty,source_url,notes
+fever-1,The Eiffel Tower is in Paris,SUPPORTED,history,easy,https://en.wikipedia.org/wiki/Eiffel_Tower,Example row
+fever-2,The Earth has two moons,REFUTED,science,easy,https://en.wikipedia.org/wiki/Moon,Example row

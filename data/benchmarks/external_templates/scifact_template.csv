@@ -1,0 +1,3 @@
+id,claim,label,category,difficulty,source_url,notes
+scifact-1,Vitamin C prevents the common cold,REFUTED,health,medium,,Example row
+scifact-2,Smoking increases risk of lung cancer,SUPPORTED,health,easy,,Example row

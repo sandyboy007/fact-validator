@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated_utc": "2026-07-02T02:05:12.343401",
+    "generated_utc": "2026-07-02T02:12:07.511607",
     "train_split": "C:\\Fact_Validator\\data\\benchmarks\\splits_5000\\train.json",
     "test_split": "C:\\Fact_Validator\\data\\benchmarks\\splits_5000\\test.json",
     "train_claim_count": 11986,

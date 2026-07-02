@@ -1,23 +1,23 @@
 # Ablation Study Summary
 
-- Generated UTC: 2026-07-02T02:05:14.113845
+- Generated UTC: 2026-07-02T02:12:08.516372
 - Test claims: 5000
 - Train claims: 11986
 - Full model variant: full_proxy
 
 | Variant | Accuracy | Macro F1 | Delta Accuracy vs Full | Delta Macro F1 vs Full |
 |---|---:|---:|---:|---:|
-| full_proxy | 0.236 | 0.142 | +0.000 | +0.000 |
-| ablate_credibility | 0.234 | 0.134 | -0.002 | -0.008 |
-| ablate_semantic_rerank | 0.236 | 0.137 | +0.000 | -0.005 |
-| ablate_debate | 0.236 | 0.146 | +0.000 | +0.004 |
-| ablate_quality_filter | 0.347 | 0.282 | +0.111 | +0.140 |
+| full_proxy | 0.508 | 0.438 | +0.000 | +0.000 |
+| ablate_credibility | 0.497 | 0.439 | -0.011 | +0.001 |
+| ablate_semantic_rerank | 0.507 | 0.437 | -0.001 | -0.001 |
+| ablate_debate | 0.513 | 0.443 | +0.005 | +0.004 |
+| ablate_quality_filter | 0.509 | 0.439 | +0.000 | +0.000 |
 
 ## Component Impact
 
 | Component Removed | Relative Importance (%) | Accuracy Drop (%) | Prediction Change Rate (%) |
 |---|---:|---:|---:|
-| credibility_scoring | 1.02 | 1.02 | 1.96 |
-| semantic_reranking | 0.00 | 0.00 | 1.44 |
-| debate_mode | 0.00 | 0.00 | 1.10 |
-| source_quality_filtering | -46.91 | -46.91 | 26.30 |
+| credibility_scoring | 2.13 | 2.13 | 7.50 |
+| semantic_reranking | 0.28 | 0.28 | 2.14 |
+| debate_mode | -1.02 | -1.02 | 3.00 |
+| source_quality_filtering | -0.08 | -0.08 | 0.04 |

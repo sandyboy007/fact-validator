@@ -19,13 +19,14 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 import re
 import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 API_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = API_ROOT.parents[1]
@@ -51,6 +52,13 @@ CONSPIRACY_TERMS = {
 
 SUPPORTED_EVENT_TERMS = {
     "declared", "became", "rose", "risen", "held", "died", "boils", "pandemic",
+}
+
+MODEL_STOPWORDS = {
+    "the", "and", "for", "with", "that", "this", "from", "have", "has", "were",
+    "was", "are", "will", "would", "could", "should", "into", "about", "after",
+    "before", "over", "under", "than", "then", "them", "they", "their", "there",
+    "your", "our", "you", "its", "it", "his", "her", "she", "him", "who",
 }
 
 
@@ -124,6 +132,74 @@ def _category_label_priors(train_claims: List[ClaimRecord]) -> Dict[str, Dict[st
     return priors
 
 
+def _tokenize_for_model(text: str) -> List[str]:
+    toks = re.findall(r"[a-zA-Z][a-zA-Z0-9\-']+", (text or "").lower())
+    return [t for t in toks if len(t) >= 3 and t not in MODEL_STOPWORDS][:120]
+
+
+def _build_lexical_model(train_claims: List[ClaimRecord]) -> Dict[str, Any]:
+    labels = [VerdictLabel.SUPPORTED.value, VerdictLabel.REFUTED.value, VerdictLabel.NEI.value]
+    doc_counts = Counter(c.label for c in train_claims if c.label in labels)
+    token_counts: Dict[str, Counter] = {label: Counter() for label in labels}
+    total_tokens = Counter()
+
+    for claim in train_claims:
+        if claim.label not in labels:
+            continue
+        toks = _tokenize_for_model(claim.text)
+        token_counts[claim.label].update(toks)
+        total_tokens.update(toks)
+
+    # Keep only tokens with minimal support to reduce noise.
+    vocab = {t for t, n in total_tokens.items() if n >= 3}
+    if not vocab:
+        vocab = set(total_tokens.keys())
+
+    vocab_size = max(1, len(vocab))
+    total_docs = max(1, sum(doc_counts.values()))
+    priors = {
+        label: (doc_counts.get(label, 0) + 1) / (total_docs + len(labels))
+        for label in labels
+    }
+
+    token_log_probs: Dict[str, Dict[str, float]] = {label: {} for label in labels}
+    default_log_prob: Dict[str, float] = {}
+    for label in labels:
+        filtered = {t: c for t, c in token_counts[label].items() if t in vocab}
+        denom = sum(filtered.values()) + vocab_size
+        default_log_prob[label] = math.log(1.0 / denom)
+        for tok in vocab:
+            token_log_probs[label][tok] = math.log((filtered.get(tok, 0) + 1) / denom)
+
+    return {
+        "labels": labels,
+        "priors": priors,
+        "token_log_probs": token_log_probs,
+        "default_log_prob": default_log_prob,
+        "vocab": vocab,
+    }
+
+
+def _lexical_probabilities(text: str, model: Dict[str, Any]) -> Dict[str, float]:
+    labels = model["labels"]
+    vocab = model["vocab"]
+    toks = [t for t in _tokenize_for_model(text) if t in vocab]
+
+    log_scores: Dict[str, float] = {}
+    for label in labels:
+        s = math.log(max(1e-12, float(model["priors"].get(label, 1e-12))))
+        token_map = model["token_log_probs"][label]
+        default_lp = float(model["default_log_prob"][label])
+        for tok in toks:
+            s += float(token_map.get(tok, default_lp))
+        log_scores[label] = s
+
+    max_log = max(log_scores.values())
+    exp_scores = {label: math.exp(v - max_log) for label, v in log_scores.items()}
+    z = sum(exp_scores.values()) or 1.0
+    return {label: val / z for label, val in exp_scores.items()}
+
+
 def _has_numeric_signal(text: str) -> bool:
     return bool(re.search(r"\b\d+(\.\d+)?\b", text))
 
@@ -150,6 +226,7 @@ def _label_value(label: object) -> str:
 def _predict_proxy(
     claim: ClaimRecord,
     category_priors: Dict[str, Dict[str, float]],
+    lexical_model: Dict[str, Any],
     keyword_model: KeywordBaseline,
     length_model: LengthHeuristic,
     sentiment_model: SentimentHeuristic,
@@ -183,6 +260,12 @@ def _predict_proxy(
     add_vote(len_label, len_conf, 0.17)
     add_vote(sent_label, sent_conf, 0.17)
     add_vote(maj_label, maj_conf, 0.08)
+
+    lexical_probs = _lexical_probabilities(claim.text, lexical_model)
+    # Train-derived lexical signal: often strongest indicator for factual claim labels.
+    scores[VerdictLabel.SUPPORTED.value] += 0.95 * lexical_probs.get(VerdictLabel.SUPPORTED.value, 0.0)
+    scores[VerdictLabel.REFUTED.value] += 0.95 * lexical_probs.get(VerdictLabel.REFUTED.value, 0.0)
+    scores[VerdictLabel.NEI.value] += 0.95 * lexical_probs.get(VerdictLabel.NEI.value, 0.0)
 
     text = claim.text
     has_absolutist = _contains_any_term(text, ABSOLUTIST_TERMS)
@@ -229,11 +312,11 @@ def _predict_proxy(
         if has_conspiracy and scores[VerdictLabel.REFUTED.value] >= scores[VerdictLabel.SUPPORTED.value]:
             top_label = VerdictLabel.REFUTED.value
             top_score = scores[VerdictLabel.REFUTED.value]
-        elif margin < 0.12:
+        elif margin < 0.04:
             # disputed evidence -> conservative verdict
             top_label = VerdictLabel.NEI.value
             top_score = max(top_score, scores[VerdictLabel.NEI.value])
-        elif has_uncertainty and margin < 0.18:
+        elif has_uncertainty and margin < 0.10:
             top_label = VerdictLabel.NEI.value
             top_score = max(top_score, scores[VerdictLabel.NEI.value])
 
@@ -241,12 +324,21 @@ def _predict_proxy(
 
     # "Quality filter" proxy: low-confidence outputs default to NEI
     if use_quality_filter:
-        if confidence < 52.0 and not has_supported_event and not has_conspiracy:
-            top_label = VerdictLabel.NEI.value
-            confidence = min(65.0, confidence + 12.0)
+        if confidence < 40.0 and not has_supported_event and not has_conspiracy:
+            if top_label == VerdictLabel.NEI.value and not has_uncertainty:
+                alt = max(
+                    (VerdictLabel.SUPPORTED.value, VerdictLabel.REFUTED.value),
+                    key=lambda lbl: scores[lbl],
+                )
+                if abs(scores[alt] - scores[VerdictLabel.NEI.value]) <= 0.08:
+                    top_label = alt
+                    confidence = min(62.0, confidence + 8.0)
+            else:
+                confidence = min(65.0, confidence + 6.0)
         if has_absolutist and top_label == VerdictLabel.SUPPORTED.value:
-            top_label = VerdictLabel.REFUTED.value
-            confidence = max(confidence, 58.0)
+            if scores[VerdictLabel.REFUTED.value] >= scores[VerdictLabel.SUPPORTED.value] - 0.06:
+                top_label = VerdictLabel.REFUTED.value
+                confidence = max(confidence, 58.0)
 
     return top_label, confidence
 
@@ -269,6 +361,7 @@ def _evaluate_variant(
     variant_name: str,
     test_claims: List[ClaimRecord],
     category_priors: Dict[str, Dict[str, float]],
+    lexical_model: Dict[str, Any],
     majority_label: str,
     use_credibility: bool,
     use_semantic_rerank: bool,
@@ -285,6 +378,7 @@ def _evaluate_variant(
         pred_label, pred_conf = _predict_proxy(
             claim,
             category_priors,
+            lexical_model,
             keyword_model,
             length_model,
             sentiment_model,
@@ -387,12 +481,14 @@ def main() -> int:
 
     majority_label = _majority_label(train_claims)
     category_priors = _category_label_priors(train_claims)
+    lexical_model = _build_lexical_model(train_claims)
 
     full_variant_name = "full_proxy"
     full_predictions = _evaluate_variant(
         full_variant_name,
         test_claims,
         category_priors,
+        lexical_model,
         majority_label,
         use_credibility=True,
         use_semantic_rerank=True,
@@ -463,6 +559,7 @@ def main() -> int:
             variant_name,
             test_claims,
             category_priors,
+            lexical_model,
             majority_label,
             **cfg["flags"],
         )

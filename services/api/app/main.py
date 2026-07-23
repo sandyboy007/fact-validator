@@ -5,12 +5,15 @@ from pydantic import BaseModel, validator, ValidationError
 from typing import Optional, List, Literal, Dict, Any, Tuple
 from datetime import datetime
 import json
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 import os
 import re
 import asyncio
 import time
 from pathlib import Path
+import ipaddress
+import socket
+from hashlib import sha256
 
 import httpx
 import trafilatura
@@ -48,10 +51,19 @@ from app.logger import log_analyze_start, log_analyze_complete, log_debate_start
 from app.config import Config
 from app.cache import get_cache
 from app.security import ollama_health, rate_limiter
+from app.evidence_graph import build_evidence_graph, adjudicate_graph
+from app.relation_classifier import classify_relation
+from app.retrieval_manifest import MANIFEST_VERSION, build_retrieval_manifest
+from app.evidence_independence import cluster_evidence
+from app.graph_auditor import audit_evidence_graph
 
  
 
 SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY", "").strip()
+
+
+class EvidenceSearchError(RuntimeError):
+    pass
 
 
 def _ensure_nltk():
@@ -198,6 +210,10 @@ class EvidenceItem(BaseModel):
     url: str
     title: Optional[str] = None
     snippet: str
+    passage: Optional[str] = None
+    content_hash: Optional[str] = None
+    retrieval_status: Optional[Literal["retrieved", "fetch_failed", "not_fetched"]] = None
+    retrieved_at_utc: Optional[str] = None
     domain: str
     domain_score: int
     overlap: int = 0
@@ -215,11 +231,13 @@ class EvidenceItem(BaseModel):
     numeric_match: Optional[bool] = None
     entity_match: Optional[bool] = None
     manipulation_flags: Optional[List[str]] = None
+    independence_cluster: Optional[str] = None
+    independence_reason: Optional[str] = None
 
 
 class ClaimResult(BaseModel):
     claim_text: str
-    verdict: Literal["SUPPORTED", "REFUTED", "NEI"]
+    verdict: Literal["SUPPORTED", "REFUTED", "NEI", "CONFLICTING"]
     confidence: float
     evidence: List[EvidenceItem]
     debate_summary: Optional[str] = None
@@ -235,6 +253,9 @@ class ClaimResult(BaseModel):
     evidence_summary: Optional[Dict[str, Any]] = None
     reflective: Optional[Dict[str, Any]] = None
     faithful_correction: Optional[Dict[str, Any]] = None
+    evidence_graph: Optional[Dict[str, Any]] = None
+    retrieval_manifest: Optional[Dict[str, Any]] = None
+    graph_audit: Optional[Dict[str, Any]] = None
 
 
 class AnalyzeResponse(BaseModel):
@@ -299,6 +320,10 @@ def is_blocked_domain(domain: str) -> bool:
 
 
 async def fetch_html(url: str) -> Tuple[str, str]:
+    current_url = normalize_url(url)
+    if not current_url:
+        return "", ""
+
     try:
         headers = {
             "User-Agent": "FactValidatorBot/0.8.2 (thesis demo)",
@@ -307,16 +332,61 @@ async def fetch_html(url: str) -> Tuple[str, str]:
         timeout = httpx.Timeout(connect=20.0, read=30.0, write=20.0, pool=30.0)
         async with httpx.AsyncClient(
             headers=headers,
-            follow_redirects=True,
+            follow_redirects=False,
             timeout=timeout,
             trust_env=False,
         ) as client:
-            r = await client.get(url)
-            if r.status_code >= 400:
-                return "", ""
-            return str(r.url), r.text
+            for _ in range(5):
+                if not await is_public_http_url(current_url):
+                    return "", ""
+                r = await client.get(current_url)
+                if r.is_redirect:
+                    location = r.headers.get("location")
+                    if not location:
+                        return "", ""
+                    current_url = urljoin(current_url, location)
+                    continue
+                if r.status_code >= 400:
+                    return "", ""
+                return str(r.url), r.text
     except Exception:
         return "", ""
+    return "", ""
+
+
+async def is_public_http_url(url: str) -> bool:
+    parsed = urlparse(normalize_url(url))
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+        return False
+
+    host = parsed.hostname
+    if host.lower() == "localhost":
+        return False
+    try:
+        addresses = await asyncio.get_running_loop().run_in_executor(
+            None,
+            socket.getaddrinfo,
+            host,
+            None,
+        )
+    except OSError:
+        return False
+
+    try:
+        resolved = {ipaddress.ip_address(item[4][0]) for item in addresses}
+    except ValueError:
+        return False
+    return bool(resolved) and all(
+        not (
+            address.is_private
+            or address.is_loopback
+            or address.is_link_local
+            or address.is_multicast
+            or address.is_reserved
+            or address.is_unspecified
+        )
+        for address in resolved
+    )
 
 
 def extract_readable_text_from_html(html: str, url: str = "") -> str:
@@ -351,12 +421,6 @@ def clean_text_for_claims(text: str) -> str:
     t = (text or "").strip()
     t = re.sub(r"\bExplore Data\b", " ", t, flags=re.IGNORECASE)
     t = re.sub(r"\bResearch\s*&\s*Writing\b", " ", t, flags=re.IGNORECASE)
-    t = re.sub(
-        r"\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}\b",
-        " ",
-        t,
-        flags=re.IGNORECASE,
-    )
     t = re.sub(r"[ \t]+", " ", t)
     t = re.sub(r"\n{2,}", "\n", t)
     return t.strip()
@@ -386,7 +450,7 @@ def extract_claim_candidates(text: str, max_claims: int = 6) -> List[str]:
     for b in blocks[:250]:
         for s in sent_tokenize(b):
             s2 = " ".join(s.split()).strip()
-            if len(s2) < 60 or len(s2) > 280:
+            if len(s2) < 8 or len(s2) > 280:
                 continue
             low = s2.lower()
             if any(m in low for m in boilerplate_markers):
@@ -436,8 +500,8 @@ async def serpapi_search(query: str, num: int = 5) -> List[Dict[str, Any]]:
                     }
                 )
             return out
-    except Exception:
-        return []
+    except Exception as exc:
+        raise EvidenceSearchError("Search provider request failed.") from exc
 
 
 def tokenize_for_overlap(s: str) -> List[str]:
@@ -458,6 +522,25 @@ def compute_overlap(claim: str, snippet: str) -> int:
         return 0
     snip_toks = set(tokenize_for_overlap(snippet))
     return len(claim_toks.intersection(snip_toks))
+
+
+def select_evidence_passage(claim: str, text: str, max_chars: int = 1200) -> str:
+    sentences = [" ".join(sentence.split()).strip() for sentence in sent_tokenize(text or "")]
+    candidates = [sentence for sentence in sentences if len(sentence) >= 30]
+    if not candidates:
+        return " ".join((text or "").split())[:max_chars]
+    best_index = max(range(len(candidates)), key=lambda index: compute_overlap(claim, candidates[index]))
+    return " ".join(candidates[max(0, best_index - 1):min(len(candidates), best_index + 2)])[:max_chars]
+
+
+async def fetch_evidence_passage(url: str, claim: str) -> Tuple[str, str, str]:
+    final_url, html = await fetch_html(url)
+    if not html:
+        return "", final_url or url, "fetch_failed"
+    passage = select_evidence_passage(claim, extract_readable_text_from_html(html, final_url or url))
+    if not passage:
+        return "", final_url or url, "fetch_failed"
+    return passage, final_url or url, "retrieved"
 
 
 def baseline_verdict(
@@ -578,76 +661,30 @@ def estimate_misinformation_likelihood(
 
 def derive_input_domain_signal(
     claims: List[ClaimResult],
-    domain: Optional[str] = None,
+    domain: Optional[str],
 ) -> Tuple[int, str, Dict[str, Any]]:
-    """
-    Derive the input-domain credibility signal used for misinformation risk.
-
-    When a source URL is available, score that domain directly. When the input
-    is plain text and no source domain exists, aggregate the evidence domains
-    found during claim verification so the risk signal is still grounded in
-    retrieved evidence rather than a hard-coded neutral 50.
-    """
+    """Derive a transparent source-quality signal without treating it as a verdict."""
     if domain:
-        input_cred = score_domain_rubric(domain)
-        return int(input_cred.score), str(input_cred.label), dict(input_cred.reasons)
-
-    weighted_scores: List[Tuple[float, float]] = []
-    sampled_domains: Dict[str, int] = {}
-    high_cred_sources = 0
-    low_cred_sources = 0
-
-    for claim in claims:
-        claim_weight = max(0.5, float(claim.confidence or 0.0) / 100.0)
-        for evidence in claim.evidence or []:
-            domain_score = getattr(evidence, "domain_score", None)
-            if domain_score is None:
-                continue
-
-            score_value = max(0.0, min(100.0, float(domain_score)))
-            weight = claim_weight
-
-            if getattr(evidence, "primary_source", False):
-                weight += 0.35
-            if getattr(evidence, "stance", None) == "support":
-                weight += 0.10
-            elif getattr(evidence, "stance", None) == "refute":
-                weight += 0.15
-            if getattr(evidence, "quote_grounded", False):
-                weight += 0.05
-            if getattr(evidence, "numeric_match", False):
-                weight += 0.05
-            if getattr(evidence, "entity_match", False):
-                weight += 0.05
-
-            weighted_scores.append((score_value, weight))
-            domain_name = str(getattr(evidence, "domain", "") or "").strip().lower()
-            if domain_name:
-                sampled_domains[domain_name] = sampled_domains.get(domain_name, 0) + 1
-
-            if score_value >= 75:
-                high_cred_sources += 1
-            elif score_value <= 45:
-                low_cred_sources += 1
-
-    if weighted_scores:
-        weighted_avg = sum(score * weight for score, weight in weighted_scores) / sum(weight for _, weight in weighted_scores)
-        score = int(round(max(25.0, min(95.0, weighted_avg - min(8.0, low_cred_sources * 0.75) + min(4.0, high_cred_sources * 0.5)))))
-        reasons: Dict[str, Any] = {
-            "source": "evidence_aggregate",
-            "message": "No input URL domain was provided; the score was derived from evidence-domain credibility signals.",
-            "evidence_items": len(weighted_scores),
-            "high_credibility_sources": high_cred_sources,
-            "low_credibility_sources": low_cred_sources,
+        credibility = score_domain_rubric(domain)
+        return int(credibility.score), str(credibility.label), {
+            "source": "input_domain",
+            "domain": domain,
+            "reasons": credibility.reasons,
         }
-        if sampled_domains:
-            reasons["sampled_domains"] = dict(sorted(sampled_domains.items(), key=lambda item: (-item[1], item[0]))[:10])
-        return score, _label(score), reasons
 
-    return 45, "LOW", {
-        "source": "unknown_domain",
-        "message": "No URL domain or evidence-domain signal was available; using a cautious default of 45.",
-    }
+    evidence_scores = [
+        int(item.domain_score)
+        for claim in claims
+        for item in claim.evidence
+        if item.domain_score is not None
+    ]
+    if evidence_scores:
+        score = round(sum(evidence_scores) / len(evidence_scores))
+        return score, _label(score), {
+            "source": "evidence_aggregate",
+            "evidence_items": len(evidence_scores),
+        }
+    return 50, "MEDIUM", {"source": "neutral_default", "reason": "no input domain or evidence sources"}
 
 
 def _label(score: int) -> str:
@@ -933,18 +970,30 @@ async def analyze(req: AnalyzeRequest):
             debate_meta["memory_hits"] += 1
             continue
 
-        # Try to get cached SerpAPI results
+        # Snapshot raw search results before any ranking so an analysis can be reproduced.
         raw_results = None
+        retrieval_status = "ok"
         cache = get_cache() if Config.FEATURE_CACHING else None
         if cache:
             raw_results = cache.get(ct)
         
         if raw_results is None:
-            raw_results = await serpapi_search(ct[:220], num=req.max_evidence_per_claim)
+            try:
+                raw_results = await serpapi_search(ct[:220], num=req.max_evidence_per_claim)
+                if raw_results:
+                    retrieval_status = "ok"
+                else:
+                    retrieval_status = "no_results" if SERPAPI_API_KEY else "search_unavailable"
+            except EvidenceSearchError:
+                raw_results = []
+                retrieval_status = "search_failed"
             if cache and raw_results:
                 cache.set(ct, raw_results)
+        else:
+            retrieval_status = "cached_results" if raw_results else "no_results"
 
         ev_items: List[Dict[str, Any]] = []
+        failed_items: List[Dict[str, Any]] = []
         seen_base_domains: Dict[str, int] = {}
         for rr in raw_results:
             link = rr.get("link") or ""
@@ -962,23 +1011,27 @@ async def analyze(req: AnalyzeRequest):
             seen_base_domains[bd] += 1
 
             snippet = (rr.get("snippet") or "").strip()
-            if len(snippet) < 40:
-                continue
 
             cred = score_domain_rubric(dom)
-            ov = compute_overlap(ct, snippet)
+            passage, resolved_url, passage_status = await fetch_evidence_passage(link, ct)
+            record = {
+                "url": resolved_url,
+                "title": rr.get("title"),
+                "snippet": snippet,
+                "passage": passage or None,
+                "content_hash": sha256((passage or "").encode("utf-8")).hexdigest() if passage else None,
+                "retrieval_status": passage_status,
+                "retrieved_at_utc": datetime.utcnow().isoformat() + "Z",
+                "domain": dom,
+                "domain_score": int(cred.score),
+                "overlap": int(compute_overlap(ct, passage or snippet)),
+                "base_domain": bd,
+            }
+            if passage_status != "retrieved":
+                failed_items.append(record)
+                continue
 
-            ev_items.append(
-                {
-                    "url": link,
-                    "title": rr.get("title"),
-                    "snippet": snippet,
-                    "domain": dom,
-                    "domain_score": int(cred.score),
-                    "overlap": int(ov),
-                    "base_domain": bd,
-                }
-            )
+            ev_items.append(record)
 
         reranked_items, semantic_meta = semantic_rerank(
             ct,
@@ -988,6 +1041,11 @@ async def analyze(req: AnalyzeRequest):
         debate_meta["semantic_retrieval"] = semantic_meta
 
         enriched_items = [enrich_evidence(ct, claim_profile, e) for e in reranked_items]
+        for item in enriched_items:
+            relation, relation_metadata = classify_relation(ct, str(item.get("passage") or ""))
+            item["stance"] = relation
+            item["relation_classifier"] = relation_metadata
+        evidence_clusters = cluster_evidence(enriched_items)
         enriched_items.sort(
             key=lambda e: (float(e.get("quality_score") or 0.0), int(e.get("domain_score") or 0), int(e.get("overlap") or 0)),
             reverse=True,
@@ -1000,8 +1058,52 @@ async def analyze(req: AnalyzeRequest):
         baseline_verdict_value, baseline_conf, baseline_summary = baseline_verdict(ct, ev_for_baseline)
         structured = determine_verdict(ct, claim_profile, enriched_items)
         reflective_report = reflective_analysis(ct, claim_profile, enriched_items)
+        evidence_graph = build_evidence_graph(
+            ct,
+            list(claim_profile.get("atomic_claims") or [ct]),
+            [*enriched_items, *failed_items],
+            retrieval_status,
+        )
+        evidence_graph["independence_clusters"] = evidence_clusters
+        graph_audit = audit_evidence_graph(evidence_graph, [*enriched_items, *failed_items], claim_profile)
+        retrieval_manifest = build_retrieval_manifest(
+            claim=ct,
+            query=ct[:220],
+            retrieval_status=retrieval_status,
+            raw_results=list(raw_results or []),
+            evidence=[*enriched_items, *failed_items],
+        )
+        graph_verdict, graph_reasons = adjudicate_graph(evidence_graph)
+        if graph_audit["decision"] == "NEI":
+            graph_verdict = "NEI"
+            graph_reasons = list(graph_audit["violations"])
+        elif graph_audit["decision"] == "CONFLICTING":
+            graph_verdict = "CONFLICTING"
+            graph_reasons = list(graph_audit["violations"])
+        elif graph_audit["decision"] == "HUMAN_REVIEW":
+            structured["needs_human_review"] = True
+            structured["human_review_reason"] = graph_audit["violations"][0]
+            uncertainty = list(structured.get("uncertainty_reasons") or [])
+            for violation in graph_audit["violations"]:
+                if violation not in uncertainty:
+                    uncertainty.append(violation)
+            structured["uncertainty_reasons"] = uncertainty[:4]
+        if graph_verdict:
+            structured["legacy_verdict"] = graph_verdict
+            structured["structured_verdict"] = (
+                "Mixed / disputed" if graph_verdict == "CONFLICTING" else "Insufficient evidence"
+            )
+            structured["confidence"] = 0.5
+            structured["uncertainty_reasons"] = graph_reasons
+            structured["needs_human_review"] = True
+            structured["human_review_reason"] = graph_reasons[0]
+            structured["explanation"] = f"Graph adjudication: {graph_reasons[0]}"
 
-        if req.enable_reflective_abstention and reflective_report.get("decision") == "TERMINATE":
+        if (
+            req.enable_reflective_abstention
+            and reflective_report.get("decision") == "TERMINATE"
+            and structured.get("legacy_verdict") != "CONFLICTING"
+        ):
             abstain_reason = str(
                 reflective_report.get("abstain_reason")
                 or "Reflective factor analysis requested abstention."
@@ -1159,7 +1261,10 @@ async def analyze(req: AnalyzeRequest):
             "needs_human_review": structured["needs_human_review"],
             "human_review_reason": structured["human_review_reason"],
             "claim_profile": claim_profile,
-            "evidence": [{k: v for k, v in e.items() if k != "base_domain"} for e in enriched_items],
+            "evidence": [{k: v for k, v in e.items() if k != "base_domain"} for e in [*enriched_items, *failed_items]],
+            "evidence_graph": evidence_graph,
+            "graph_audit": graph_audit,
+            "retrieval_manifest": retrieval_manifest,
             "debate_summary": summary,
             "debate_used": req.verifier == "debate",
             "debate_available": ollama_available,
@@ -1185,10 +1290,15 @@ async def analyze(req: AnalyzeRequest):
         save_claim_memory(claim_key, claim_output)
 
     # input domain score
-    input_domain_score, input_domain_label, input_domain_reasons = derive_input_domain_signal(
-        [ClaimResult(**c) for c in claims],
-        domain=domain,
-    )
+    if domain:
+        input_cred = score_domain_rubric(domain)
+        input_domain_score = int(input_cred.score)
+        input_domain_label = str(input_cred.label)
+        input_domain_reasons = input_cred.reasons
+    else:
+        input_domain_score = 50  # neutral prior — no domain to judge
+        input_domain_label = "MEDIUM"
+        input_domain_reasons = {}
 
     final_like = estimate_misinformation_likelihood(
         [ClaimResult(**c) for c in claims],
@@ -1239,6 +1349,13 @@ async def analyze(req: AnalyzeRequest):
             "claim_memory_enabled": True,
             "reflective_abstention_enabled": req.enable_reflective_abstention,
             "faithful_correction_enabled": req.enable_faithful_correction,
+            "retrieval": {
+                "manifest_version": MANIFEST_VERSION,
+                "query_limit_chars": 220,
+                "evidence_basis": "fetched_passages_only",
+                "search_provider": "SerpAPI",
+                "raw_results_frozen_in_claim_snapshots": True,
+            },
             "trust_features": [
                 "claim_decomposition",
                 "evidence_quality_ranking",
@@ -1255,6 +1372,12 @@ async def analyze(req: AnalyzeRequest):
                 "anti_manipulation_flags",
                 "expertise_profiles",
                 "human_review_mode",
+                "atomic_claim_candidates",
+                "full_passage_provenance",
+                "typed_evidence_graph",
+                "source_independence_clusters",
+                "deterministic_graph_auditor",
+                "conflict_aware_abstention",
                 "sentiment_analysis",
                 "emotional_bias_detection",
             ],

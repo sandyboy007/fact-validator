@@ -1,0 +1,306 @@
+{
+  "version": "retrieval-robustness-report-v1",
+  "generated_utc": "2026-07-23T00:41:22.705688Z",
+  "input": "C:\\Fact_Validator\\data\\challenges\\conflict_undercut_v1_seed.json",
+  "warning": "Interpret results only after using independently sourced, annotated evidence and predeclared corruptions.",
+  "scenarios_evaluated": 8,
+  "systems": {
+    "graph_only": {
+      "coverage": 0.375,
+      "selective_risk": 0.6667,
+      "false_accept_rate": 0.25
+    },
+    "full_audited_graph": {
+      "coverage": 0.375,
+      "selective_risk": 0.6667,
+      "false_accept_rate": 0.25
+    }
+  },
+  "rows": [
+    {
+      "id": "support-direct-001",
+      "scenario": "clean",
+      "claim": "The study reported a 20 percent reduction in hospital admissions.",
+      "expected_verdict": "SUPPORTED",
+      "graph_only": "SUPPORTED",
+      "full_audited_graph": "SUPPORTED",
+      "audit": {
+        "version": "graph-auditor-v1",
+        "passed": true,
+        "decision": "PROCEED",
+        "violations": [],
+        "checked_rules": [
+          "retrieval-status",
+          "provenance",
+          "relation-grounding",
+          "numeric-factor-coverage",
+          "conflict-resolution",
+          "source-independence"
+        ],
+        "evidence_clusters": [
+          "cluster:1"
+        ]
+      },
+      "evidence_count": 1,
+      "independence_clusters": [
+        {
+          "id": "cluster:1",
+          "domain": "seed.example",
+          "evidence_count": 1,
+          "urls": [
+            "https://seed.example/support-direct-001"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "refute-direct-001",
+      "scenario": "clean",
+      "claim": "The study reported a 20 percent reduction in hospital admissions.",
+      "expected_verdict": "REFUTED",
+      "graph_only": "NEI",
+      "full_audited_graph": "NEI",
+      "audit": {
+        "version": "graph-auditor-v1",
+        "passed": false,
+        "decision": "NEI",
+        "violations": [
+          "No retrieved passage establishes a grounded argumentative relation.",
+          "Numeric claim factors are not matched by retrieved evidence."
+        ],
+        "checked_rules": [
+          "retrieval-status",
+          "provenance",
+          "relation-grounding",
+          "numeric-factor-coverage",
+          "conflict-resolution",
+          "source-independence"
+        ],
+        "evidence_clusters": [
+          "cluster:1"
+        ]
+      },
+      "evidence_count": 1,
+      "independence_clusters": [
+        {
+          "id": "cluster:1",
+          "domain": "seed.example",
+          "evidence_count": 1,
+          "urls": [
+            "https://seed.example/refute-direct-001"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "undercut-scope-001",
+      "scenario": "clean",
+      "claim": "The treatment reduces hospital admissions for all patients.",
+      "expected_verdict": "CONFLICTING",
+      "graph_only": "NEI",
+      "full_audited_graph": "NEI",
+      "audit": {
+        "version": "graph-auditor-v1",
+        "passed": false,
+        "decision": "NEI",
+        "violations": [
+          "No retrieved passage establishes a grounded argumentative relation."
+        ],
+        "checked_rules": [
+          "retrieval-status",
+          "provenance",
+          "relation-grounding",
+          "numeric-factor-coverage",
+          "conflict-resolution",
+          "source-independence"
+        ],
+        "evidence_clusters": []
+      },
+      "evidence_count": 1,
+      "independence_clusters": [
+        {
+          "id": "cluster:1",
+          "domain": "seed.example",
+          "evidence_count": 1,
+          "urls": [
+            "https://seed.example/undercut-scope-001"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "undercut-temporal-001",
+      "scenario": "clean",
+      "claim": "The policy remains active today.",
+      "expected_verdict": "REFUTED",
+      "graph_only": "SUPPORTED",
+      "full_audited_graph": "SUPPORTED",
+      "audit": {
+        "version": "graph-auditor-v1",
+        "passed": true,
+        "decision": "PROCEED",
+        "violations": [],
+        "checked_rules": [
+          "retrieval-status",
+          "provenance",
+          "relation-grounding",
+          "numeric-factor-coverage",
+          "conflict-resolution",
+          "source-independence"
+        ],
+        "evidence_clusters": [
+          "cluster:1"
+        ]
+      },
+      "evidence_count": 1,
+      "independence_clusters": [
+        {
+          "id": "cluster:1",
+          "domain": "seed.example",
+          "evidence_count": 1,
+          "urls": [
+            "https://seed.example/undercut-temporal-001"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "neutral-overlap-001",
+      "scenario": "clean",
+      "claim": "The survey found a 20 percent reduction in hospital admissions.",
+      "expected_verdict": "NEI",
+      "graph_only": "SUPPORTED",
+      "full_audited_graph": "SUPPORTED",
+      "audit": {
+        "version": "graph-auditor-v1",
+        "passed": true,
+        "decision": "PROCEED",
+        "violations": [],
+        "checked_rules": [
+          "retrieval-status",
+          "provenance",
+          "relation-grounding",
+          "numeric-factor-coverage",
+          "conflict-resolution",
+          "source-independence"
+        ],
+        "evidence_clusters": [
+          "cluster:1"
+        ]
+      },
+      "evidence_count": 1,
+      "independence_clusters": [
+        {
+          "id": "cluster:1",
+          "domain": "seed.example",
+          "evidence_count": 1,
+          "urls": [
+            "https://seed.example/neutral-overlap-001"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "numeric-mismatch-001",
+      "scenario": "clean",
+      "claim": "The survey found a 20 percent reduction in hospital admissions.",
+      "expected_verdict": "REFUTED",
+      "graph_only": "NEI",
+      "full_audited_graph": "NEI",
+      "audit": {
+        "version": "graph-auditor-v1",
+        "passed": false,
+        "decision": "NEI",
+        "violations": [
+          "No retrieved passage establishes a grounded argumentative relation.",
+          "Numeric claim factors are not matched by retrieved evidence."
+        ],
+        "checked_rules": [
+          "retrieval-status",
+          "provenance",
+          "relation-grounding",
+          "numeric-factor-coverage",
+          "conflict-resolution",
+          "source-independence"
+        ],
+        "evidence_clusters": [
+          "cluster:1"
+        ]
+      },
+      "evidence_count": 1,
+      "independence_clusters": [
+        {
+          "id": "cluster:1",
+          "domain": "seed.example",
+          "evidence_count": 1,
+          "urls": [
+            "https://seed.example/numeric-mismatch-001"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "context-window-001",
+      "scenario": "clean",
+      "claim": "The intervention reduced mortality.",
+      "expected_verdict": "CONFLICTING",
+      "graph_only": "NEI",
+      "full_audited_graph": "NEI",
+      "audit": {
+        "version": "graph-auditor-v1",
+        "passed": false,
+        "decision": "NEI",
+        "violations": [
+          "No retrieved passage establishes a grounded argumentative relation."
+        ],
+        "checked_rules": [
+          "retrieval-status",
+          "provenance",
+          "relation-grounding",
+          "numeric-factor-coverage",
+          "conflict-resolution",
+          "source-independence"
+        ],
+        "evidence_clusters": []
+      },
+      "evidence_count": 1,
+      "independence_clusters": [
+        {
+          "id": "cluster:1",
+          "domain": "seed.example",
+          "evidence_count": 1,
+          "urls": [
+            "https://seed.example/context-window-001"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "missing-evidence-001",
+      "scenario": "clean",
+      "claim": "The intervention reduced mortality.",
+      "expected_verdict": "NEI",
+      "graph_only": "NEI",
+      "full_audited_graph": "NEI",
+      "audit": {
+        "version": "graph-auditor-v1",
+        "passed": false,
+        "decision": "NEI",
+        "violations": [
+          "No fetched evidence passage is available for this claim."
+        ],
+        "checked_rules": [
+          "retrieval-status",
+          "provenance",
+          "relation-grounding",
+          "numeric-factor-coverage",
+          "conflict-resolution",
+          "source-independence"
+        ],
+        "evidence_clusters": []
+      },
+      "evidence_count": 0,
+      "independence_clusters": []
+    }
+  ]
+}

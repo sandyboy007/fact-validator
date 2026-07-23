@@ -7,6 +7,10 @@ import { getApiBaseUrl } from "../lib/api-base";
 type EvidenceItem = {
   url: string;
   snippet?: string;
+  passage?: string;
+  content_hash?: string;
+  retrieval_status?: "retrieved" | "fetch_failed" | "not_fetched" | string;
+  retrieved_at_utc?: string;
   domain?: string;
   domain_score?: number;
   score?: number;
@@ -56,6 +60,12 @@ type ClaimItem = {
     oldest_citation_year?: number;
     newest_citation_year?: number;
     average_quality_score?: number;
+  };
+  evidence_graph?: {
+    decision_basis?: string;
+    retrieval_status?: string;
+    unresolved_conflict?: boolean;
+    relation_counts?: Record<string, number>;
   };
   sentiment?: {
     score: number;
@@ -1623,18 +1633,9 @@ export default function Page() {
                   }
                 />
                 <StatCard
-                  label="Misinformation risk"
-                  value={fmtPct(result.final_misinformation_likelihood)}
-                  icon="⚠️"
-                  trend={
-                    typeof result.final_misinformation_likelihood === "number"
-                      ? result.final_misinformation_likelihood > 0.6
-                        ? "down"
-                        : result.final_misinformation_likelihood > 0.3
-                        ? "neutral"
-                        : "up"
-                      : undefined
-                  }
+                  label="Evidence basis"
+                  value={result.claims?.some((claim) => claim.evidence_graph) ? "Passages" : "-"}
+                  icon="🔗"
                 />
                 <StatCard
                   label="Claims analyzed"

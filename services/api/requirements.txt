@@ -10,6 +10,7 @@ tldextract
 nltk
 watchfiles
 sentence-transformers
+transformers
 slowapi
 python-json-logger
 pydantic[email]

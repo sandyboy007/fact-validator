@@ -357,7 +357,14 @@ async def test_analyze_generates_faithful_correction_for_refuted_claim():
                 },
             ]
 
-            with patch("app.main.get_cache", return_value=None):
+            with patch("app.main.get_cache", return_value=None), patch(
+                "app.main.fetch_evidence_passage", new_callable=AsyncMock
+            ) as mock_passage:
+                mock_passage.return_value = (
+                    "The claim is false. Photosynthesis has been measured repeatedly in controlled experiments for decades.",
+                    "https://www.nature.com/articles/example",
+                    "retrieved",
+                )
                 response = await client.post("/analyze", json={
                     "text": "No credible source has ever measured photosynthesis at any time in history.",
                     "mode": "live",
@@ -400,7 +407,14 @@ async def test_analyze_correction_when_reflective_abstention_disabled():
                 },
             ]
 
-            with patch("app.main.get_cache", return_value=None):
+            with patch("app.main.get_cache", return_value=None), patch(
+                "app.main.fetch_evidence_passage", new_callable=AsyncMock
+            ) as mock_passage:
+                mock_passage.return_value = (
+                    "The claim is false. Photosynthesis has been measured repeatedly in controlled experiments for decades.",
+                    "https://www.nature.com/articles/example",
+                    "retrieved",
+                )
                 response = await client.post("/analyze", json={
                     "text": "No credible source has ever measured photosynthesis at any time in history.",
                     "mode": "live",

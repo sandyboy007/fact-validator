@@ -47,7 +47,7 @@ Fact Validator takes a **URL or free text** as input and performs the following 
   - OpenSources domain-type tags (e.g., satire, conspiracy, fake) mapped to score deltas
   - Iffy Index (MBFC-backed factuality levels) mapped to score penalties
 5. **Verdict** — a baseline NLP verifier classifies each claim as `SUPPORTED`, `REFUTED`, or `NEI` (Not Enough Information), with a confidence score.
-6. **Misinformation likelihood** — a final score (0–100 %) is computed from the input source's credibility anchored baseline, then adjusted by the claim verdicts and evidence quality.
+6. **Legacy heuristic score** — retained in API exports for backwards compatibility only; it is not a calibrated probability and is not shown as a decision score in the interface.
 7. **Persistent storage** — every run is written to a local SQLite database; past results are browsable and exportable.
 
 ---
@@ -229,6 +229,8 @@ FACTVALIDATOR_DOMAIN_CACHE=C:/Fact_Validator/services/api/data/domain_cache.json
 > `FACT_VALIDATOR_DB` is the canonical SQLite path variable. The legacy alias `FACTVALIDATOR_DB` is still accepted for backward compatibility.
 
 > The app runs without `SERPAPI_API_KEY` — evidence search will be skipped and all claims will resolve to `NEI`.
+
+> Set `FACTVALIDATOR_NLI_ENABLED=true` to enable the local MNLI relation classifier. The first request downloads the model named by `FACTVALIDATOR_NLI_MODEL` (default: `facebook/bart-large-mnli`). Without it, the API reports `heuristic-fallback` in each evidence item's `relation_classifier` metadata.
 
 ---
 

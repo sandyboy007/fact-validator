@@ -146,7 +146,7 @@ def split_atomic_claims(text: str) -> List[str]:
     out: List[str] = []
     for part in raw:
         s = " ".join((part or "").split()).strip(" ,.-")
-        if 20 <= len(s) <= 220:
+        if 8 <= len(s) <= 220:
             out.append(s)
     return out[:4] or ([text.strip()] if text.strip() else [])
 
@@ -303,7 +303,7 @@ def entity_match(entities: List[str], snippet: str) -> bool:
 
 def enrich_evidence(claim: str, claim_profile: Dict[str, Any], ev: Dict[str, Any]) -> Dict[str, Any]:
     title = ev.get("title") or ""
-    snippet = ev.get("snippet") or ""
+    snippet = ev.get("passage") or ev.get("snippet") or ""
     title_and_snippet = f"{title} {snippet}".strip()
     domain = ev.get("domain") or ""
     url = ev.get("url") or ""

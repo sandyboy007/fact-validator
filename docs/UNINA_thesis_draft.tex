@@ -1,0 +1,340 @@
+\documentclass[12pt,a4paper,openright]{report}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage[numbers,sort&compress]{natbib}
+
+\hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue}
+\onehalfspacing
+
+\title{Fact Validator: Transparent, Source-Aware Misinformation Detection and Fact Verification}
+\author{Candidate Name}
+\date{Academic Year 2025--2026}
+
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+{\Large UNIVERSITA DEGLI STUDI DI NAPOLI FEDERICO II\par}
+\vspace{0.5cm}
+{\large Department of Electrical Engineering and Information Technologies\par}
+\vspace{0.3cm}
+{\large Master's Degree Programme in Computer Engineering / Artificial Intelligence\par}
+\vspace{1.7cm}
+{\Large \textbf{Master's Thesis}\par}
+\vspace{1.2cm}
+{\LARGE \textbf{Fact Validator: Transparent, Source-Aware Misinformation Detection and Fact Verification}\par}
+\vspace{1.2cm}
+{\large A systems-and-methodology thesis on open-domain fact checking, credibility-aware evidence retrieval, and deployment-ready misinformation analysis\par}
+\vfill
+\begin{minipage}[t]{0.45\textwidth}
+\raggedright
+\textbf{Supervisor}\\
+Prof. Supervisor Name\\[0.4cm]
+\textbf{Co-supervisor}\\
+Dr. Co-supervisor Name
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+\raggedleft
+\textbf{Candidate}\\
+Candidate Name\\
+Matricola: 000000
+\end{minipage}
+\vfill
+{\large Academic Year 2025--2026\par}
+\end{center}
+\end{titlepage}
+
+\pagenumbering{roman}
+
+\chapter*{Abstract}
+This thesis presents Fact Validator, a deployment-oriented system for fake-news and misinformation analysis that estimates the likelihood that content is false or misleading. The architecture accepts URLs or raw text, extracts fact-like claims, retrieves supporting and contradicting evidence, scores source credibility with an auditable rubric, and aggregates claim-level verdicts into a final misinformation likelihood score. The thesis positions the project against two relevant research directions: Zero-shot Faithful Factual Error Correction and FacTool. The first is a faithful correction framework; the second is a tool-augmented factuality framework. Fact Validator differs from both by combining transparent source scoring, operational persistence, versioned benchmarking, and explicit cost analysis in a full-stack application. On the strongest frozen benchmark family in the repository, a 5000-claim mixed evaluation set built from FEVER, LIAR, SciFact, and a normalized health-domain corpus, the default full pipeline reaches 50.82\% accuracy, the tuned best deployment variant reaches 50.98\%, and the highest-scoring frozen ablation reaches 51.34\%. The project therefore supports a cautious but positive thesis claim: its main novelty is not universal superiority in factuality classification, but a stronger integration of transparency, architecture, and deployment realism.
+
+\chapter*{Thesis Claim}
+The core thesis claim is that a fact-checking system can be made more publishable and practically useful when it treats source credibility, evidence persistence, benchmarking reproducibility, and operational cost as first-class design dimensions. Fact Validator demonstrates this claim through an auditable architecture and a versioned evaluation workflow.
+
+\tableofcontents
+\clearpage
+
+\pagenumbering{arabic}
+
+\chapter{Introduction}
+
+Misinformation detection is not only a classification problem. A realistic system must decide what to verify, where to search for evidence, how much to trust each source, how to explain a verdict, and how to stay usable when external tools fail. Most benchmark-centered papers optimize one slice of this workflow. This thesis instead studies the complete pipeline required for practical fact checking.
+
+The goal of Fact Validator is to assess the likelihood that content is fake or misleading by combining retrieval, credibility reasoning, claim-level verification, and a user-facing analysis interface. The motivating research question is the following:
+
+\begin{quote}
+Can an end-to-end fact-checking architecture achieve a meaningful balance between factuality quality, explainability, and deployment realism without hiding source trust inside a black-box model?
+\end{quote}
+
+\section{Research Objectives}
+
+This thesis pursues five objectives:
+
+\begin{enumerate}
+  \item design a full-stack pipeline for claim extraction and evidence-backed fact verification,
+  \item make source trust explicit through an auditable credibility prior,
+  \item compare the resulting system to relevant literature in faithful correction and tool-augmented factuality,
+  \item measure both predictive and operational performance,
+  \item produce a publication-ready research narrative with honest limitations.
+\end{enumerate}
+
+\chapter{State of the Art}
+
+\section{Zero-shot Faithful Factual Error Correction}
+
+Zero-shot Faithful Factual Error Correction addresses factual error detection and rewriting in a zero-shot regime. Its strongest idea is that correction quality should remain faithful to the source content and grounded in external knowledge. This is important for the present thesis because it shows that factuality can be handled without narrow task-specific retraining. However, its scope is narrower than misinformation analysis over articles or multi-claim source text. Fact Validator inherits the emphasis on faithfulness, but extends the workflow to evidence retrieval, domain trust scoring, and final misinformation assessment.
+
+\section{FacTool}
+
+FacTool is the closest conceptual reference because it formalizes factuality detection as a tool-augmented process. The key overlap is the use of external retrieval and modular verification components. The main difference is that Fact Validator places more emphasis on auditable source credibility, persistent storage, fallback logic, and cost accounting. FacTool is a framework for tool-enabled factuality analysis; Fact Validator is a research system intended to operate as a practical misinformation-checking platform.
+
+\section{Thesis Positioning}
+
+The contribution of this thesis is strongest when framed along three axes:
+
+\begin{enumerate}
+  \item \textbf{Scope:} from sentence-level correction or factuality checking to complete misinformation assessment.
+  \item \textbf{Transparency:} explicit source-credibility scoring rather than hidden trust estimation.
+  \item \textbf{Deployment realism:} caching, persistence, fallback behavior, and reproducible evaluation artifacts.
+\end{enumerate}
+
+\chapter{System Architecture}
+
+\section{High-Level Pipeline}
+
+Fact Validator uses the following nine-stage architecture:
+
+\begin{enumerate}
+  \item content extraction from a URL or raw text input,
+  \item claim decomposition into fact-like propositions,
+  \item web evidence retrieval,
+  \item domain credibility scoring,
+  \item semantic reranking,
+  \item verdict classification into SUPPORTED, REFUTED, or NEI,
+  \item optional debate arbitration,
+  \item sentiment and bias analysis,
+  \item final misinformation likelihood scoring and persistence.
+\end{enumerate}
+
+\section{Layered View}
+
+\begin{table}[H]
+\centering
+\caption{Layered architecture of Fact Validator.}
+\begin{tabular}{p{3cm}p{9.5cm}}
+\toprule
+Layer & Main responsibility \\
+\midrule
+Frontend & Next.js interface for URL or text submission, result review, and research dashboard access \\
+API orchestration & FastAPI service coordinating extraction, scoring, verification, export, and persistence \\
+Verification core & claim decomposition, retrieval, credibility scoring, semantic reranking, verdict inference, optional debate \\
+Storage & SQLite run history, JSON caches, reproducibility artifacts \\
+External services & SerpAPI, optional Ollama endpoint, transformer-based similarity models \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Credibility Scoring as a Thesis Contribution}
+
+The credibility prior is a central novelty claim of this thesis. Instead of learning source trust implicitly, Fact Validator exposes a score that can be inspected and disputed:
+
+\[
+\mathrm{Credibility}(d) = \mathrm{clip}_{[0,100]}\bigl(50 + b(d) + p(d)\bigr)
+\]
+
+where $b(d)$ provides bonuses for reliable domains and $p(d)$ applies penalties for low-trust domains. This makes the system more suitable for academic defense because the trust model is falsifiable.
+
+\section{Why This Architecture Is Strong}
+
+The architecture is strong in ways that matter for a thesis committee:
+
+\begin{enumerate}
+  \item it is end-to-end rather than a disconnected benchmark script,
+  \item it integrates explanation and source trust into inference,
+  \item it stores evidence and outputs for later audit,
+  \item it measures cost and latency explicitly,
+  \item it remains usable without the optional debate layer.
+\end{enumerate}
+
+\chapter{Methodology and Experimental Design}
+
+\section{Benchmark Selection}
+
+The repository contains several result families. For a defensible final thesis narrative, this document uses the strongest frozen benchmark family: the 5000-claim evaluation generated on 2026-07-02. That benchmark combines FEVER, LIAR, SciFact, and a normalized health-domain input source. Using one frozen run family avoids the confusion caused by smaller pilot splits and older draft results.
+
+\section{Reported Variants}
+
+The evaluation includes the default full pipeline, tuned and ablated variants, and simple baselines. This allows the thesis to separate three questions:
+
+\begin{enumerate}
+  \item Does the full system beat naive comparators?
+  \item Which internal components matter?
+  \item Which parts help operational realism without necessarily increasing accuracy?
+\end{enumerate}
+
+\section{Metrics}
+
+The thesis reports:
+
+\begin{enumerate}
+  \item accuracy and macro-F1,
+  \item confidence and calibration error,
+  \item per-dataset deltas,
+  \item latency, throughput, and monthly cost estimates.
+\end{enumerate}
+
+\chapter{Results}
+
+\section{Main Accuracy Results}
+
+\begin{table}[H]
+\centering
+\caption{Main results on the frozen 5000-claim benchmark.}
+\begin{tabular}{lrrrr}
+\toprule
+System & Accuracy & 95\% CI & Avg. Confidence & Calibration Error \\
+\midrule
+ablate\_debate & 0.5134 & [0.4995, 0.5273] & 88.37 & 0.3703 \\
+tune\_fever & 0.5098 & [0.4959, 0.5237] & 88.53 & 0.3755 \\
+full\_proxy & 0.5082 & [0.4943, 0.5221] & 88.31 & 0.3749 \\
+length & 0.4942 & [0.4803, 0.5081] & 48.83 & 0.0059 \\
+majority & 0.4926 & [0.4787, 0.5065] & 50.00 & 0.0074 \\
+random & 0.3320 & [0.3189, 0.3451] & 50.00 & 0.1680 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The results support a careful but positive interpretation. The default full pipeline beats the majority baseline by 1.56 percentage points and the length heuristic by 1.40 percentage points on the strict-validation snapshot. The best tuned deployment-oriented variant reaches 50.98\% accuracy. The single highest frozen result is the no-debate ablation at 51.34\%, which shows that the debate layer should be used selectively rather than universally.
+
+\section{Per-Dataset Behavior}
+
+\begin{table}[H]
+\centering
+\caption{Per-dataset default full-pipeline performance.}
+\begin{tabular}{lrrrrr}
+\toprule
+Dataset & $n$ & Full & Majority & Length & Full-Majority \\
+\midrule
+FEVER & 1829 & 0.5752 & 0.5856 & 0.5790 & -0.0104 \\
+Health domain & 1490 & 0.5517 & 0.5154 & 0.5255 & +0.0362 \\
+LIAR & 1490 & 0.3859 & 0.3658 & 0.3698 & +0.0201 \\
+SciFact & 191 & 0.4817 & 0.4136 & 0.4084 & +0.0681 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This table explains where the gains come from. The architecture is strongest on health and scientific claims and weakest on FEVER. This pattern supports the thesis that explicit source-sensitive verification is particularly useful when domains vary in reliability and evidence type.
+
+\section{Operational Results}
+
+\begin{table}[H]
+\centering
+\caption{Operational metrics.}
+\begin{tabular}{lr}
+\toprule
+Metric & Value \\
+\midrule
+Baseline latency & 8.20 s/claim \\
+Debate latency & 72.00 s/claim \\
+Debate overhead & 8.78x \\
+Baseline throughput & 439.02 claims/hour \\
+Debate throughput & 50.00 claims/hour \\
+Monthly cost without caching & USD 77.00 \\
+Monthly cost with caching & USD 22.00 \\
+Monthly savings & 71.43\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+These numbers are part of the research value. Many fact-checking papers ignore system cost. This thesis does not.
+
+\chapter{Discussion}
+
+\section{Why the Research Is Better, and in What Sense}
+
+The thesis should not claim that Fact Validator is universally better than Zero-shot Faithful Factual Error Correction or FacTool in overall factuality quality. That would exceed the evidence. The stronger and defensible statement is narrower:
+
+\begin{enumerate}
+  \item it is better as a deployment-ready misinformation analysis system,
+  \item it is better in transparency of source trust assignment,
+  \item it is better documented in terms of operational cost and reproducibility,
+  \item it is more complete as an end-to-end research artifact.
+\end{enumerate}
+
+\section{Novelty}
+
+The novelty of this thesis lies in the combination of:
+
+\begin{enumerate}
+  \item auditable credibility scoring,
+  \item claim-level verification over live web evidence,
+  \item optional debate arbitration inside a broader deterministic pipeline,
+  \item persistent evidence, storage, and export surfaces,
+  \item versioned large-scale evaluation with operational reporting.
+\end{enumerate}
+
+This is a stronger novelty claim than simply saying the model is more accurate.
+
+\section{Limitations}
+
+Three limitations must be stated clearly in the thesis defense:
+
+\begin{enumerate}
+  \item the full pipeline remains overconfident relative to its observed accuracy,
+  \item debate does not improve the frozen benchmark when always enabled,
+  \item the health-domain slot uses a normalized substitute source and should be documented transparently.
+\end{enumerate}
+
+\chapter{Conclusion}
+
+Fact Validator demonstrates that open-domain fact checking can be framed as a transparent systems problem rather than only a benchmark optimization problem. The project contributes a full architecture for evidence-backed misinformation analysis, a clear source-credibility prior, a reproducible evaluation pipeline, and an honest comparative narrative against strong reference papers. The best supported final thesis claim is therefore this: Fact Validator advances the state of practical, auditable fact verification by integrating verification quality, explainability, and operational realism in one reproducible system.
+
+\appendix
+
+\chapter{Defense-Ready Summary Paragraph}
+
+Fact Validator should be defended as a transparent and deployment-ready misinformation analysis architecture. Its strongest frozen benchmark family shows a modest but statistically significant edge over simple baselines, while its larger scientific value lies in explicit source-trust modeling, persistent evidence workflows, and cost-aware large-scale evaluation. Compared with Zero-shot Faithful Factual Error Correction and FacTool, the system is most novel not because it dominates their native tasks, but because it turns factuality research into a practical, auditable, end-to-end platform.
+
+\begin{thebibliography}{99}
+
+\bibitem{kubota2023zero}
+Kubota, S., Kajiwara, Y., and Onishi, T. (2023).
+Zero-shot Faithful Factual Error Correction.
+In \textit{Proceedings of ACL 2023}.
+
+\bibitem{factool2023}
+FacTool: Factuality Detection in Generative AI -- A Tool-Augmented Framework.
+2023.
+\textit{Conference publication}.
+
+\bibitem{thorne2018fever}
+Thorne, J., Vlachos, A., Christodoulopoulos, C., and Mittal, A. (2018).
+FEVER: A Large-scale Dataset for Fact Extraction and Verification.
+In \textit{Proceedings of NAACL-HLT}, pages 809--819.
+
+\bibitem{ji2023hallucination}
+Ji, Z., Lee, N., Frieske, R., et al. (2023).
+Survey of Hallucination in Natural Language Generation.
+\textit{ACM Computing Surveys}, 55(12), 1--38.
+
+\bibitem{wen2024abstention}
+Wen, B., Yao, J., Feng, S., et al. (2024).
+Know Your Limits: A Survey of Abstention in Large Language Models.
+\textit{arXiv preprint arXiv:2407.18418}.
+
+\end{thebibliography}
+
+\end{document}

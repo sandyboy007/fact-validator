@@ -1,0 +1,71 @@
+{
+  "version": "conflict-undercut-v1-seed",
+  "status": "synthetic-protocol-seed-not-a-benchmark",
+  "description": "Seed cases for validating graph relations, auditor behaviour, and retrieval corruption. Expand with independently sourced and double-annotated passages before reporting research results.",
+  "items": [
+    {
+      "id": "support-direct-001",
+      "claim": "The study reported a 20 percent reduction in hospital admissions.",
+      "passage": "The study reported that hospital admissions were reduced by 20 percent.",
+      "relation": "SUPPORTS",
+      "expected_verdict": "SUPPORTED",
+      "category": "direct-support"
+    },
+    {
+      "id": "refute-direct-001",
+      "claim": "The study reported a 20 percent reduction in hospital admissions.",
+      "passage": "The study found no reduction in hospital admissions.",
+      "relation": "REFUTES",
+      "expected_verdict": "REFUTED",
+      "category": "direct-refutation"
+    },
+    {
+      "id": "undercut-scope-001",
+      "claim": "The treatment reduces hospital admissions for all patients.",
+      "passage": "The observed reduction applied only to adults enrolled in the trial and cannot be generalized to all patients.",
+      "relation": "UNDERCUTS",
+      "expected_verdict": "CONFLICTING",
+      "category": "scope-undercut"
+    },
+    {
+      "id": "undercut-temporal-001",
+      "claim": "The policy remains active today.",
+      "passage": "The policy expired in 2022 and is no longer active.",
+      "relation": "REFUTES",
+      "expected_verdict": "REFUTED",
+      "category": "temporal-mismatch"
+    },
+    {
+      "id": "neutral-overlap-001",
+      "claim": "The survey found a 20 percent reduction in hospital admissions.",
+      "passage": "The hospital expanded admissions capacity by 20 percent during the survey period.",
+      "relation": "NEUTRAL",
+      "expected_verdict": "NEI",
+      "category": "lexical-distractor"
+    },
+    {
+      "id": "numeric-mismatch-001",
+      "claim": "The survey found a 20 percent reduction in hospital admissions.",
+      "passage": "The survey found a 12 percent reduction in hospital admissions.",
+      "relation": "REFUTES",
+      "expected_verdict": "REFUTED",
+      "category": "numeric-mismatch"
+    },
+    {
+      "id": "context-window-001",
+      "claim": "The intervention reduced mortality.",
+      "passage": "Preliminary results suggested a reduction in mortality. However, the difference was not statistically significant. The authors cautioned against causal conclusions.",
+      "relation": "UNDERCUTS",
+      "expected_verdict": "CONFLICTING",
+      "category": "context-required"
+    },
+    {
+      "id": "missing-evidence-001",
+      "claim": "The intervention reduced mortality.",
+      "passage": "",
+      "relation": "MISSING_EVIDENCE",
+      "expected_verdict": "NEI",
+      "category": "retrieval-failure"
+    }
+  ]
+}

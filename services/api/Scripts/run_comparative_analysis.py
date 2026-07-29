@@ -214,16 +214,16 @@ def _safe_comparison(
         elif s < b:
             losses += 1
 
-    # One-sided exact sign test p-value: P(X >= wins), X~Binomial(n_non_tie, 0.5).
+    # Exact two-sided McNemar test on discordant paired correctness outcomes.
     n_non_tie = wins + losses
     if n_non_tie == 0:
         p_value = 1.0
         z_stat = 0.0
     else:
-        # Use log-space summation to avoid overflow for large n.
+        tail_end = min(wins, losses)
         log_terms = []
         log_half = math.log(0.5)
-        for k in range(wins, n_non_tie + 1):
+        for k in range(0, tail_end + 1):
             log_terms.append(
                 math.lgamma(n_non_tie + 1)
                 - math.lgamma(k + 1)
@@ -232,28 +232,16 @@ def _safe_comparison(
             )
 
         max_log = max(log_terms)
-        p_value = math.exp(max_log) * sum(math.exp(t - max_log) for t in log_terms)
+        one_tail = math.exp(max_log) * sum(math.exp(t - max_log) for t in log_terms)
+        p_value = 2.0 * one_tail
         p_value = min(1.0, max(0.0, p_value))
 
-        # Continuity-corrected z approximation for directionality display.
+        # Continuity-corrected z approximation is display-only; the exact
+        # two-sided p-value above is the reported inferential result.
         expected = n_non_tie * 0.5
         std = math.sqrt(n_non_tie * 0.25)
-        z_stat = ((wins - expected) - 0.5) / std if std > 0 else 0.0
-
-    diffs = [s - b for s, b in zip(system_scores, baseline_scores)]
-    mean_diff = _mean(diffs)
-    std_diff = math.sqrt(_mean([(d - mean_diff) ** 2 for d in diffs])) if diffs else 0.0
-    cohens_d = (mean_diff / std_diff) if std_diff > 0 else 0.0
-
-    abs_d = abs(cohens_d)
-    if abs_d < 0.2:
-        effect_interp = "negligible"
-    elif abs_d < 0.5:
-        effect_interp = "small"
-    elif abs_d < 0.8:
-        effect_interp = "medium"
-    else:
-        effect_interp = "large"
+        correction = 0.5 if wins >= losses else -0.5
+        z_stat = ((wins - expected) - correction) / std if std > 0 else 0.0
 
     system_accuracy = _mean(system_scores)
     baseline_accuracy = _mean(baseline_scores)
@@ -276,17 +264,45 @@ def _safe_comparison(
             "upper": ci_baseline["upper"],
         },
         "significance_test": {
-            "name": "Paired sign test (one-sided)",
-            "t_statistic": z_stat,
+            "name": "Exact paired McNemar test (two-sided)",
+            "z_statistic": z_stat,
             "p_value": p_value,
+            "p_value_holm": None,
             "degrees_freedom": n_non_tie,
             "is_significant_alpha_0_05": bool(p_value < 0.05),
+            "is_significant_holm_alpha_0_05": False,
         },
         "effect_size": {
-            "cohens_d": cohens_d,
-            "interpretation": effect_interp,
+            "matched_pair_odds_ratio": (wins + 0.5) / (losses + 0.5),
+            "paired_risk_difference": system_accuracy - baseline_accuracy,
+            "full_wins": wins,
+            "full_losses": losses,
         },
     }
+
+
+def _apply_holm_correction(comparisons: List[Dict]) -> None:
+    valid = [
+        (index, item)
+        for index, item in enumerate(comparisons)
+        if "error" not in item
+    ]
+    ordered = sorted(
+        valid,
+        key=lambda pair: pair[1]["significance_test"]["p_value"],
+    )
+    running_max = 0.0
+    total = len(ordered)
+    for rank, (index, item) in enumerate(ordered):
+        adjusted = min(
+            1.0,
+            (total - rank) * item["significance_test"]["p_value"],
+        )
+        running_max = max(running_max, adjusted)
+        comparisons[index]["significance_test"]["p_value_holm"] = running_max
+        comparisons[index]["significance_test"][
+            "is_significant_holm_alpha_0_05"
+        ] = bool(running_max < 0.05)
 
 
 def _build_markdown(report: Dict) -> str:
@@ -317,8 +333,8 @@ def _build_markdown(report: Dict) -> str:
         "",
         "## Full System vs Comparators",
         "",
-        "| Comparator | Delta Accuracy (pp) | p-value | Cohen's d | Significant (0.05) |",
-        "|---|---:|---:|---:|:---:|",
+        "| Comparator | Delta Accuracy (pp) | exact p | Holm p | Matched OR | Holm significant |",
+        "|---|---:|---:|---:|---:|:---:|",
     ])
 
     for cmp_row in report["comparisons"]:
@@ -326,13 +342,16 @@ def _build_markdown(report: Dict) -> str:
             continue
         p_value = cmp_row["significance_test"]["p_value"]
         p_text = "NA" if p_value is None else f"{p_value:.4f}"
+        adjusted = cmp_row["significance_test"]["p_value_holm"]
+        adjusted_text = "NA" if adjusted is None else f"{adjusted:.4f}"
         lines.append(
             "| "
             f"{cmp_row['baseline_name']} | "
             f"{cmp_row['improvement_pct_points']:+.2f} | "
             f"{p_text} | "
-            f"{cmp_row['effect_size']['cohens_d']:.3f} | "
-            f"{'yes' if cmp_row['significance_test']['is_significant_alpha_0_05'] else 'no'} |"
+            f"{adjusted_text} | "
+            f"{cmp_row['effect_size']['matched_pair_odds_ratio']:.3f} | "
+            f"{'yes' if cmp_row['significance_test']['is_significant_holm_alpha_0_05'] else 'no'} |"
         )
 
     debate_lift = report.get("debate_lift")
@@ -397,6 +416,7 @@ def main() -> int:
                 baseline_name=comparator,
             )
         )
+    _apply_holm_correction(comparisons)
 
     ranking = []
     for name, metrics in system_metrics.items():

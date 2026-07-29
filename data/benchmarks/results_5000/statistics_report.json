@@ -1,0 +1,735 @@
+{
+  "metadata": {
+    "generated_utc": "2026-07-29T00:07:59.175248+00:00",
+    "evaluation_type": "deterministic_proxy",
+    "full_system_label": "full_proxy",
+    "seed": 42,
+    "bootstrap_iterations": 20000,
+    "confidence_note": "The proxy stores one heuristic raw confidence score. It does not store a multiclass probability vector, so a proper multiclass Brier score is not available."
+  },
+  "artifact_validation": {
+    "full_proxy": {
+      "prediction_count": 5000,
+      "claim_ids_match_full_proxy": true
+    },
+    "ablate_credibility": {
+      "prediction_count": 5000,
+      "claim_ids_match_full_proxy": true
+    },
+    "ablate_semantic_rerank": {
+      "prediction_count": 5000,
+      "claim_ids_match_full_proxy": true
+    },
+    "ablate_debate": {
+      "prediction_count": 5000,
+      "claim_ids_match_full_proxy": true
+    },
+    "ablate_quality_filter": {
+      "prediction_count": 5000,
+      "claim_ids_match_full_proxy": true
+    },
+    "tune_fever": {
+      "prediction_count": 5000,
+      "claim_ids_match_full_proxy": true
+    },
+    "random": {
+      "prediction_count": 5000,
+      "claim_ids_match_full_proxy": true
+    },
+    "keyword": {
+      "prediction_count": 5000,
+      "claim_ids_match_full_proxy": true
+    },
+    "length": {
+      "prediction_count": 5000,
+      "claim_ids_match_full_proxy": true
+    },
+    "sentiment": {
+      "prediction_count": 5000,
+      "claim_ids_match_full_proxy": true
+    },
+    "majority": {
+      "prediction_count": 5000,
+      "claim_ids_match_full_proxy": true
+    }
+  },
+  "system_metrics": [
+    {
+      "system": "full_proxy",
+      "n": 5000,
+      "accuracy": 0.5082,
+      "accuracy_wilson_lower": 0.49434159459841476,
+      "accuracy_wilson_upper": 0.5220458146273289,
+      "macro_f1": 0.43842688638888777,
+      "average_raw_confidence": 88.31122949999994
+    },
+    {
+      "system": "ablate_credibility",
+      "n": 5000,
+      "accuracy": 0.4974,
+      "accuracy_wilson_lower": 0.48354821147018295,
+      "accuracy_wilson_upper": 0.5112557807265325,
+      "macro_f1": 0.4393098479872437,
+      "average_raw_confidence": 78.68430521999976
+    },
+    {
+      "system": "ablate_semantic_rerank",
+      "n": 5000,
+      "accuracy": 0.5068,
+      "accuracy_wilson_lower": 0.4929420879345686,
+      "accuracy_wilson_upper": 0.5206474709355604,
+      "macro_f1": 0.4370517505172377,
+      "average_raw_confidence": 87.32037667999998
+    },
+    {
+      "system": "ablate_debate",
+      "n": 5000,
+      "accuracy": 0.5134,
+      "accuracy_wilson_lower": 0.499540712935831,
+      "accuracy_wilson_upper": 0.5272387118964817,
+      "macro_f1": 0.44267699319558895,
+      "average_raw_confidence": 88.37275913999993
+    },
+    {
+      "system": "ablate_quality_filter",
+      "n": 5000,
+      "accuracy": 0.5086,
+      "accuracy_wilson_lower": 0.49474147358704756,
+      "accuracy_wilson_upper": 0.5224453214545861,
+      "macro_f1": 0.43868957429854777,
+      "average_raw_confidence": 88.31122949999994
+    },
+    {
+      "system": "tune_fever",
+      "n": 5000,
+      "accuracy": 0.5098,
+      "accuracy_wilson_lower": 0.49594116373645764,
+      "accuracy_wilson_upper": 0.5236437887528459,
+      "macro_f1": 0.4421032578012332,
+      "average_raw_confidence": 88.53009527999993
+    },
+    {
+      "system": "random",
+      "n": 5000,
+      "accuracy": 0.332,
+      "accuracy_wilson_lower": 0.31907981185110473,
+      "accuracy_wilson_upper": 0.3451781454751225,
+      "macro_f1": 0.32402745396456684,
+      "average_raw_confidence": 49.997100700000054
+    },
+    {
+      "system": "keyword",
+      "n": 5000,
+      "accuracy": 0.2354,
+      "accuracy_wilson_lower": 0.2238463311185665,
+      "accuracy_wilson_upper": 0.24735995167024122,
+      "macro_f1": 0.13636695814439592,
+      "average_raw_confidence": 23.617333340000002
+    },
+    {
+      "system": "length",
+      "n": 5000,
+      "accuracy": 0.4942,
+      "accuracy_wilson_lower": 0.4803514124543947,
+      "accuracy_wilson_upper": 0.5080574932152012,
+      "macro_f1": 0.34831664691791203,
+      "average_raw_confidence": 48.8328
+    },
+    {
+      "system": "sentiment",
+      "n": 5000,
+      "accuracy": 0.2378,
+      "accuracy_wilson_lower": 0.22620331175836825,
+      "accuracy_wilson_upper": 0.2497992859257791,
+      "macro_f1": 0.13996850573768846,
+      "average_raw_confidence": 40.306
+    },
+    {
+      "system": "majority",
+      "n": 5000,
+      "accuracy": 0.4926,
+      "accuracy_wilson_lower": 0.4787532256167725,
+      "accuracy_wilson_upper": 0.5064581367892638,
+      "macro_f1": 0.22001875921211309,
+      "average_raw_confidence": 50.0
+    }
+  ],
+  "confusion_matrix_full_proxy": [
+    {
+      "gold_label": "SUPPORTED",
+      "SUPPORTED": 1776,
+      "REFUTED": 180,
+      "NEI": 507
+    },
+    {
+      "gold_label": "REFUTED",
+      "SUPPORTED": 678,
+      "REFUTED": 294,
+      "NEI": 399
+    },
+    {
+      "gold_label": "NEI",
+      "SUPPORTED": 538,
+      "REFUTED": 157,
+      "NEI": 471
+    }
+  ],
+  "per_class_metrics_full_proxy": [
+    {
+      "label": "SUPPORTED",
+      "support": 2463,
+      "true_positive": 1776,
+      "false_positive": 1216,
+      "false_negative": 687,
+      "precision": 0.5935828877005348,
+      "recall": 0.7210718635809987,
+      "f1": 0.6511457378551788
+    },
+    {
+      "label": "REFUTED",
+      "support": 1371,
+      "true_positive": 294,
+      "false_positive": 337,
+      "false_negative": 1077,
+      "precision": 0.4659270998415214,
+      "recall": 0.21444201312910285,
+      "f1": 0.29370629370629375
+    },
+    {
+      "label": "NEI",
+      "support": 1166,
+      "true_positive": 471,
+      "false_positive": 906,
+      "false_negative": 695,
+      "precision": 0.3420479302832244,
+      "recall": 0.4039451114922813,
+      "f1": 0.37042862760519074
+    }
+  ],
+  "per_dataset_metrics": [
+    {
+      "system": "full_proxy",
+      "dataset": "FEVER",
+      "n": 1829,
+      "accuracy": 0.5751776927282668,
+      "accuracy_wilson_lower": 0.5523888580467368,
+      "accuracy_wilson_upper": 0.59765138547458
+    },
+    {
+      "system": "full_proxy",
+      "dataset": "LIAR",
+      "n": 1490,
+      "accuracy": 0.3859060402684564,
+      "accuracy_wilson_lower": 0.361511062788624,
+      "accuracy_wilson_upper": 0.4108878314448743
+    },
+    {
+      "system": "full_proxy",
+      "dataset": "PUBHEALTH_health_fact",
+      "n": 1490,
+      "accuracy": 0.5516778523489932,
+      "accuracy_wilson_lower": 0.5263248044119433,
+      "accuracy_wilson_upper": 0.5767651081999425
+    },
+    {
+      "system": "full_proxy",
+      "dataset": "SciFact",
+      "n": 191,
+      "accuracy": 0.4816753926701571,
+      "accuracy_wilson_lower": 0.4118751476055555,
+      "accuracy_wilson_upper": 0.5521982330277384
+    },
+    {
+      "system": "ablate_credibility",
+      "dataset": "FEVER",
+      "n": 1829,
+      "accuracy": 0.5702569710224166,
+      "accuracy_wilson_lower": 0.5474454042247786,
+      "accuracy_wilson_upper": 0.5927740233569609
+    },
+    {
+      "system": "ablate_credibility",
+      "dataset": "LIAR",
+      "n": 1490,
+      "accuracy": 0.38523489932885907,
+      "accuracy_wilson_lower": 0.360849628061888,
+      "accuracy_wilson_upper": 0.41021043613768976
+    },
+    {
+      "system": "ablate_credibility",
+      "dataset": "PUBHEALTH_health_fact",
+      "n": 1490,
+      "accuracy": 0.525503355704698,
+      "accuracy_wilson_lower": 0.5001150961299494,
+      "accuracy_wilson_upper": 0.5507604451590332
+    },
+    {
+      "system": "ablate_credibility",
+      "dataset": "SciFact",
+      "n": 191,
+      "accuracy": 0.45549738219895286,
+      "accuracy_wilson_lower": 0.386440179688123,
+      "accuracy_wilson_upper": 0.5263094589927336
+    },
+    {
+      "system": "ablate_semantic_rerank",
+      "dataset": "FEVER",
+      "n": 1829,
+      "accuracy": 0.5751776927282668,
+      "accuracy_wilson_lower": 0.5523888580467368,
+      "accuracy_wilson_upper": 0.59765138547458
+    },
+    {
+      "system": "ablate_semantic_rerank",
+      "dataset": "LIAR",
+      "n": 1490,
+      "accuracy": 0.38456375838926177,
+      "accuracy_wilson_lower": 0.3601882427443547,
+      "accuracy_wilson_upper": 0.40953299142130245
+    },
+    {
+      "system": "ablate_semantic_rerank",
+      "dataset": "PUBHEALTH_health_fact",
+      "n": 1490,
+      "accuracy": 0.5483221476510067,
+      "accuracy_wilson_lower": 0.5229606705261726,
+      "accuracy_wilson_upper": 0.5734350919161105
+    },
+    {
+      "system": "ablate_semantic_rerank",
+      "dataset": "SciFact",
+      "n": 191,
+      "accuracy": 0.4816753926701571,
+      "accuracy_wilson_lower": 0.4118751476055555,
+      "accuracy_wilson_upper": 0.5521982330277384
+    },
+    {
+      "system": "ablate_debate",
+      "dataset": "FEVER",
+      "n": 1829,
+      "accuracy": 0.5839256424275561,
+      "accuracy_wilson_lower": 0.5611828804176684,
+      "accuracy_wilson_upper": 0.6063165914406744
+    },
+    {
+      "system": "ablate_debate",
+      "dataset": "LIAR",
+      "n": 1490,
+      "accuracy": 0.38926174496644295,
+      "accuracy_wilson_lower": 0.3648189758964035,
+      "accuracy_wilson_upper": 0.41427406850669773
+    },
+    {
+      "system": "ablate_debate",
+      "dataset": "PUBHEALTH_health_fact",
+      "n": 1490,
+      "accuracy": 0.5550335570469799,
+      "accuracy_wilson_lower": 0.5296900959189597,
+      "accuracy_wilson_upper": 0.5800939668625293
+    },
+    {
+      "system": "ablate_debate",
+      "dataset": "SciFact",
+      "n": 191,
+      "accuracy": 0.4816753926701571,
+      "accuracy_wilson_lower": 0.4118751476055555,
+      "accuracy_wilson_upper": 0.5521982330277384
+    },
+    {
+      "system": "ablate_quality_filter",
+      "dataset": "FEVER",
+      "n": 1829,
+      "accuracy": 0.5751776927282668,
+      "accuracy_wilson_lower": 0.5523888580467368,
+      "accuracy_wilson_upper": 0.59765138547458
+    },
+    {
+      "system": "ablate_quality_filter",
+      "dataset": "LIAR",
+      "n": 1490,
+      "accuracy": 0.3865771812080537,
+      "accuracy_wilson_lower": 0.3621725468766648,
+      "accuracy_wilson_upper": 0.4115651773907541
+    },
+    {
+      "system": "ablate_quality_filter",
+      "dataset": "PUBHEALTH_health_fact",
+      "n": 1490,
+      "accuracy": 0.5516778523489932,
+      "accuracy_wilson_lower": 0.5263248044119433,
+      "accuracy_wilson_upper": 0.5767651081999425
+    },
+    {
+      "system": "ablate_quality_filter",
+      "dataset": "SciFact",
+      "n": 191,
+      "accuracy": 0.4869109947643979,
+      "accuracy_wilson_lower": 0.4169848718412432,
+      "accuracy_wilson_upper": 0.5573532571825381
+    },
+    {
+      "system": "tune_fever",
+      "dataset": "FEVER",
+      "n": 1829,
+      "accuracy": 0.5795516675779114,
+      "accuracy_wilson_lower": 0.5567849609686021,
+      "accuracy_wilson_upper": 0.6019848967212278
+    },
+    {
+      "system": "tune_fever",
+      "dataset": "LIAR",
+      "n": 1490,
+      "accuracy": 0.3859060402684564,
+      "accuracy_wilson_lower": 0.361511062788624,
+      "accuracy_wilson_upper": 0.4108878314448743
+    },
+    {
+      "system": "tune_fever",
+      "dataset": "PUBHEALTH_health_fact",
+      "n": 1490,
+      "accuracy": 0.5516778523489932,
+      "accuracy_wilson_lower": 0.5263248044119433,
+      "accuracy_wilson_upper": 0.5767651081999425
+    },
+    {
+      "system": "tune_fever",
+      "dataset": "SciFact",
+      "n": 191,
+      "accuracy": 0.4816753926701571,
+      "accuracy_wilson_lower": 0.4118751476055555,
+      "accuracy_wilson_upper": 0.5521982330277384
+    },
+    {
+      "system": "random",
+      "dataset": "FEVER",
+      "n": 1829,
+      "accuracy": 0.3253143794423182,
+      "accuracy_wilson_lower": 0.30422893978573606,
+      "accuracy_wilson_upper": 0.3471320943592768
+    },
+    {
+      "system": "random",
+      "dataset": "LIAR",
+      "n": 1490,
+      "accuracy": 0.33758389261744964,
+      "accuracy_wilson_lower": 0.3140173259606039,
+      "accuracy_wilson_upper": 0.3619858058306113
+    },
+    {
+      "system": "random",
+      "dataset": "PUBHEALTH_health_fact",
+      "n": 1490,
+      "accuracy": 0.3389261744966443,
+      "accuracy_wilson_lower": 0.31533294852494087,
+      "accuracy_wilson_upper": 0.36334784333411557
+    },
+    {
+      "system": "random",
+      "dataset": "SciFact",
+      "n": 191,
+      "accuracy": 0.29842931937172773,
+      "accuracy_wilson_lower": 0.23803100697155422,
+      "accuracy_wilson_upper": 0.3667761799946787
+    },
+    {
+      "system": "keyword",
+      "dataset": "FEVER",
+      "n": 1829,
+      "accuracy": 0.1722252597047567,
+      "accuracy_wilson_lower": 0.1556124789922038,
+      "accuracy_wilson_upper": 0.1902120592548547
+    },
+    {
+      "system": "keyword",
+      "dataset": "LIAR",
+      "n": 1490,
+      "accuracy": 0.3483221476510067,
+      "accuracy_wilson_lower": 0.32454828492180965,
+      "accuracy_wilson_upper": 0.37287612741213516
+    },
+    {
+      "system": "keyword",
+      "dataset": "PUBHEALTH_health_fact",
+      "n": 1490,
+      "accuracy": 0.18523489932885906,
+      "accuracy_wilson_lower": 0.16632704575886828,
+      "accuracy_wilson_upper": 0.20576166833237133
+    },
+    {
+      "system": "keyword",
+      "dataset": "SciFact",
+      "n": 191,
+      "accuracy": 0.3507853403141361,
+      "accuracy_wilson_lower": 0.2866542505835305,
+      "accuracy_wilson_upper": 0.42080042028757697
+    },
+    {
+      "system": "length",
+      "dataset": "FEVER",
+      "n": 1829,
+      "accuracy": 0.5790049207217058,
+      "accuracy_wilson_lower": 0.556235348920981,
+      "accuracy_wilson_upper": 0.6014433069977847
+    },
+    {
+      "system": "length",
+      "dataset": "LIAR",
+      "n": 1490,
+      "accuracy": 0.3697986577181208,
+      "accuracy_wilson_lower": 0.34565036786010456,
+      "accuracy_wilson_upper": 0.3946166055592994
+    },
+    {
+      "system": "length",
+      "dataset": "PUBHEALTH_health_fact",
+      "n": 1490,
+      "accuracy": 0.525503355704698,
+      "accuracy_wilson_lower": 0.5001150961299494,
+      "accuracy_wilson_upper": 0.5507604451590332
+    },
+    {
+      "system": "length",
+      "dataset": "SciFact",
+      "n": 191,
+      "accuracy": 0.4083769633507853,
+      "accuracy_wilson_lower": 0.3411408586472944,
+      "accuracy_wilson_upper": 0.4792260445191751
+    },
+    {
+      "system": "sentiment",
+      "dataset": "FEVER",
+      "n": 1829,
+      "accuracy": 0.17550574084199017,
+      "accuracy_wilson_lower": 0.1587572134089546,
+      "accuracy_wilson_upper": 0.19361453546448867
+    },
+    {
+      "system": "sentiment",
+      "dataset": "LIAR",
+      "n": 1490,
+      "accuracy": 0.35369127516778526,
+      "accuracy_wilson_lower": 0.3298188371948759,
+      "accuracy_wilson_upper": 0.37831621541043375
+    },
+    {
+      "system": "sentiment",
+      "dataset": "PUBHEALTH_health_fact",
+      "n": 1490,
+      "accuracy": 0.18456375838926176,
+      "accuracy_wilson_lower": 0.16568516085370127,
+      "accuracy_wilson_upper": 0.20506472320361774
+    },
+    {
+      "system": "sentiment",
+      "dataset": "SciFact",
+      "n": 191,
+      "accuracy": 0.34554973821989526,
+      "accuracy_wilson_lower": 0.28175133725361795,
+      "accuracy_wilson_upper": 0.41543858522700206
+    },
+    {
+      "system": "majority",
+      "dataset": "FEVER",
+      "n": 1829,
+      "accuracy": 0.5855658829961727,
+      "accuracy_wilson_lower": 0.5628325701534542,
+      "accuracy_wilson_upper": 0.6079405070180809
+    },
+    {
+      "system": "majority",
+      "dataset": "LIAR",
+      "n": 1490,
+      "accuracy": 0.36577181208053694,
+      "accuracy_wilson_lower": 0.3416897200295853,
+      "accuracy_wilson_upper": 0.3905442731862951
+    },
+    {
+      "system": "majority",
+      "dataset": "PUBHEALTH_health_fact",
+      "n": 1490,
+      "accuracy": 0.5154362416107383,
+      "accuracy_wilson_lower": 0.4900530058262139,
+      "accuracy_wilson_upper": 0.5407400849539599
+    },
+    {
+      "system": "majority",
+      "dataset": "SciFact",
+      "n": 191,
+      "accuracy": 0.41361256544502617,
+      "accuracy_wilson_lower": 0.3461429049041263,
+      "accuracy_wilson_upper": 0.48448874665283065
+    }
+  ],
+  "paired_tests": [
+    {
+      "system": "full_proxy",
+      "comparator": "ablate_credibility",
+      "n": 5000,
+      "full_accuracy": 0.5082,
+      "comparator_accuracy": 0.4974,
+      "paired_risk_difference": 0.010799999999999976,
+      "paired_bootstrap_lower": 0.0044,
+      "paired_bootstrap_upper": 0.0172,
+      "full_wins": 158,
+      "full_losses": 104,
+      "discordant_pairs": 262,
+      "matched_pair_odds_ratio": 1.5167464114832536,
+      "p_value_unadjusted": 0.0010211762243820502,
+      "p_value_holm": 0.007148233570674352,
+      "significant_holm_0_05": true
+    },
+    {
+      "system": "full_proxy",
+      "comparator": "ablate_debate",
+      "n": 5000,
+      "full_accuracy": 0.5082,
+      "comparator_accuracy": 0.5134,
+      "paired_risk_difference": -0.005199999999999982,
+      "paired_bootstrap_lower": -0.009,
+      "paired_bootstrap_upper": -0.0016,
+      "full_wins": 34,
+      "full_losses": 60,
+      "discordant_pairs": 94,
+      "matched_pair_odds_ratio": 0.5702479338842975,
+      "p_value_unadjusted": 0.009547810466077417,
+      "p_value_holm": 0.0572868627964645,
+      "significant_holm_0_05": false
+    },
+    {
+      "system": "full_proxy",
+      "comparator": "ablate_quality_filter",
+      "n": 5000,
+      "full_accuracy": 0.5082,
+      "comparator_accuracy": 0.5086,
+      "paired_risk_difference": -0.00040000000000006697,
+      "paired_bootstrap_lower": -0.001,
+      "paired_bootstrap_upper": 0.0,
+      "full_wins": 0,
+      "full_losses": 2,
+      "discordant_pairs": 2,
+      "matched_pair_odds_ratio": 0.2,
+      "p_value_unadjusted": 0.5,
+      "p_value_holm": 0.9533755868685511,
+      "significant_holm_0_05": false
+    },
+    {
+      "system": "full_proxy",
+      "comparator": "ablate_semantic_rerank",
+      "n": 5000,
+      "full_accuracy": 0.5082,
+      "comparator_accuracy": 0.5068,
+      "paired_risk_difference": 0.0013999999999999568,
+      "paired_bootstrap_lower": -0.002,
+      "paired_bootstrap_upper": 0.0048,
+      "full_wins": 39,
+      "full_losses": 32,
+      "discordant_pairs": 71,
+      "matched_pair_odds_ratio": 1.2153846153846153,
+      "p_value_unadjusted": 0.47668779343427553,
+      "p_value_holm": 0.9533755868685511,
+      "significant_holm_0_05": false
+    },
+    {
+      "system": "full_proxy",
+      "comparator": "keyword",
+      "n": 5000,
+      "full_accuracy": 0.5082,
+      "comparator_accuracy": 0.2354,
+      "paired_risk_difference": 0.2728,
+      "paired_bootstrap_lower": 0.2534,
+      "paired_bootstrap_upper": 0.2916,
+      "full_wins": 2052,
+      "full_losses": 688,
+      "discordant_pairs": 2740,
+      "matched_pair_odds_ratio": 2.981118373275236,
+      "p_value_unadjusted": 3.0795806358250867e-156,
+      "p_value_holm": 3.0795806358250866e-155,
+      "significant_holm_0_05": true
+    },
+    {
+      "system": "full_proxy",
+      "comparator": "length",
+      "n": 5000,
+      "full_accuracy": 0.5082,
+      "comparator_accuracy": 0.4942,
+      "paired_risk_difference": 0.014000000000000012,
+      "paired_bootstrap_lower": 0.0006,
+      "paired_bootstrap_upper": 0.0278,
+      "full_wins": 634,
+      "full_losses": 564,
+      "discordant_pairs": 1198,
+      "matched_pair_odds_ratio": 1.1240035429583703,
+      "p_value_unadjusted": 0.046159355858554706,
+      "p_value_holm": 0.21635544725190875,
+      "significant_holm_0_05": false
+    },
+    {
+      "system": "full_proxy",
+      "comparator": "majority",
+      "n": 5000,
+      "full_accuracy": 0.5082,
+      "comparator_accuracy": 0.4926,
+      "paired_risk_difference": 0.015600000000000003,
+      "paired_bootstrap_lower": 0.0006,
+      "paired_bootstrap_upper": 0.0304,
+      "full_wins": 765,
+      "full_losses": 687,
+      "discordant_pairs": 1452,
+      "matched_pair_odds_ratio": 1.1134545454545455,
+      "p_value_unadjusted": 0.04327108945038175,
+      "p_value_holm": 0.21635544725190875,
+      "significant_holm_0_05": false
+    },
+    {
+      "system": "full_proxy",
+      "comparator": "random",
+      "n": 5000,
+      "full_accuracy": 0.5082,
+      "comparator_accuracy": 0.332,
+      "paired_risk_difference": 0.17619999999999997,
+      "paired_bootstrap_lower": 0.157,
+      "paired_bootstrap_upper": 0.1954,
+      "full_wins": 1728,
+      "full_losses": 847,
+      "discordant_pairs": 2575,
+      "matched_pair_odds_ratio": 2.03952802359882,
+      "p_value_unadjusted": 1.0531804051672162e-68,
+      "p_value_holm": 8.42544324133773e-68,
+      "significant_holm_0_05": true
+    },
+    {
+      "system": "full_proxy",
+      "comparator": "sentiment",
+      "n": 5000,
+      "full_accuracy": 0.5082,
+      "comparator_accuracy": 0.2378,
+      "paired_risk_difference": 0.2704,
+      "paired_bootstrap_lower": 0.2514,
+      "paired_bootstrap_upper": 0.2894,
+      "full_wins": 2045,
+      "full_losses": 693,
+      "discordant_pairs": 2738,
+      "matched_pair_odds_ratio": 2.9495313626532083,
+      "p_value_unadjusted": 1.5884045909170923e-153,
+      "p_value_holm": 1.429564131825383e-152,
+      "significant_holm_0_05": true
+    },
+    {
+      "system": "full_proxy",
+      "comparator": "tune_fever",
+      "n": 5000,
+      "full_accuracy": 0.5082,
+      "comparator_accuracy": 0.5098,
+      "paired_risk_difference": -0.0016000000000000458,
+      "paired_bootstrap_lower": -0.0034,
+      "paired_bootstrap_upper": 0.0002,
+      "full_wins": 6,
+      "full_losses": 14,
+      "discordant_pairs": 20,
+      "matched_pair_odds_ratio": 0.4482758620689655,
+      "p_value_unadjusted": 0.11531829833984375,
+      "p_value_holm": 0.34595489501953125,
+      "significant_holm_0_05": false
+    }
+  ]
+}

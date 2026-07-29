@@ -50,6 +50,11 @@ services/api/data/*.json
 !services/api/data/opensources.json
 !services/api/data/iffy_index.json
 
+# Runtime evidence cache is generated locally and is not thesis evidence.
+data/cache/*.json
+data/cache/quarantine/
+!data/cache/example_cache_record.json
+
 # ── OS / Editor ───────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db

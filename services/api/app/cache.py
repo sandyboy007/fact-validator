@@ -1,9 +1,13 @@
 """Caching utilities for API results and evidence."""
 import json
+import logging
 import os
+import shutil
 import time
 from typing import Dict, List, Any, Optional
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 class ResultCache:
@@ -25,6 +29,30 @@ class ResultCache:
         """Create cache key from claim text."""
         import hashlib
         return hashlib.md5(claim.lower().encode()).hexdigest()
+
+    def _quarantine_invalid_file(self, cache_file: Path, reason: str) -> None:
+        """Move an invalid cache record aside so it cannot be reused as evidence."""
+        quarantine_dir = self.cache_dir / "quarantine"
+        quarantine_dir.mkdir(parents=True, exist_ok=True)
+        destination = quarantine_dir / cache_file.name
+        counter = 1
+        while destination.exists():
+            destination = quarantine_dir / f"{cache_file.stem}.{counter}{cache_file.suffix}"
+            counter += 1
+        try:
+            shutil.move(str(cache_file), str(destination))
+            logger.warning(
+                "Quarantined invalid evidence cache %s -> %s (%s)",
+                cache_file,
+                destination,
+                reason,
+            )
+        except OSError:
+            logger.exception(
+                "Invalid evidence cache could not be quarantined: %s (%s)",
+                cache_file,
+                reason,
+            )
     
     def get(self, claim: str) -> Optional[List[Dict[str, Any]]]:
         """Get cached evidence for a claim."""
@@ -42,16 +70,24 @@ class ResultCache:
         cache_file = self.cache_dir / f"{key}.json"
         if cache_file.exists():
             try:
-                with open(cache_file, "r") as f:
+                with open(cache_file, "r", encoding="utf-8") as f:
                     entry = json.load(f)
+                if not isinstance(entry, dict):
+                    raise ValueError("cache root must be a JSON object")
+                if not isinstance(entry.get("ts"), (int, float)):
+                    raise ValueError("cache record requires numeric ts")
+                if not isinstance(entry.get("results"), list):
+                    raise ValueError("cache record requires results list")
                 if time.time() - entry["ts"] < self.ttl_seconds:
                     # Populate memory cache
                     self.memory_cache[key] = entry
                     return entry["results"]
                 else:
                     cache_file.unlink()
-            except Exception:
-                pass
+            except (UnicodeDecodeError, json.JSONDecodeError, TypeError, ValueError) as exc:
+                self._quarantine_invalid_file(cache_file, str(exc))
+            except OSError:
+                logger.exception("Failed to read evidence cache: %s", cache_file)
         
         return None
     
@@ -66,10 +102,10 @@ class ResultCache:
         # Store on disk
         cache_file = self.cache_dir / f"{key}.json"
         try:
-            with open(cache_file, "w") as f:
+            with open(cache_file, "w", encoding="utf-8") as f:
                 json.dump(entry, f, ensure_ascii=False)
-        except Exception:
-            pass  # Silently fail on write
+        except OSError:
+            logger.exception("Failed to write evidence cache: %s", cache_file)
 
 
 # Global cache instance

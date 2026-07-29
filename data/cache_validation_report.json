@@ -1,0 +1,899 @@
+{
+  "generated_utc": "2026-07-29T00:08:20.396807+00:00",
+  "cache_dir": "C:\\Fact_Validator\\data\\cache",
+  "quarantine_enabled": true,
+  "summary": {
+    "total": 127,
+    "valid": 65,
+    "invalid": 0,
+    "quarantined": 62
+  },
+  "records": [
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\01725faeb28c92a263451dd89baee2ce.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x97 in position 966: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\01725faeb28c92a263451dd89baee2ce.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\023a184b85415f29757ac0589083dfa7.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x93 in position 618: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\023a184b85415f29757ac0589083dfa7.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\08d32f09f1fe7a2991918f5f21dad046.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\09bb4ff439b2f1bfd7af4f7848fc65cd.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\0b239ec74f1b7e34f54b269e2ee24969.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\0bd1e951c3f9eed060eeb1014798e1f4.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid JSON: Expecting value: line 1 column 650 (char 649)"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\0bd1e951c3f9eed060eeb1014798e1f4.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\0c981f4be68c8f8c23a86cc7d4df936a.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\0ccf3009f27cbc6cdca484977f4bc998.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x96 in position 1036: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\0ccf3009f27cbc6cdca484977f4bc998.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\0d10118cb5b01ece8a035a4fbdfed497.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\1359632956cb21b5f31512b8a395f5cc.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x96 in position 59: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\1359632956cb21b5f31512b8a395f5cc.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\13d918af03514cd4c3207fc5763c12fc.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0xe9 in position 1161: invalid continuation byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\13d918af03514cd4c3207fc5763c12fc.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\14e2b73459fdd1fe9ad9d7b82d7f2a87.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x93 in position 268: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\14e2b73459fdd1fe9ad9d7b82d7f2a87.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\16ce88a7b1e2edab6ad16a00e75a1d74.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\1771a47c7c35fa59231bca5154a04b9f.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\184d7544d380b83a3baccd8ef285f1bf.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x96 in position 1326: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\184d7544d380b83a3baccd8ef285f1bf.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\184e501bc17890a19d5c4dd8302de083.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid JSON: Expecting value: line 1 column 252 (char 251)"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\184e501bc17890a19d5c4dd8302de083.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\193290001043c6e37126c633407b695e.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid JSON: Expecting value: line 1 column 607 (char 606)"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\193290001043c6e37126c633407b695e.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\19cf61da731a36c181dfcc3833bc475d.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\1c4705d9378dac84ec00dec49858be83.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\1c8f5309b94acde709210894806d66ba.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\1d01bd22ac89e1fc9aac575f625bfc88.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x95 in position 949: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\1d01bd22ac89e1fc9aac575f625bfc88.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\1e8d575877247b9841571717424e0e2d.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\27b2c1b26dccd102dc8da7cecbe596b9.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x96 in position 58: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\27b2c1b26dccd102dc8da7cecbe596b9.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\2bbbb36f6d0cdd9205d21aa6357d2770.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\2d00fed7fb0dace206732ea3b12eb80b.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x97 in position 923: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\2d00fed7fb0dace206732ea3b12eb80b.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\2d7b2e4fadc975a694d994c509ae91fe.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\2e05d3594e1a0d45151acf044d105a1d.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\310a07e274fdc280be523d047769b79f.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\325ab10d5a0ac51319140af77d1bbb51.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0xb7 in position 557: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\325ab10d5a0ac51319140af77d1bbb51.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\35719d66c97095412be7bf373129162e.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x80 in position 481: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\35719d66c97095412be7bf373129162e.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\398bb5c0c3fc50d24172ae9ef4c36ec4.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid JSON: Expecting value: line 1 column 914 (char 913)"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\398bb5c0c3fc50d24172ae9ef4c36ec4.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\3cd240b218afa9d2ca5163106ed0dd62.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x85 in position 823: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\3cd240b218afa9d2ca5163106ed0dd62.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\40518809a5af379d2f32af916a115c6c.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\4262e0641a3ab8a55828acb508a27030.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x93 in position 1177: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\4262e0641a3ab8a55828acb508a27030.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\42e30f61c6cf035cfb4aa7a74cf4fdbf.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x93 in position 935: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\42e30f61c6cf035cfb4aa7a74cf4fdbf.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\435986af7d0a5f383b67612bb1e2f409.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x93 in position 650: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\435986af7d0a5f383b67612bb1e2f409.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\5535756004ff2615c912aaa73f0086ce.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid JSON: Expecting value: line 1 column 447 (char 446)"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\5535756004ff2615c912aaa73f0086ce.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\56fd1b954f4eeabdeb938962d80ea02b.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\59c31f7b1f4ac1dfb04cc62d4fcdfe93.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\5a9ffc09e43aa5486a079d76c7945e1a.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0xb7 in position 352: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\5a9ffc09e43aa5486a079d76c7945e1a.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\5f19b56a6221c6f7e60067d799325c57.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0xb7 in position 410: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\5f19b56a6221c6f7e60067d799325c57.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\5f6bf33631fa599f6ab803d32d867ccd.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid JSON: Expecting value: line 1 column 47 (char 46)"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\5f6bf33631fa599f6ab803d32d867ccd.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\60ba5c4f7a374e1e7fbd286364c7bb87.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\6375909760848c540d7feb955bdacce3.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\63b06f0f328ec04a04dfb0b98a94cf0d.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\6641e705e717984d5d7e61ab53536a1a.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\685fd4012ade103678d48e97299a7813.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x93 in position 308: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\685fd4012ade103678d48e97299a7813.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\68dbf8074ac2ac966203f43dcdfbcc5b.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\68e35182632440d683cdba4db0001e45.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\6a9469856e624778310611e1c779de14.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\6b93ff1c408d22af3c0e094756e22747.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\6f2538d02d6c4c3c43d90ec1905e8828.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0xb0 in position 204: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\6f2538d02d6c4c3c43d90ec1905e8828.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\70403c76e81819fe80e848d55053f157.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\72c5f510089df52f875ce2cd79dd2ba3.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\76b5cbe9802b19e982a2d9b2a3671c83.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\781d52c969ad3c09f3f5251209fe3c98.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\7833a831ec1cf2bc8c9ff11d6cda15bb.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x97 in position 574: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\7833a831ec1cf2bc8c9ff11d6cda15bb.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\7a255bd9b1318d3847a71c7c70693908.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x92 in position 795: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\7a255bd9b1318d3847a71c7c70693908.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\7abc49da77b32d9b0ac0ae1ab5fe3907.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\7cab61f973067c5bd3272e0dc90a91ce.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\7dbc54eb1fa7c5be9c96c12772224f36.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\7fbc7f1761096f3f2293f993ce553cf5.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0xb7 in position 336: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\7fbc7f1761096f3f2293f993ce553cf5.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\7fcf7d3ab281e50ba257d8927e54ccf7.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\81d564d7de18cc445c5d90be099942f6.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x96 in position 699: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\81d564d7de18cc445c5d90be099942f6.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\824b962a9a59c17319abbf5080ca1b17.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0xb7 in position 760: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\824b962a9a59c17319abbf5080ca1b17.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\84c258970442f8c8a9376f521f92da12.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x96 in position 1164: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\84c258970442f8c8a9376f521f92da12.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\866bbf6ecbe59a4dda86f4fa45e99234.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\87ffe901c9cfc4909a64306aad8f6eab.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\8c251cc0eae4ddecda74962426071529.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\8c9ac7b52d8b3324da93c6cc6ff1f6d8.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x93 in position 330: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\8c9ac7b52d8b3324da93c6cc6ff1f6d8.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\8d973f205f7c07dbd82977e1c7055821.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\901b6f9a14f27d03e3bdefd5c29a1a09.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x96 in position 936: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\901b6f9a14f27d03e3bdefd5c29a1a09.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\9037d3e7ed0b3d6c597d1efaab2446df.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x93 in position 295: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\9037d3e7ed0b3d6c597d1efaab2446df.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\94c928c5490238a3481a1d5919f1c170.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x97 in position 310: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\94c928c5490238a3481a1d5919f1c170.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\951f62053bbf55986caee52814246bdf.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0xe9 in position 321: invalid continuation byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\951f62053bbf55986caee52814246bdf.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\957c5a7e502723d88e7ba74bda5b2bf5.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\97d144395478609f8d4981268a08ecae.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\980111ec4b923e3a8f6853334173b7ed.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\9dfc5bcb2d3e348234a6402d976b5be7.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0xb7 in position 1133: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\9dfc5bcb2d3e348234a6402d976b5be7.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\9e7767fbd07124a2ca91acd418d0d32b.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0xb7 in position 254: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\9e7767fbd07124a2ca91acd418d0d32b.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\9f4d3e4c16b6fd43171bc520d6fa7f11.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\a209c7deac7d5968c68c0a8d0cb0ee7c.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\a3f800b858a2db31c6a07e653b5b16f0.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x96 in position 311: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\a3f800b858a2db31c6a07e653b5b16f0.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\a6d866ffe1227f00e73b7ba6a0346d0b.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\a7715e849e84dc732f295f003bfffc2a.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid JSON: Expecting value: line 1 column 774 (char 773)"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\a7715e849e84dc732f295f003bfffc2a.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\a84725c03d0ab703a8c0c77f465631fd.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x93 in position 650: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\a84725c03d0ab703a8c0c77f465631fd.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\a977b5e5663c3bd09bacbf620aab0612.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\ab33600d0fc18ded83cb5df012bff2f1.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x93 in position 984: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\ab33600d0fc18ded83cb5df012bff2f1.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\b18311b3c5b3a4970e41cec360c6d2f3.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x96 in position 106: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\b18311b3c5b3a4970e41cec360c6d2f3.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\b5960d495dcea0c7ce31e98875560c96.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\b9aa75ccb9cbe7bcf473fa3f48061aa9.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\bf9d7d6751cd83d28009a564e9cd1b7e.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x93 in position 1164: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\bf9d7d6751cd83d28009a564e9cd1b7e.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\c08aa37a8f1b772b9bd7d00d828df036.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid JSON: Expecting value: line 1 column 563 (char 562)"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\c08aa37a8f1b772b9bd7d00d828df036.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\c1c71d58f51e51b0fb6ba638dd989957.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x93 in position 591: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\c1c71d58f51e51b0fb6ba638dd989957.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\c2b4c9f68c2e63a39206f86c65289959.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x91 in position 666: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\c2b4c9f68c2e63a39206f86c65289959.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\c40e1be5cddbf08f7daf0137b1ed1481.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\c4ddfe3a9071b93f34cceb2b9429e713.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\c585550ea304447a3d98a4057e1f8949.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\c63a6f98dbc9b0d70b2549d65ac1fb8f.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid JSON: Expecting value: line 1 column 597 (char 596)"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\c63a6f98dbc9b0d70b2549d65ac1fb8f.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\c685dc8d6378013a2613985f5ebd1275.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x93 in position 917: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\c685dc8d6378013a2613985f5ebd1275.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\cabdcf4bdae0d0f99add68beaba820ad.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\cced5024009c74dc1eef79d2606c3c60.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\cefe895a3cfa326b4a64edd92e2b4a7f.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\d3e88cb8c6cafd76abafb106f5b8c659.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x93 in position 894: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\d3e88cb8c6cafd76abafb106f5b8c659.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\d4c8c3e68fb351f632200e54ec09f16e.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\d54c6346cd4472644ed201b16ec86d6b.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\d6b7846c6f5883035189bcedb9b7be32.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x97 in position 227: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\d6b7846c6f5883035189bcedb9b7be32.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\d762ad3c20faff9c7e117a5c93a18ca7.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\d9d06f04118ac4d527f3c88810fe9622.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid JSON: Expecting value: line 1 column 962 (char 961)"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\d9d06f04118ac4d527f3c88810fe9622.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\dacac29e5025fbf885d045c0e069dcab.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0xb7 in position 328: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\dacac29e5025fbf885d045c0e069dcab.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\df7f42391869fa97a9e90ec727abd4dc.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\e17d72205956d54a6aea2f3a3bffcac6.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\e482d71a31bf545f61e29ab04e86fa2d.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\e5a2b714eea4f8c6f0270e3f0016d73b.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\e5f07ba9257502032d3f777d8042d76c.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0xb7 in position 700: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\e5f07ba9257502032d3f777d8042d76c.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\e79b165b0c3d69f481ef29d1655d2f55.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0xb7 in position 733: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\e79b165b0c3d69f481ef29d1655d2f55.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\e922b20e95ae0fdfbefcfe98ea554783.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid JSON: Expecting value: line 1 column 175 (char 174)"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\e922b20e95ae0fdfbefcfe98ea554783.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\ec35553e3b1352f14e0b9427f9311d29.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\ed13c8edbc76aa2b71d34138f871747a.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0xb0 in position 272: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\ed13c8edbc76aa2b71d34138f871747a.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\f32540e52378a56c09f1a06e9aa29863.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\f4c4993e78d31e039bc1e727caf2808d.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x93 in position 586: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\f4c4993e78d31e039bc1e727caf2808d.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\f794b74ea1bc87bb897f3e0b07bc4c04.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\f7ad7cc25c5dcfdc689e9f8e401ca458.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\f8363f02a2ee4a62fa2ab740bb8a4f50.json",
+      "status": "valid",
+      "errors": [],
+      "quarantine_destination": null
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\fa4315a8ede813993705de607d46f27c.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid JSON: Expecting value: line 1 column 553 (char 552)"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\fa4315a8ede813993705de607d46f27c.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\fd334083ae6696afe02b096dcfbf1052.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid UTF-8: 'utf-8' codec can't decode byte 0x93 in position 586: invalid start byte"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\fd334083ae6696afe02b096dcfbf1052.json"
+    },
+    {
+      "file": "C:\\Fact_Validator\\data\\cache\\ffdf4d75854280dd191791fe7ce28339.json",
+      "status": "quarantined",
+      "errors": [
+        "invalid JSON: Expecting value: line 1 column 1191 (char 1190)"
+      ],
+      "quarantine_destination": "C:\\Fact_Validator\\data\\cache\\quarantine\\ffdf4d75854280dd191791fe7ce28339.json"
+    }
+  ]
+}

@@ -59,7 +59,7 @@ Matricola: 000000
 \pagenumbering{roman}
 
 \chapter*{Abstract}
-This thesis presents Fact Validator, a deployment-oriented system for fake-news and misinformation analysis that estimates the likelihood that content is false or misleading. The architecture accepts URLs or raw text, extracts fact-like claims, retrieves supporting and contradicting evidence, scores source credibility with an auditable rubric, and aggregates claim-level verdicts into a final misinformation likelihood score. The thesis positions the project against two relevant research directions: Zero-shot Faithful Factual Error Correction and FacTool. The first is a faithful correction framework; the second is a tool-augmented factuality framework. Fact Validator differs from both by combining transparent source scoring, operational persistence, versioned benchmarking, and explicit cost analysis in a full-stack application. On the strongest frozen benchmark family in the repository, a 5000-claim mixed evaluation set built from FEVER, LIAR, SciFact, and a normalized health-domain corpus, the default full pipeline reaches 50.82\% accuracy, the tuned best deployment variant reaches 50.98\%, and the highest-scoring frozen ablation reaches 51.34\%. The project therefore supports a cautious but positive thesis claim: its main novelty is not universal superiority in factuality classification, but a stronger integration of transparency, architecture, and deployment realism.
+This thesis presents Fact Validator, a deployment-oriented system for fake-news and misinformation analysis. The repository contains two related but separate artifacts. The Fact Validator live application accepts URLs or raw text, retrieves evidence, applies auditable domain credibility scoring, semantically reranks evidence, and persists user-facing reports. The frozen 5000-claim experiment evaluates a deterministic FactValidator-Proxy that combines lexical classification, category-level priors, heuristic semantic signals, deterministic arbitration, and a quality filter. It does not execute SerpAPI, live domain scoring, SentenceTransformer reranking, or Ollama debate for every test claim. On FEVER, LIAR, SciFact, and the PUBHEALTH \texttt{health\_fact} dataset, the full proxy reaches 50.82\% accuracy and 0.4384 macro-F1; the no-debate proxy reaches 51.34\% and 0.4427. The novelty claim concerns transparent, auditable, deployment-aware systems integration rather than universal superiority in factuality classification.
 
 \chapter*{Thesis Claim}
 The core thesis claim is that a fact-checking system can be made more publishable and practically useful when it treats source credibility, evidence persistence, benchmarking reproducibility, and operational cost as first-class design dimensions. Fact Validator demonstrates this claim through an auditable architecture and a versioned evaluation workflow.
@@ -71,9 +71,9 @@ The core thesis claim is that a fact-checking system can be made more publishabl
 
 \chapter{Introduction}
 
-Misinformation detection is not only a classification problem. A realistic system must decide what to verify, where to search for evidence, how much to trust each source, how to explain a verdict, and how to stay usable when external tools fail. Most benchmark-centered papers optimize one slice of this workflow. This thesis instead studies the complete pipeline required for practical fact checking.
+Misinformation detection is not only a classification problem. A realistic system must decide what to verify, where to search for evidence, how much to trust each source, how to explain a verdict, and how to stay usable when external tools fail. Most benchmark-centered papers optimize one slice of this workflow. This thesis studies the live architecture required for practical fact checking and evaluates its separate deterministic proxy without treating the two evidence surfaces as identical.
 
-The goal of Fact Validator is to assess the likelihood that content is fake or misleading by combining retrieval, credibility reasoning, claim-level verification, and a user-facing analysis interface. The motivating research question is the following:
+The goal of the live Fact Validator application is to assess the likelihood that content is fake or misleading by combining retrieval, credibility reasoning, claim-level verification, and a user-facing analysis interface. Its implementation evidence is kept separate from the deterministic proxy benchmark used for the 5000-claim statistical evaluation. The motivating research question is the following:
 
 \begin{quote}
 Can an end-to-end fact-checking architecture achieve a meaningful balance between factuality quality, explainability, and deployment realism without hiding source trust inside a black-box model?
@@ -87,7 +87,7 @@ This thesis pursues five objectives:
   \item design a full-stack pipeline for claim extraction and evidence-backed fact verification,
   \item make source trust explicit through an auditable credibility prior,
   \item compare the resulting system to relevant literature in faithful correction and tool-augmented factuality,
-  \item measure both predictive and operational performance,
+  \item measure proxy predictive behavior and report separately labelled operational projections,
   \item produce a publication-ready research narrative with honest limitations.
 \end{enumerate}
 
@@ -177,10 +177,10 @@ The repository contains several result families. For a defensible final thesis n
 
 \section{Reported Variants}
 
-The evaluation includes the default full pipeline, tuned and ablated variants, and simple baselines. This allows the thesis to separate three questions:
+The evaluation includes the full deterministic proxy, tuned and ablated proxy variants, and simple baselines. This allows the thesis to separate three questions:
 
 \begin{enumerate}
-  \item Does the full system beat naive comparators?
+  \item How does the full proxy compare with naive comparators?
   \item Which internal components matter?
   \item Which parts help operational realism without necessarily increasing accuracy?
 \end{enumerate}
@@ -191,7 +191,7 @@ The thesis reports:
 
 \begin{enumerate}
   \item accuracy and macro-F1,
-  \item confidence and calibration error,
+  \item raw heuristic score and the correctly scaled raw-score diagnostic,
   \item per-dataset deltas,
   \item latency, throughput, and monthly cost estimates.
 \end{enumerate}
@@ -205,7 +205,7 @@ The thesis reports:
 \caption{Main results on the frozen 5000-claim benchmark.}
 \begin{tabular}{lrrrr}
 \toprule
-System & Accuracy & 95\% CI & Avg. Confidence & Calibration Error \\
+System & Accuracy & 95\% Wilson CI & Avg. raw score & Raw-score gap \\
 \midrule
 ablate\_debate & 0.5134 & [0.4995, 0.5273] & 88.37 & 0.3703 \\
 tune\_fever & 0.5098 & [0.4959, 0.5237] & 88.53 & 0.3755 \\
@@ -217,13 +217,13 @@ random & 0.3320 & [0.3189, 0.3451] & 50.00 & 0.1680 \\
 \end{tabular}
 \end{table}
 
-The results support a careful but positive interpretation. The default full pipeline beats the majority baseline by 1.56 percentage points and the length heuristic by 1.40 percentage points on the strict-validation snapshot. The best tuned deployment-oriented variant reaches 50.98\% accuracy. The single highest frozen result is the no-debate ablation at 51.34\%, which shows that the debate layer should be used selectively rather than universally.
+The full proxy exceeds the majority baseline by 1.56 percentage points and the length heuristic by 1.40 percentage points. Exact unadjusted McNemar p-values are 0.0433 and 0.0462, so these marginal comparisons are not described as robust superiority after multiple-comparison correction. The single highest frozen result is the no-debate proxy at 51.34\%; this finding concerns deterministic proxy arbitration, not live Ollama debate.
 
 \section{Per-Dataset Behavior}
 
 \begin{table}[H]
 \centering
-\caption{Per-dataset default full-pipeline performance.}
+\caption{Per-dataset performance of the full deterministic proxy.}
 \begin{tabular}{lrrrrr}
 \toprule
 Dataset & $n$ & Full & Majority & Length & Full-Majority \\
@@ -236,30 +236,30 @@ SciFact & 191 & 0.4817 & 0.4136 & 0.4084 & +0.0681 \\
 \end{tabular}
 \end{table}
 
-This table explains where the gains come from. The architecture is strongest on health and scientific claims and weakest on FEVER. This pattern supports the thesis that explicit source-sensitive verification is particularly useful when domains vary in reliability and evidence type.
+This table shows that proxy behavior varies by dataset: its largest descriptive margins occur on health and scientific claims, while it is slightly below simple baselines on FEVER. Because the proxy does not execute live retrieval and domain scoring for every item, these results do not establish that source-sensitive retrieval caused the differences.
 
 \section{Operational Results}
 
 \begin{table}[H]
 \centering
-\caption{Operational metrics.}
+\caption{Operational scenario projections; not controlled load-test measurements.}
 \begin{tabular}{lr}
 \toprule
 Metric & Value \\
 \midrule
-Baseline latency & 8.20 s/claim \\
-Debate latency & 72.00 s/claim \\
-Debate overhead & 8.78x \\
-Baseline throughput & 439.02 claims/hour \\
-Debate throughput & 50.00 claims/hour \\
-Monthly cost without caching & USD 77.00 \\
-Monthly cost with caching & USD 22.00 \\
-Monthly savings & 71.43\% \\
+Baseline latency assumption & 8.20 s/claim \\
+Debate latency assumption & 72.00 s/claim \\
+Projected debate overhead & 8.78x \\
+Projected baseline throughput & 439.02 claims/hour \\
+Projected debate throughput & 50.00 claims/hour \\
+Projected monthly cost without caching & USD 77.00 \\
+Projected monthly cost with caching & USD 22.00 \\
+Projected monthly savings & 71.43\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-These numbers are part of the research value. Many fact-checking papers ignore system cost. This thesis does not.
+These scenarios are part of the research value because they make cost assumptions explicit. They are not a substitute for repeated warm- and cold-cache load tests.
 
 \chapter{Discussion}
 
@@ -268,10 +268,10 @@ These numbers are part of the research value. Many fact-checking papers ignore s
 The thesis should not claim that Fact Validator is universally better than Zero-shot Faithful Factual Error Correction or FacTool in overall factuality quality. That would exceed the evidence. The stronger and defensible statement is narrower:
 
 \begin{enumerate}
-  \item it is better as a deployment-ready misinformation analysis system,
-  \item it is better in transparency of source trust assignment,
-  \item it is better documented in terms of operational cost and reproducibility,
-  \item it is more complete as an end-to-end research artifact.
+  \item it places greater emphasis on a deployment-ready misinformation-analysis surface,
+  \item it makes source-trust assignment explicit and inspectable,
+  \item it documents operational assumptions and reproducibility artifacts,
+  \item it contributes a broad end-to-end research artifact.
 \end{enumerate}
 
 \section{Novelty}
@@ -281,7 +281,7 @@ The novelty of this thesis lies in the combination of:
 \begin{enumerate}
   \item auditable credibility scoring,
   \item claim-level verification over live web evidence,
-  \item optional debate arbitration inside a broader deterministic pipeline,
+  \item optional live debate in the application and separately evaluated deterministic arbitration in the proxy,
   \item persistent evidence, storage, and export surfaces,
   \item versioned large-scale evaluation with operational reporting.
 \end{enumerate}
@@ -293,7 +293,7 @@ This is a stronger novelty claim than simply saying the model is more accurate.
 Three limitations must be stated clearly in the thesis defense:
 
 \begin{enumerate}
-  \item the full pipeline remains overconfident relative to its observed accuracy,
+  \item the proxy's raw confidence score remains much higher than its observed accuracy and is not presented as a calibrated probability,
   \item debate does not improve the frozen benchmark when always enabled,
   \item the health-domain slot uses a normalized substitute source and should be documented transparently.
 \end{enumerate}
@@ -306,7 +306,7 @@ Fact Validator demonstrates that open-domain fact checking can be framed as a tr
 
 \chapter{Defense-Ready Summary Paragraph}
 
-Fact Validator should be defended as a transparent and deployment-ready misinformation analysis architecture. Its strongest frozen benchmark family shows a modest but statistically significant edge over simple baselines, while its larger scientific value lies in explicit source-trust modeling, persistent evidence workflows, and cost-aware large-scale evaluation. Compared with Zero-shot Faithful Factual Error Correction and FacTool, the system is most novel not because it dominates their native tasks, but because it turns factuality research into a practical, auditable, end-to-end platform.
+Fact Validator should be defended as a transparent and deployment-ready misinformation analysis architecture with a separate deterministic proxy evaluation. The proxy shows modest raw differences over majority and length baselines, but neither comparison survives Holm correction. Its larger scientific value lies in explicit source-trust modeling, persistent evidence workflows, reproducible artifacts, and clearly labelled cost scenarios. Compared with Zero-shot Faithful Factual Error Correction and FacTool, the system is most novel not because it dominates their native tasks, but because it operationalizes factuality research as a practical, auditable, end-to-end platform.
 
 \begin{thebibliography}{99}
 

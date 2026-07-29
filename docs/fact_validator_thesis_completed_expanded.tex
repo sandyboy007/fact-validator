@@ -109,6 +109,19 @@ Matricola: D03000048
 \addcontentsline{toc}{chapter}{Declaration of Completed Research}
 I confirm that this manuscript presents research that I have carried out as part of my Master's thesis in Data Science at the University of Naples Federico II.
 
+The auditable repository snapshot supporting this thesis is the pushed branch
+\path{thesis/reproducibility-corrections} at commit
+\texttt{95c514c}. The audit itself was executed
+from source commit \texttt{4612740}
+and its report was added by the later commit. The exact environment,
+dependency-lock hash, benchmark hashes, commands, and captured test output are
+recorded in
+\path{data/benchmarks/results_5000/reproducibility_audit_report.json}.
+No Git release tag is claimed by this thesis. In particular,
+\texttt{thesis-v1.0.0} was only a proposed identifier and was never created.
+Readers must check out the correction branch above; the older
+\texttt{origin/main} snapshot does not contain these thesis-support artifacts.
+
 I designed and implemented the \system\ architecture, prepared the multi-dataset evaluation workflow, executed the experiments reported in this document, and analysed the resulting predictive and operational behaviour.
 
 This thesis is complete. The reported results constitute the final frozen experimental record for the submitted Master's study. The document distinguishes measurements that were executed from analyses that remain recommendations for subsequent research; no unexecuted experiment is presented as a completed result.
@@ -127,7 +140,7 @@ The completed study uses a versioned evaluation workflow and a frozen 5{,}000-cl
 
 The proxy results also reveal a large raw-score confidence--accuracy gap. Because the stored score is heuristic and not a complete multiclass probability distribution, the result is reported as a raw-score calibration diagnostic rather than probability calibration.
 
-Beyond the evaluated proxy, I implemented a typed, provenance-constrained evidence-graph prototype with a deterministic audit layer. Chapter~9 reports its final thesis status: the repository's 163-test backend suite passes and a small corruption-scenario probe demonstrates one concrete mechanism (source-independence clustering) by which it changes a decision relative to a simpler baseline. It remains intentionally separate from the proxy and therefore does not alter the 5{,}000-claim results.
+Beyond the evaluated proxy, I implemented a typed, provenance-constrained evidence-graph prototype with a deterministic audit layer. Chapter~9 reports its final thesis status: the audited correction-branch snapshot's 163-test backend suite passes and a small corruption-scenario probe demonstrates one concrete mechanism (source-independence clustering) by which it changes a decision relative to a simpler baseline. It remains intentionally separate from the proxy and therefore does not alter the 5{,}000-claim results.
 
 \textbf{Sommario (Italiano).} In questa tesi analizzo come un sistema di verifica automatica dei fatti in dominio aperto possa combinare il recupero di evidenze testuali, un meccanismo esplicito e ispezionabile di stima dell'affidabilit\`a delle fonti, un protocollo di valutazione riproducibile e un'ingegneria orientata al deployment. Ho sviluppato l'applicazione live \system\ e, separatamente, ho valutato il modello deterministico \proxy\ su 5.000 affermazioni tratte da FEVER, LIAR, SciFact e PUBHEALTH. Il proxy completo raggiunge un'accuratezza del 50{,}82\% e un macro-F1 di 0{,}4384; la variante proxy senza arbitraggio deterministico raggiunge il 51{,}34\% e 0{,}4427. L'esperimento non esegue il recupero SerpAPI, il reranking SentenceTransformer o il dibattito Ollama per ogni affermazione.
 
@@ -217,7 +230,7 @@ Component ablation & Completed within scope & The debate-free and reported froze
 Confidence analysis & Completed descriptively & The confidence--accuracy gap establishes substantial overconfidence; post-hoc calibration is recommended. \\
 Paired statistical testing & Completed & Exact two-sided McNemar tests, paired-bootstrap intervals, Holm correction, risk differences, and matched odds ratios are generated from the frozen prediction CSVs. \\
 Evidence preservation & Completed at artifact level & Proxy splits, predictions, hashes, manifests, and generated reports are retained. Live retrieval records are separate and are not used as proxy evidence. \\
-Evidence-graph prototype & Completed prototype & 163/163 backend tests pass; it is intentionally reported separately from the proxy evaluation (Chapter~9). \\
+Evidence-graph prototype & Completed prototype & 163/163 backend tests pass on the audited correction-branch snapshot; it is intentionally reported separately from the proxy evaluation (Chapter~9). \\
 Final thesis revision & Completed & This manuscript is the completed defence version. \\
 \bottomrule
 \end{tabularx}
@@ -846,7 +859,7 @@ The completed evidence supports four integrated answers. First, an auditable
 open-domain verification pipeline can be implemented as a complete
 full-stack research artifact with persistent evidence, explicit source rules,
 and reproducible evaluation outputs. The thesis demonstrates the application
-through implementation and its 163-test suite, and evaluates the separate
+through implementation and the audited correction branch's 163-test suite, and evaluates the separate
 proxy through frozen benchmark artifacts.
 
 Second, the deterministic proxy provides modest observed improvement over
@@ -924,7 +937,7 @@ The latency, throughput, and cost figures are scenario projections, not controll
 \section{Status and Scope of This Chapter}
 Chapters~4--8 separate the implemented live application from the deterministic proxy evaluation. This chapter is different in kind: it documents a separate, newer module that implements an idea I list in Chapter~12 as a direction beyond this Master's thesis -- a typed, provenance-preserving evidence graph with a deterministic audit layer, in place of the flat verdict-inference step described in Section~4.7.
 
-I want to state its status precisely, because that precision is the point of including it at all. The module exists as working code in the same repository, separately from the proxy; the complete backend suite passes 163 tests (re-executed and confirmed for this revision); and the module has been probed, at very small scale, with corruption scenarios constructed against its own rule logic (Section~9.6). It has \emph{not} been integrated into, or evaluated against, the 5{,}000-claim benchmark in Chapters~5--6 and should not be read as adding to, replacing, or explaining any number reported there.
+I want to state its status precisely, because that precision is the point of including it at all. The module exists as working code on the audited correction branch, separately from the proxy; the complete backend suite at that snapshot passes 163 tests (re-executed and confirmed for this revision); and the module has been probed, at very small scale, with corruption scenarios constructed against its own rule logic (Section~9.6). It has \emph{not} been integrated into, or evaluated against, the 5{,}000-claim benchmark in Chapters~5--6 and should not be read as adding to, replacing, or explaining any number reported there.
 
 \section{Motivation for the Extension}
 Section~4.7 assigns each claim one of three flat outcomes based on retrieved evidence. This works, but it does not preserve \emph{why} a verdict was reached in a form a reviewer can later interrogate: whether a passage was actually fetched and hashed, whether two supporting sources were truly independent, or whether a numeric claim was checked against a matching number in the evidence. The evidence-graph prototype represents each of these as an explicit, typed, inspectable structure rather than folding them into a single score.
@@ -1013,7 +1026,7 @@ Evidence is clustered using the Jaccard-similarity rule of Section~\ref{sec:jacc
 
 \section{Engineering Verification: What Is and Is Not Demonstrated}
 \subsection{Test Suite}
-The complete backend test suite was re-executed for this revision: \textbf{163 tests collected, 163 passed, 0 failed}. The graph-specific cases are part of that repository-wide total.
+The complete backend test suite was re-executed for this revision on the audited correction-branch snapshot: \textbf{163 tests collected, 163 passed, 0 failed}. The graph-specific cases are part of that branch-specific total. The older \texttt{main} snapshot contains one fewer integration test and therefore collects 162 tests.
 
 \subsection{Eight-Case Synthetic Seed}
 A frozen eight-case seed, re-executed for this revision, reproduces its previously recorded coverage, selective risk, and false-accept rate (Section~\ref{sec:selective-defs}) exactly: 0.375, 0.6667, and 0.25 respectively. Table~\ref{tab:seed-detail-2} gives the per-case detail.
@@ -1096,7 +1109,7 @@ Source trust & implicit in corpus curation & not central & not central & live: e
 Evidence persistence & benchmark identifiers & framework-dependent & not central & live: run records; proxy: frozen splits, predictions, hashes & + provenance hash per passage \\
 Uncertainty handling & label only & not addressed & not addressed & proxy raw score, explicitly uncalibrated & rule-based forced abstention \\
 Deployment surface & benchmark & research framework & research method & live: full-stack app; proxy: 5k benchmark & code-verified, not benchmarked \\
-Empirical status & established benchmark & self-reported & self-reported & live: 163 tests; proxy: frozen evaluation & \textbf{engineering-verified only} \\
+Empirical status & established benchmark & self-reported & self-reported & live: 163 tests on audited branch; proxy: frozen evaluation & \textbf{engineering-verified only} \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -1234,7 +1247,7 @@ Robustness runner & frozen scenario replay, explicit missing evidence, duplicate
 Security & private and loopback URL rejection before evidence fetch \\
 \bottomrule
 \end{longtable}
-Re-verified for this revision by executing \texttt{pytest services/api/tests -q} from the repository root: 163 tests collected, 163 passed, 0 failed (three non-failing warnings).
+Re-verified for this revision by executing \texttt{python -m pytest services/api/tests -q} from the repository root on the correction branch with Python 3.10.0: 163 tests collected, 163 passed, 0 failed, with three warning records. A fresh rerun on 29 July 2026 reproduced the same counts. The 162-test result obtained from \texttt{origin/main} is expected: commit \texttt{72ad99c} adds one recent-results integration test on the branch used by this thesis. Warning totals are environment-sensitive unless the hash-pinned dependency lock is used.
 
 \chapter{Extended Corruption Probe: Construction Script and Raw Output}
 \section{Construction Script}
@@ -1354,14 +1367,45 @@ This is the exact module executed to produce Section~9.6.
 \section{Prototype: Robustness Tests}
 \safeinputlisting[language=Python]{services/api/tests/test_robustness_evaluation.py}
 
-\chapter{Reproducibility and Release-Control Listings}
+\chapter{Reproducibility Artifacts and Verification Listings}
 This appendix preserves the executable mechanisms that turn the frozen
 claim-level predictions into the tables and statistical statements reported
 in Chapter~6. The listings are included as auditable research material: they
 show the exact interval, paired-test, multiple-comparison, hash-validation,
 cache-validation, and continuous-integration logic used for the final
-correction release. The authoritative machine-readable outputs are stored
+audited correction-branch snapshot. The authoritative machine-readable outputs are stored
 under \texttt{data/benchmarks/results\_5000/}.
+
+\section{Repository Snapshot and Artifact Availability}
+Every path in this appendix is relative to the repository root. The complete
+set is tracked on the pushed branch
+\path{thesis/reproducibility-corrections}; it is not present in the older
+\texttt{origin/main} snapshot. Commit
+\texttt{95c514c} contains the support scripts,
+dependency specifications, generated statistics, and audit report. The audit
+report records source commit
+\texttt{4612740}, because that was the
+snapshot executed before the report itself was committed. No release tag is
+asserted.
+
+\begin{longtable}{p{5.1cm}p{7.7cm}}
+\caption{Verified thesis-support artifacts on the correction branch.}\\
+\toprule Artifact & Repository-relative path \\
+\midrule
+\endfirsthead
+\toprule Artifact & Repository-relative path \\
+\midrule
+\endhead
+Reproducibility audit & \path{data/benchmarks/results_5000/reproducibility_audit_report.json} \\
+Statistics generator & \path{services/api/Scripts/run_thesis_statistics.py} \\
+Artifact validator & \path{services/api/Scripts/validate_thesis_artifacts.py} \\
+Manifest builder & \path{services/api/Scripts/build_thesis_run_manifest.py} \\
+Cache validator & \path{services/api/Scripts/validate_cache.py} \\
+Operational projection & \path{services/api/Scripts/run_operational_projection.py} \\
+Direct dependencies & \path{services/api/requirements.in} \\
+Hash-pinned environment & \path{services/api/requirements.lock} \\
+\bottomrule
+\end{longtable}
 
 \section{Live API Orchestration}
 The following listing covers the principal request orchestration, URL and
@@ -1403,13 +1447,13 @@ projections rather than controlled load-test measurements.
 \safeinputlisting[language=Python]{services/api/Scripts/run_operational_projection.py}
 
 \section{Reproducibility Audit}
-The final audit records the branch and source commit, environment, dependency
+The committed audit records the branch and source commit, environment, dependency
 lock hash, artifact hashes, executed commands, complete test result, and
 artifact-validation result.
 \safeinputlisting[language=Python]{services/api/Scripts/run_reproducibility_audit.py}
 
 \section{Continuous-Integration Gate}
-The release workflow installs the hash-pinned backend environment, executes
+When executed, the correction-branch workflow installs the hash-pinned backend environment, executes
 the backend suite, regenerates thesis statistics, checks that committed
 reports are deterministic, validates the frozen artifacts, and builds the
 frontend. Its executable definition is preserved at
@@ -1419,7 +1463,7 @@ duplicating runner-specific comment encoding in the PDF.
 \section{Direct Backend Dependency Specification}
 The human-maintained direct dependency specification is reproduced below.
 The complete transitive environment, including hashes, is frozen separately
-in \texttt{services/api/requirements.lock}.
+in \path{services/api/requirements.lock}.
 \safeinputlisting[]{services/api/requirements.in}
 
 \chapter{Glossary of Terms}

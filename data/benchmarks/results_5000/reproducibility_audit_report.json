@@ -1,10 +1,10 @@
 {
   "metadata": {
-    "generated_utc": "2026-07-29T01:28:38.635832+00:00",
-    "git_commit": "d9b7a7ceaca25d80af74fef4d71101681aa32606",
+    "generated_utc": "2026-07-29T01:30:42.012468+00:00",
+    "git_commit": "a6bbafc9d61e6fc002707ef16190491e4d2b973e",
     "git_branch": "thesis/reproducibility-corrections",
     "git_tag_exact": "unknown",
-    "working_tree_dirty": true
+    "working_tree_dirty": false
   },
   "environment": {
     "python_version": "3.10.0",
@@ -30,7 +30,7 @@
     {
       "command": "pytest services/api/tests -q",
       "exit_code": 0,
-      "output": "........................................................................ [ 44%]\n........................................................................ [ 88%]\n...................                                                      [100%]\n============================== warnings summary ===============================\n..\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\starlette\\formparsers.py:10\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\starlette\\formparsers.py:10: PendingDeprecationWarning: Please use `import python_multipart` instead.\n    import multipart\n\nservices/api/tests/test_statistics.py::TestRobustness::test_single_sample\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\numpy\\core\\_methods.py:206: RuntimeWarning: Degrees of freedom <= 0 for slice\n    ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,\n\nservices/api/tests/test_statistics.py::TestRobustness::test_single_sample\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\numpy\\core\\_methods.py:198: RuntimeWarning: invalid value encountered in scalar divide\n    ret = ret.dtype.type(ret / rcount)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n163 passed, 3 warnings in 74.73s (0:01:14)\n"
+      "output": "........................................................................ [ 44%]\n........................................................................ [ 88%]\n...................                                                      [100%]\n============================== warnings summary ===============================\n..\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\starlette\\formparsers.py:10\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\starlette\\formparsers.py:10: PendingDeprecationWarning: Please use `import python_multipart` instead.\n    import multipart\n\nservices/api/tests/test_statistics.py::TestRobustness::test_single_sample\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\numpy\\core\\_methods.py:206: RuntimeWarning: Degrees of freedom <= 0 for slice\n    ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,\n\nservices/api/tests/test_statistics.py::TestRobustness::test_single_sample\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\numpy\\core\\_methods.py:198: RuntimeWarning: invalid value encountered in scalar divide\n    ret = ret.dtype.type(ret / rcount)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n163 passed, 3 warnings in 69.90s (0:01:09)\n"
     },
     {
       "command": "python services/api/Scripts/validate_thesis_artifacts.py",
@@ -41,7 +41,7 @@
   "test_result": {
     "exit_code": 0,
     "passed": true,
-    "summary_output": "........................................................................ [ 44%]\n........................................................................ [ 88%]\n...................                                                      [100%]\n============================== warnings summary ===============================\n..\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\starlette\\formparsers.py:10\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\starlette\\formparsers.py:10: PendingDeprecationWarning: Please use `import python_multipart` instead.\n    import multipart\n\nservices/api/tests/test_statistics.py::TestRobustness::test_single_sample\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\numpy\\core\\_methods.py:206: RuntimeWarning: Degrees of freedom <= 0 for slice\n    ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,\n\nservices/api/tests/test_statistics.py::TestRobustness::test_single_sample\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\numpy\\core\\_methods.py:198: RuntimeWarning: invalid value encountered in scalar divide\n    ret = ret.dtype.type(ret / rcount)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n163 passed, 3 warnings in 74.73s (0:01:14)\n"
+    "summary_output": "........................................................................ [ 44%]\n........................................................................ [ 88%]\n...................                                                      [100%]\n============================== warnings summary ===============================\n..\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\starlette\\formparsers.py:10\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\starlette\\formparsers.py:10: PendingDeprecationWarning: Please use `import python_multipart` instead.\n    import multipart\n\nservices/api/tests/test_statistics.py::TestRobustness::test_single_sample\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\numpy\\core\\_methods.py:206: RuntimeWarning: Degrees of freedom <= 0 for slice\n    ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,\n\nservices/api/tests/test_statistics.py::TestRobustness::test_single_sample\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\numpy\\core\\_methods.py:198: RuntimeWarning: invalid value encountered in scalar divide\n    ret = ret.dtype.type(ret / rcount)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n163 passed, 3 warnings in 69.90s (0:01:09)\n"
   },
   "artifact_validation": {
     "exit_code": 0,

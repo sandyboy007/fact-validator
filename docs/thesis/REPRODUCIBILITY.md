@@ -1,16 +1,11 @@
 # Fact Validator thesis reproducibility
 
-This directory contains the final thesis source and compiled PDF for the
-pushed `thesis/reproducibility-corrections` branch. The repository snapshot
-containing the complete thesis-support apparatus is commit
-`95c514c578f940f84dab7381263d2117555a644f`. The audit report was generated
-from source commit `4612740da4682542fc1772fdad873ff10fd7ade1` and committed by
-the later snapshot. No thesis release tag exists or is claimed. In particular,
-`thesis-v1.0.0` was proposed but never created.
-
-The older `origin/main` snapshot does not contain the correction-branch
-scripts and artifacts listed below. Check out the named branch before
-attempting reproduction.
+This directory contains the final thesis source and compiled PDF on `main`.
+The final audit report was generated from clean tracked source commit
+`a6bbafc9d61e6fc002707ef16190491e4d2b973e` and committed with the final
+manuscript. No thesis release tag exists or is claimed. In particular,
+`thesis-v1.0.0` was proposed but never created. Historical `main` snapshots
+from before the thesis-correction merge do not contain all artifacts below.
 
 ## Evaluation boundary
 
@@ -51,11 +46,11 @@ pytest services/api/tests -q
 python services/api/Scripts/run_reproducibility_audit.py
 ```
 
-The verified correction-branch result is 163 tests collected and 163 passed,
+The verified final-repository result is 163 tests collected and 163 passed,
 with three warning records in the Python 3.10.0 locked environment. A fresh
-rerun on 29 July 2026 reproduced those counts. The older `origin/main`
+rerun on 29 July 2026 reproduced those counts. A historical pre-merge `main`
 snapshot collects 162 tests because commit `72ad99c` adds one integration test
-for the persisted recent-results display on the thesis branch. Warning counts
+for the persisted recent-results display in the final repository. Warning counts
 can differ in an unlocked environment as dependency versions change.
 
 The full captured output, OS, CPU, GPU, RAM, dependency-lock hash, and artifact

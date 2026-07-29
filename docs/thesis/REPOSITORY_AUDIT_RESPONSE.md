@@ -6,8 +6,9 @@ Audit date: 2026-07-29
 
 The external report inspected the older `origin/main` snapshot
 (`8923cf71d94ca6cba17cd4202ff32cf3d9ea7a13`). The thesis reproducibility
-artifacts are tracked and pushed on `thesis/reproducibility-corrections`.
-Commit `95c514c578f940f84dab7381263d2117555a644f` contains the complete set.
+artifacts have since been merged into `main`. The final audit was executed
+from clean tracked source commit
+`a6bbafc9d61e6fc002707ef16190491e4d2b973e`.
 
 The thesis previously failed to make that branch boundary sufficiently clear
 and incorrectly named a proposed `thesis-v1.0.0` tag that was never created.
@@ -18,7 +19,7 @@ that no release tag exists.
 
 | Reported concern | Verified result |
 |---|---|
-| `data/benchmarks/results_5000/reproducibility_audit_report.json` does not exist | False on the thesis branch; true on the older `main` snapshot. The file is tracked in commit `95c514c`. |
+| `data/benchmarks/results_5000/reproducibility_audit_report.json` does not exist | False on current `main`; true on the older `main` snapshot inspected by the report. |
 | `run_thesis_statistics.py` does not exist | False on the thesis branch. It is tracked at `services/api/Scripts/run_thesis_statistics.py`. |
 | `validate_thesis_artifacts.py` does not exist | False on the thesis branch. It is tracked at `services/api/Scripts/validate_thesis_artifacts.py`. |
 | `build_thesis_run_manifest.py` does not exist | False on the thesis branch. It is tracked at `services/api/Scripts/build_thesis_run_manifest.py`. |
@@ -26,7 +27,7 @@ that no release tag exists.
 | `run_operational_projection.py` does not exist | False on the thesis branch. It is tracked at `services/api/Scripts/run_operational_projection.py`. |
 | `requirements.in` and `requirements.lock` do not exist | False on the thesis branch. Both are tracked under `services/api/`. |
 | `thesis-v1.0.0` exists | False. No such tag exists. The thesis claim was removed. |
-| The suite has only 162 tests | True for the older `main` snapshot; false for the thesis branch. Commit `72ad99c` adds one integration test for the persisted recent-results display, producing 163 tests on the thesis branch. |
+| The suite has only 162 tests | True for the older `main` snapshot; false for current `main`. Commit `72ad99c` adds one integration test for the persisted recent-results display, producing 163 tests in the final repository. |
 | The suite produces 126 warnings | Not reproduced in the pinned Python 3.10 thesis environment. A fresh thesis-branch run produced 163 passed and three warning records. Warning totals can differ under another dependency environment. |
 
 ## Commands re-executed
@@ -49,10 +50,8 @@ Observed results:
 
 - Older main snapshot inspected by the report:
   `8923cf71d94ca6cba17cd4202ff32cf3d9ea7a13`
-- Statistics and reproducibility implementation:
-  `4612740da4682542fc1772fdad873ff10fd7ade1`
-- Commit containing the generated audit report:
-  `95c514c578f940f84dab7381263d2117555a644f`
+- Final clean source snapshot executed by the reproducibility audit:
+  `a6bbafc9d61e6fc002707ef16190491e4d2b973e`
 
-The corrected thesis avoids describing branch-specific evidence as though it
-were already present on `main`.
+The corrected thesis and its supporting evidence are now published together
+on `main`.

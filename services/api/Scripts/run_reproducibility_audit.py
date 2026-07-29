@@ -120,7 +120,11 @@ def main() -> int:
             "git_commit": _git("rev-parse", "HEAD"),
             "git_branch": _git("branch", "--show-current"),
             "git_tag_exact": _git("describe", "--tags", "--exact-match"),
-            "working_tree_dirty": bool(_git("status", "--porcelain")),
+            # Untracked local build outputs do not alter the committed source
+            # snapshot being audited. Track only modifications to versioned files.
+            "working_tree_dirty": bool(
+                _git("status", "--porcelain", "--untracked-files=no")
+            ),
         },
         "environment": {
             "python_version": platform.python_version(),

@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "generated_utc": "2026-07-29T00:36:52.452987+00:00",
-    "git_commit": "4612740da4682542fc1772fdad873ff10fd7ade1",
+    "generated_utc": "2026-07-29T01:28:38.635832+00:00",
+    "git_commit": "d9b7a7ceaca25d80af74fef4d71101681aa32606",
     "git_branch": "thesis/reproducibility-corrections",
     "git_tag_exact": "unknown",
     "working_tree_dirty": true
@@ -15,10 +15,10 @@
   },
   "dependency_lock": {
     "path": "services/api/requirements.lock",
-    "sha256": "4e8a03b6b2de48b649e0023f7bd04ca388300d1e46fad0bc817949c30238bbdd"
+    "sha256": "165758333ec9911e435eadccc11781c948b46a7b50e0ff12ea6d7855c16028aa"
   },
   "artifact_hashes": {
-    "services/api/requirements.lock": "4e8a03b6b2de48b649e0023f7bd04ca388300d1e46fad0bc817949c30238bbdd",
+    "services/api/requirements.lock": "165758333ec9911e435eadccc11781c948b46a7b50e0ff12ea6d7855c16028aa",
     "data/benchmarks/splits_5000/train.json": "dda6afb32527d0cb0b06e4e9dbf18f16f62a7094a4e9f6a3feb4ecb7c8ea53eb",
     "data/benchmarks/splits_5000/val.json": "f75340491cc83ce6d475dbbd12ba32aed8f10929fe071f914c8ad1bd7447a1e0",
     "data/benchmarks/splits_5000/test.json": "ce90b5211ca6302aac638e2fd20f2752bd3339adce3cce8bd39451d575ae1f58",
@@ -30,7 +30,7 @@
     {
       "command": "pytest services/api/tests -q",
       "exit_code": 0,
-      "output": "........................................................................ [ 44%]\n........................................................................ [ 88%]\n...................                                                      [100%]\n============================== warnings summary ===============================\n..\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\starlette\\formparsers.py:10\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\starlette\\formparsers.py:10: PendingDeprecationWarning: Please use `import python_multipart` instead.\n    import multipart\n\nservices/api/tests/test_statistics.py::TestRobustness::test_single_sample\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\numpy\\core\\_methods.py:206: RuntimeWarning: Degrees of freedom <= 0 for slice\n    ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,\n\nservices/api/tests/test_statistics.py::TestRobustness::test_single_sample\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\numpy\\core\\_methods.py:198: RuntimeWarning: invalid value encountered in scalar divide\n    ret = ret.dtype.type(ret / rcount)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n163 passed, 3 warnings in 66.26s (0:01:06)\n"
+      "output": "........................................................................ [ 44%]\n........................................................................ [ 88%]\n...................                                                      [100%]\n============================== warnings summary ===============================\n..\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\starlette\\formparsers.py:10\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\starlette\\formparsers.py:10: PendingDeprecationWarning: Please use `import python_multipart` instead.\n    import multipart\n\nservices/api/tests/test_statistics.py::TestRobustness::test_single_sample\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\numpy\\core\\_methods.py:206: RuntimeWarning: Degrees of freedom <= 0 for slice\n    ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,\n\nservices/api/tests/test_statistics.py::TestRobustness::test_single_sample\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\numpy\\core\\_methods.py:198: RuntimeWarning: invalid value encountered in scalar divide\n    ret = ret.dtype.type(ret / rcount)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n163 passed, 3 warnings in 74.73s (0:01:14)\n"
     },
     {
       "command": "python services/api/Scripts/validate_thesis_artifacts.py",
@@ -41,7 +41,7 @@
   "test_result": {
     "exit_code": 0,
     "passed": true,
-    "summary_output": "........................................................................ [ 44%]\n........................................................................ [ 88%]\n...................                                                      [100%]\n============================== warnings summary ===============================\n..\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\starlette\\formparsers.py:10\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\starlette\\formparsers.py:10: PendingDeprecationWarning: Please use `import python_multipart` instead.\n    import multipart\n\nservices/api/tests/test_statistics.py::TestRobustness::test_single_sample\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\numpy\\core\\_methods.py:206: RuntimeWarning: Degrees of freedom <= 0 for slice\n    ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,\n\nservices/api/tests/test_statistics.py::TestRobustness::test_single_sample\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\numpy\\core\\_methods.py:198: RuntimeWarning: invalid value encountered in scalar divide\n    ret = ret.dtype.type(ret / rcount)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n163 passed, 3 warnings in 66.26s (0:01:06)\n"
+    "summary_output": "........................................................................ [ 44%]\n........................................................................ [ 88%]\n...................                                                      [100%]\n============================== warnings summary ===============================\n..\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\starlette\\formparsers.py:10\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\starlette\\formparsers.py:10: PendingDeprecationWarning: Please use `import python_multipart` instead.\n    import multipart\n\nservices/api/tests/test_statistics.py::TestRobustness::test_single_sample\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\numpy\\core\\_methods.py:206: RuntimeWarning: Degrees of freedom <= 0 for slice\n    ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,\n\nservices/api/tests/test_statistics.py::TestRobustness::test_single_sample\n  C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\numpy\\core\\_methods.py:198: RuntimeWarning: invalid value encountered in scalar divide\n    ret = ret.dtype.type(ret / rcount)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n163 passed, 3 warnings in 74.73s (0:01:14)\n"
   },
   "artifact_validation": {
     "exit_code": 0,

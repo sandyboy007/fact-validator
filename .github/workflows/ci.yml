@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, thesis/reproducibility-corrections]
   pull_request:
     branches: [main]
 
@@ -79,7 +79,10 @@ jobs:
             data/benchmarks/results_5000/per_class_metrics.csv \
             data/benchmarks/results_5000/per_dataset_metrics.csv \
             data/benchmarks/results_5000/paired_tests.csv \
-            data/benchmarks/results_5000/statistics_summary.md
+            data/benchmarks/results_5000/statistics_summary.md \
+            data/benchmarks/results_5000/sensitivity_analysis_report.json \
+            data/benchmarks/results_5000/sensitivity_analysis_metrics.csv \
+            data/benchmarks/results_5000/sensitivity_analysis_summary.md
 
   # ────────────────────────────────────────────────────────────────────────────
   # Job 2: Next.js frontend — install, lint, type-check, production build

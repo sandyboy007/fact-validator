@@ -12,6 +12,7 @@ import argparse
 import csv
 import json
 import math
+import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -23,7 +24,13 @@ from scipy.stats import binomtest
 
 API_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = API_ROOT.parents[1]
+if str(API_ROOT) not in sys.path:
+    sys.path.insert(0, str(API_ROOT))
+
+from app.dataset import normalize_claim_text
+
 DEFAULT_RESULT_DIR = REPO_ROOT / "data" / "benchmarks" / "results_5000"
+SPLIT_DIR = REPO_ROOT / "data" / "benchmarks" / "splits_5000"
 LABELS = ("SUPPORTED", "REFUTED", "NEI")
 
 
@@ -152,6 +159,133 @@ def _holm_adjust(rows: list[dict]) -> None:
         rows[original_index]["significant_holm_0_05"] = running_max < 0.05
 
 
+def _known_contaminated_test_ids() -> set[str]:
+    """Return test IDs whose normalized text occurs in train or validation."""
+    development_text: set[str] = set()
+    for filename in ("train.json", "val.json"):
+        payload = json.loads((SPLIT_DIR / filename).read_text(encoding="utf-8"))
+        development_text.update(
+            normalize_claim_text(row.get("claim", ""))
+            for row in payload["claims"]
+        )
+    test_payload = json.loads((SPLIT_DIR / "test.json").read_text(encoding="utf-8"))
+    return {
+        str(row.get("id") or row.get("source_id"))
+        for row in test_payload["claims"]
+        if normalize_claim_text(row.get("claim", "")) in development_text
+    }
+
+
+def _subset_metrics(
+    systems: dict[str, dict[str, Prediction]],
+    claim_ids: list[str],
+) -> list[dict]:
+    rows: list[dict] = []
+    for name, rows_by_id in systems.items():
+        predictions = [rows_by_id[claim_id] for claim_id in claim_ids]
+        correct = sum(row.correct for row in predictions)
+        lower, upper = _wilson(correct, len(predictions))
+        class_rows = [_class_metrics(predictions, label) for label in LABELS]
+        rows.append(
+            {
+                "system": name,
+                "n": len(predictions),
+                "accuracy": correct / len(predictions),
+                "macro_f1": sum(float(item["f1"]) for item in class_rows) / len(LABELS),
+                "accuracy_wilson_lower": lower,
+                "accuracy_wilson_upper": upper,
+            }
+        )
+    return rows
+
+
+def _write_decontamination_sensitivity(
+    output_dir: Path,
+    systems: dict[str, dict[str, Prediction]],
+    anchor_ids: list[str],
+) -> None:
+    contaminated_ids = _known_contaminated_test_ids()
+    filtered_ids = [claim_id for claim_id in anchor_ids if claim_id not in contaminated_ids]
+    if len(contaminated_ids) != 39 or len(filtered_ids) != 4961:
+        raise ValueError(
+            "decontamination audit changed: "
+            f"{len(contaminated_ids)} contaminated, {len(filtered_ids)} retained"
+        )
+
+    full_metrics = _subset_metrics(systems, anchor_ids)
+    filtered_metrics = _subset_metrics(systems, filtered_ids)
+    by_full = {row["system"]: row for row in full_metrics}
+    by_filtered = {row["system"]: row for row in filtered_metrics}
+    comparison_rows = []
+    for name in sorted(systems):
+        full = by_full[name]
+        filtered = by_filtered[name]
+        comparison_rows.append(
+            {
+                "system": name,
+                "full_n": full["n"],
+                "full_accuracy": full["accuracy"],
+                "full_macro_f1": full["macro_f1"],
+                "decontaminated_n": filtered["n"],
+                "decontaminated_accuracy": filtered["accuracy"],
+                "decontaminated_macro_f1": filtered["macro_f1"],
+                "accuracy_change_pp": 100.0
+                * (filtered["accuracy"] - full["accuracy"]),
+                "macro_f1_change": filtered["macro_f1"] - full["macro_f1"],
+            }
+        )
+
+    report = {
+        "analysis": "exact-normalized-overlap sensitivity analysis",
+        "status": "exploratory robustness check",
+        "normalization": (
+            "NFKC + casefold + punctuation-to-space + whitespace collapse"
+        ),
+        "full_test_claims": len(anchor_ids),
+        "known_contaminated_test_claims": len(contaminated_ids),
+        "decontaminated_test_claims": len(filtered_ids),
+        "excluded_claim_ids": sorted(contaminated_ids),
+        "metrics": comparison_rows,
+        "interpretation": (
+            "Filtering known exact normalized overlaps is a sensitivity analysis, "
+            "not a new untouched confirmatory test. Near-duplicate and test-guided "
+            "development risks remain."
+        ),
+    }
+    (output_dir / "sensitivity_analysis_report.json").write_text(
+        json.dumps(report, indent=2), encoding="utf-8"
+    )
+    with (output_dir / "sensitivity_analysis_metrics.csv").open(
+        "w", newline="", encoding="utf-8"
+    ) as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(comparison_rows[0]))
+        writer.writeheader()
+        writer.writerows(comparison_rows)
+
+    lines = [
+        "# Exact-Overlap Sensitivity Analysis",
+        "",
+        "This exploratory robustness check removes the 39 test claims with exact",
+        "normalized matches in train or validation, retaining 4,961 claims.",
+        "It does not remove all likely near-duplicates and does not restore",
+        "confirmatory independence after test-guided proxy development.",
+        "",
+        "| System | Full n | Full accuracy | Full macro-F1 | Filtered n | Filtered accuracy | Filtered macro-F1 | Accuracy change (pp) |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in comparison_rows:
+        lines.append(
+            f"| {row['system']} | {row['full_n']} | {row['full_accuracy']:.4f} | "
+            f"{row['full_macro_f1']:.4f} | {row['decontaminated_n']} | "
+            f"{row['decontaminated_accuracy']:.4f} | "
+            f"{row['decontaminated_macro_f1']:.4f} | "
+            f"{row['accuracy_change_pp']:+.3f} |"
+        )
+    (output_dir / "sensitivity_analysis_summary.md").write_text(
+        "\n".join(lines) + "\n", encoding="utf-8"
+    )
+
+
 def main() -> int:
     args = _parse_args()
     output_dir = Path(args.output_dir)
@@ -185,6 +319,8 @@ def main() -> int:
         }
         if len(rows) != 5000 or set(rows) != anchor_id_set:
             raise ValueError(f"{name} does not align to the 5,000-claim anchor")
+
+    _write_decontamination_sensitivity(output_dir, systems, anchor_ids)
 
     full_rows = [systems["full_proxy"][claim_id] for claim_id in anchor_ids]
     confusion = [
@@ -363,10 +499,14 @@ def main() -> int:
     lines.extend(
         [
             "",
-            "Unadjusted comparisons against majority and length are marginal and are not",
-            "described as robust superiority after correction for multiple comparisons.",
-            "The no-debate proxy is significantly better than the full proxy in the",
-            "observed paired comparison; always-on proxy debate is therefore not supported.",
+            "No selected comparison is statistically significant after Holm correction.",
+            "The no-debate proxy has the best observed point estimates, but its comparison",
+            "with the full proxy has Holm-adjusted p approximately 0.0573. The result is",
+            "descriptive evidence against always-on proxy debate, not confirmatory proof.",
+            "",
+            "All tests are descriptive and exploratory because proxy development was",
+            "informed by observations on this benchmark and normalized split overlaps",
+            "were identified retrospectively. No confirmatory superiority claim is made.",
             "",
             "The confidence output is reported only as a raw-score calibration diagnostic.",
             "A proper multiclass Brier score requires prob_supported, prob_refuted, and",

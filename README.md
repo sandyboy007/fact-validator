@@ -265,8 +265,8 @@ python -m venv .venv
 # macOS / Linux
 source .venv/bin/activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install the hash-pinned environment (Python 3.10)
+pip install --require-hashes -r requirements.lock
 
 # Start the development server (hot-reload enabled)
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
@@ -297,7 +297,7 @@ The UI will be available at **http://localhost:3000**.
 
 ---
 
-## Docker Setup
+## Optional Infrastructure Containers
 
 The `docker-compose.yml` in `infra/` provides optional Postgres and Redis containers (reserved for future persistence layers):
 
@@ -311,7 +311,9 @@ docker compose up -d
 | `postgres` | 5432 | Optional relational DB (future) |
 | `redis` | 6379 | Optional cache layer (future) |
 
-> The app currently uses SQLite and does not require Docker to run.
+> The application does not connect to these containers. It currently uses
+> SQLite and an in-process/file cache. They are development placeholders, not
+> evidence of a containerized application deployment.
 
 ---
 
@@ -452,23 +454,28 @@ pip install pytest-cov
 pytest tests/ --cov=app --cov-report=term-missing
 ```
 
-Final correction-branch verification (Python 3.10.0):
+Recorded correction-branch verification (Python 3.10.0):
 
 ```text
 $ pytest --collect-only -q
-163 tests collected
+164 tests collected
 $ pytest services/api/tests -q
-163 passed, 3 warnings in 69.22s
+164 passed
 ```
 
-The machine-readable release record is also stored in
+Warning counts and timing vary with the local environment. On 31 July 2026,
+the current Windows environment reproduced 164 passed with 6 warnings in
+77.15 seconds. The machine-readable historical record is stored in
 `data/benchmarks/results_5000/reproducibility_audit_report.json`.
 
 ---
 
 ## CI / CD
 
-Every push or pull request to **`main`** triggers the GitHub Actions jobs
+The workflow is configured for pushes and pull requests targeting **`main`**.
+At the time of this thesis revision, the manuscript correction branch had not
+yet been merged into `main`; repository claims therefore identify the exact
+branch and commit rather than implying that `main` contains them.
 defined in [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
 
 | Job | Runner | Steps |

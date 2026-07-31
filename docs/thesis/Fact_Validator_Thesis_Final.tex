@@ -34,7 +34,6 @@
   numberstyle=\tiny\color{gray},
   literate={→}{{$\to$}}1 {—}{{--}}1 {–}{{-}}1 {✓}{{\checkmark}}1 {✗}{{$\times$}}1 {≤}{{$\le$}}1 {≥}{{$\ge$}}1 {Δ}{{$\Delta$}}1
 }
-\usepackage{amssymb}
 
 \newcommand{\system}{\textsc{Fact Validator}}
 \newcommand{\proxy}{\textsc{FactValidator-Proxy}}
@@ -49,10 +48,6 @@
     \end{quote}
   }%
 }
-
-\title{Fact Validator\\ \large An Auditable and Deployment-Ready Architecture for Open-Domain Fact Verification}
-\author{Santosh Kumar Yadav}
-\date{Academic Year 2025--2026}
 
 \begin{document}
 \hypersetup{pageanchor=false}
@@ -76,10 +71,10 @@
 \vspace{0.9cm}
 {\LARGE \textbf{Fact Validator}\par}
 \vspace{0.4cm}
-{\Large \textbf{An Auditable and Deployment-Ready Architecture\\for Open-Domain Fact Verification}\par}
+{\Large \textbf{A Deployment-Oriented and Auditable Prototype\\for Open-Domain Fact Verification}\par}
 \vspace{0.6cm}
-{\normalsize\itshape Master's Thesis --- Final Research Manuscript\par}
-{\normalsize\itshape Completed: Academic Year 2025--2026\par}
+{\normalsize\itshape Master's Thesis\par}
+{\normalsize\itshape Academic Year 2025--2026\par}
 \vfill
 \begin{minipage}[t]{0.48\textwidth}
 \raggedright
@@ -105,29 +100,27 @@ Matricola: D03000048
 \hypersetup{pageanchor=true}
 \pagenumbering{roman}
 
-\chapter*{Declaration of Completed Research}
-\addcontentsline{toc}{chapter}{Declaration of Completed Research}
+\chapter*{Research and Reproducibility Statement}
+\addcontentsline{toc}{chapter}{Research and Reproducibility Statement}
 I confirm that this manuscript presents research that I have carried out as part of my Master's thesis in Data Science at the University of Naples Federico II.
 
-The complete thesis-support apparatus is tracked on the repository's
-\path{main} branch. The final audit was executed from source commit
-\texttt{a6bbafc}; its generated report was then committed with the final
-manuscript. The exact environment,
-dependency-lock hash, benchmark hashes, commands, and captured test output are
-recorded in
-\path{data/benchmarks/results_5000/reproducibility_audit_report.json}.
-No Git release tag is claimed by this thesis. In particular,
-\texttt{thesis-v1.0.0} was only a proposed identifier and was never created.
-Historical \texttt{main} snapshots from before the thesis-correction merge do
-not contain these support artifacts.
+The thesis-support apparatus used for this revision is on the dedicated thesis
+correction branch; it is not represented as being on \texttt{main}. Before
+submission, the exact manuscript source, generated
+tables, figures, dependency lock, and matching PDF must be committed together,
+and that immutable commit hash must be recorded in the submission. The
+machine-readable benchmark manifest and audit report are stored under
+\path{data/benchmarks/results_5000/}. No Git release tag is claimed.
 
 I designed and implemented the \system\ architecture, prepared the multi-dataset evaluation workflow, executed the experiments reported in this document, and analysed the resulting predictive and operational behaviour.
 
-This thesis is complete. The reported results constitute the final frozen experimental record for the submitted Master's study. The document distinguishes measurements that were executed from analyses that remain recommendations for subsequent research; no unexecuted experiment is presented as a completed result.
+The document distinguishes executed measurements from recommendations; no
+unexecuted experiment is presented as a result. The historical 5{,}000-claim
+evaluation is reproducible as an artifact but exploratory rather than
+confirmatory because development was informed by observations on that
+benchmark and retrospective normalization found cross-split overlaps.
 
-I present this document as the completed Master's thesis, but not as a claim of state-of-the-art performance. Its contribution is an implemented, evaluated, and auditable research system with a clear methodology, reproducible artifacts, bounded novelty claims, and documented limitations.
-
-\paragraph{Scope of the final submission.} This manuscript follows the DIETI/UNINA presentation conventions, formalizes the evaluation metrics as mathematical definitions, and presents the architectural and comparative diagrams required to interpret the study. The repository contains two separate evaluation surfaces. The \system\ live application implements open-web retrieval, domain credibility scoring, semantic reranking, persistence, and optional Ollama debate. The frozen 5{,}000-claim experiment instead evaluates the deterministic \proxy, which combines lexical classification, category-level priors, heuristic semantic signals, deterministic arbitration, and a quality filter. It does not execute SerpAPI, live domain scoring, SentenceTransformer reranking, or Ollama debate for every test claim. Chapter~9 documents another advanced module implemented in the same codebase. That evidence-graph module is a completed, independently verified prototype, but it is not part of the 5{,}000-claim proxy evaluation.
+\paragraph{Scope of the thesis.} The repository contains two separate evaluation surfaces. The \system\ live application implements open-web retrieval, domain credibility scoring, semantic reranking, persistence, and optional Ollama debate. The 5{,}000-claim experiment evaluates the deterministic \proxy, which combines lexical classification, category-level priors, heuristic semantic signals, deterministic arbitration, and a quality filter. It does not execute SerpAPI, live domain scoring, SentenceTransformer reranking, or Ollama debate for every test claim. Chapter~9 documents a separate evidence-graph prototype that is not part of the 5{,}000-claim proxy evaluation.
 
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
@@ -135,17 +128,17 @@ In this thesis, I investigate how an open-domain fact-checking system can combin
 
 I have developed a working prototype called \system. The system accepts raw text or a URL, extracts fact-like claims, retrieves supporting and contradicting evidence, evaluates source credibility through an explicit and inspectable prior, semantically reranks the evidence, and produces claim-level verdicts. These verdicts are combined into a final misinformation-likelihood score, together with evidence summaries and confidence information.
 
-The completed study uses a versioned evaluation workflow and a frozen 5{,}000-claim test split assembled from FEVER, LIAR, SciFact, and the PUBHEALTH \texttt{health\_fact} dataset stored under a legacy healthver compatibility name. The full \proxy\ reaches 50.82\% accuracy and 0.4384 macro-F1. A proxy version without deterministic debate reaches 51.34\% accuracy and 0.4427 macro-F1. An exploratory FEVER-aware proxy reaches 50.98\% accuracy and 0.4421 macro-F1. These are the final proxy findings of the submitted experiment; they are not measurements of the live application and are not presented as proof of state-of-the-art superiority.
+The exploratory study uses a versioned 5{,}000-claim benchmark assembled from FEVER, LIAR, SciFact, and the PUBHEALTH \texttt{health\_fact} dataset stored under a legacy healthver compatibility name. The full \proxy\ reaches 50.82\% accuracy and 0.4384 macro-F1. A proxy version without deterministic debate reaches 51.34\% accuracy and 0.4427 macro-F1. A FEVER-aware proxy reaches 50.98\% accuracy and 0.4421 macro-F1. These descriptive findings are not measurements of the live application, are not statistically confirmatory, and are not evidence of state-of-the-art superiority.
 
 The proxy results also reveal a large raw-score confidence--accuracy gap. Because the stored score is heuristic and not a complete multiclass probability distribution, the result is reported as a raw-score calibration diagnostic rather than probability calibration.
 
-Beyond the evaluated proxy, I implemented a typed, provenance-constrained evidence-graph prototype with a deterministic audit layer. Chapter~9 reports its final thesis status: the audited repository snapshot's 163-test backend suite passes and a small corruption-scenario probe demonstrates one concrete mechanism (source-independence clustering) by which it changes a decision relative to a simpler baseline. It remains intentionally separate from the proxy and therefore does not alter the 5{,}000-claim results.
+Beyond the evaluated proxy, I implemented a typed, provenance-constrained evidence-graph prototype with a deterministic audit layer. Chapter~9 reports its thesis status: the corrected repository's 164-test backend suite passes and a small corruption-scenario probe demonstrates one concrete mechanism (source-independence clustering) by which it changes a decision relative to a simpler baseline. It remains intentionally separate from the proxy and therefore does not alter the 5{,}000-claim results.
 
 \textbf{Sommario (Italiano).} In questa tesi analizzo come un sistema di verifica automatica dei fatti in dominio aperto possa combinare il recupero di evidenze testuali, un meccanismo esplicito e ispezionabile di stima dell'affidabilit\`a delle fonti, un protocollo di valutazione riproducibile e un'ingegneria orientata al deployment. Ho sviluppato l'applicazione live \system\ e, separatamente, ho valutato il modello deterministico \proxy\ su 5.000 affermazioni tratte da FEVER, LIAR, SciFact e PUBHEALTH. Il proxy completo raggiunge un'accuratezza del 50{,}82\% e un macro-F1 di 0{,}4384; la variante proxy senza arbitraggio deterministico raggiunge il 51{,}34\% e 0{,}4427. L'esperimento non esegue il recupero SerpAPI, il reranking SentenceTransformer o il dibattito Ollama per ogni affermazione.
 
-\chapter*{Thesis Claim}
-\addcontentsline{toc}{chapter}{Thesis Claim}
-The central claim is that an open-domain fact-verification system becomes more useful for human decision support when source trust, evidence retrieval, and verdict inference are explicit and inspectable rather than folded into one opaque score, and when confidence limitations are reported honestly. The completed study supports a bounded version of this claim through separate evidence streams: the live application is implemented and software-tested, while the deterministic proxy has a frozen 5{,}000-claim evaluation. Its small raw accuracy differences over majority and length baselines are not robust after Holm correction, and its heuristic score is strongly overconfident. A separate prototype module (Chapter~9) additionally demonstrates at small scale that a deterministic audit layer can force a safer outcome under correlated, same-domain evidence. These claims are final within the executed scope and are limited to the evidence reported in this thesis.
+\chapter*{Contribution and Evidence Boundary}
+\addcontentsline{toc}{chapter}{Contribution and Evidence Boundary}
+The principal contribution is an engineering integration of open-web retrieval, explicit and inspectable source priors, evidence presentation, persistence, optional local-model arbitration, and reproducibility artifacts. The live application is implemented and software-tested. The deterministic proxy has an exploratory 5{,}000-claim evaluation whose small raw differences over majority and length baselines do not survive Holm correction. Chapter~9 documents a preliminary graph-auditor probe; eight synthetic cases do not establish a new empirical method.
 
 \tableofcontents
 \listoftables
@@ -180,7 +173,7 @@ I have defined the following objectives:
   \item Preserve claims, evidence, predictions, and intermediate outputs to support reproducibility.
   \item Measure whether optional components, particularly debate arbitration, provide enough benefit to justify their computational cost.
   \item Identify uncertainty, calibration, data-quality, and validity limitations before making stronger scientific claims.
-  \item \emph{(Added in this revision)} Formalize every metric used in the evaluation as an explicit mathematical definition, so that the empirical chapters can be read and checked independently of the code that produced them.
+  \item Formalize every metric used in the evaluation as an explicit mathematical definition, so that the empirical chapters can be read and checked independently of the code that produced them.
 \end{enumerate}
 
 \section{Evaluation Questions}
@@ -203,7 +196,7 @@ The following contributions were completed within this thesis:
   \item I implemented a working full-stack prototype using Next.js, FastAPI, SQLite, caching, retrieval services, and optional model components.
   \item I developed an explicit source-credibility mechanism whose decisions can be inspected and modified without retraining the complete system.
   \item I prepared a versioned evaluation workflow combining four heterogeneous fact-verification datasets.
-  \item I executed a frozen 5{,}000-claim evaluation of the deterministic \proxy\ and compared it with multiple baselines and variants.
+  \item I executed an exploratory 5{,}000-claim evaluation of the deterministic \proxy\ and compared it with multiple baselines and variants.
   \item I measured proxy predictive behaviour and produced explicitly labelled operational projections for latency, throughput, and retrieval cost.
   \item I documented negative and inconclusive findings, including the lack of benefit from always-on proxy arbitration and the proxy's large raw-score confidence gap.
   \item I implemented and independently verified an advanced evidence-graph prototype module, and documented precisely which safety mechanisms changed decisions and which remained masked by the current classifier (Chapter~9).
@@ -222,41 +215,48 @@ Research component & Final status & Comment \\
 \midrule
 End-to-end architecture & Implemented & The complete nine-stage workflow is operational. \\
 Full-stack prototype & Implemented & Next.js, FastAPI, SQLite, caching, retrieval, and reporting are integrated. \\
-Frozen dataset split & Completed & The current split contains 19{,}983 normalized claims. \\
-5{,}000-claim proxy evaluation & Completed & Exactly 5{,}000 aligned predictions per system, hashes, class metrics, domain metrics, paired tests, and aggregate results are recorded. \\
+Dataset split and overlap audit & Completed & Strong normalization identified 19 train--validation, 34 train--test, and 5 validation--test exact overlaps; the 39 affected test claims are removed in a 4{,}961-claim sensitivity analysis. \\
+5{,}000-claim proxy evaluation & Completed, exploratory & Exactly 5{,}000 aligned predictions per system are reported descriptively, alongside the exact-overlap sensitivity analysis. \\
 Baseline comparison & Completed & Majority, random, length, keyword, and sentiment baselines are included. \\
 Component ablation & Completed within scope & The debate-free and reported frozen variants were evaluated; broader ablations are future work. \\
 Confidence analysis & Completed descriptively & The confidence--accuracy gap establishes substantial overconfidence; post-hoc calibration is recommended. \\
 Paired statistical testing & Completed & Exact two-sided McNemar tests, paired-bootstrap intervals, Holm correction, risk differences, and matched odds ratios are generated from the frozen prediction CSVs. \\
 Evidence preservation & Completed at artifact level & Proxy splits, predictions, hashes, manifests, and generated reports are retained. Live retrieval records are separate and are not used as proxy evidence. \\
-Evidence-graph prototype & Completed prototype & 163/163 backend tests pass on the audited repository snapshot; it is intentionally reported separately from the proxy evaluation (Chapter~9). \\
+Evidence-graph prototype & Implemented prototype & 164/164 backend tests pass on the audited repository; the prototype is reported separately from the proxy evaluation (Chapter~9). \\
 Final thesis revision & Completed & This manuscript is the completed defence version. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 \section{Thesis Structure}
-The remainder of this thesis is organized as follows. Chapter~2 situates the work relative to prior literature. Chapter~3 gives the mathematical definitions of every metric used later. Chapter~4 describes the evaluated nine-stage architecture. Chapter~5 describes the dataset and experimental design. Chapter~6 reports the final frozen results. Chapter~7 discusses their meaning. Chapter~8 states limitations and threats to validity. Chapter~9 documents the completed evidence-graph prototype, precisely scoped as separate from the evaluated pipeline. Chapter~10 gives a structured comparative and novelty analysis against the closest prior work. Chapter~11 records final study closure and recommendations. Chapter~12 sketches research directions beyond this Master's thesis. Chapter~13 concludes. Appendices~A--F provide the audit-rule inventory, test coverage, the corruption-probe construction script and output, real source-code listings, a glossary, and a summary of mathematical notation.
+The remainder of this thesis is organized as follows. Chapter~2 situates the work relative to prior literature. Chapter~3 gives the mathematical definitions of every metric used later. Chapter~4 describes the nine-stage architecture. Chapter~5 describes the dataset and experimental design. Chapter~6 reports the exploratory historical results. Chapter~7 discusses their meaning. Chapter~8 states limitations and threats to validity. Chapter~9 documents the preliminary evidence-graph prototype separately from the proxy. Chapter~10 gives a structured comparative and novelty analysis. Chapter~11 records corrections required for confirmatory evaluation. Chapter~12 sketches research directions, and Chapter~13 concludes. Appendices provide the audit-rule inventory, test coverage, corruption-probe materials, source-code listings, glossary, and mathematical notation.
 
 \chapter{Related Work}
 \section{Automated Fact Verification}
 FEVER established a large-scale setting for claim verification using evidence from Wikipedia \citep{thorne2018fever}. LIAR contains real political statements with fine-grained truthfulness labels \citep{wang2017liar}. SciFact focuses on scientific claim verification using evidence from research abstracts \citep{wadden2020fact}.
 
-These datasets were created for different purposes and use different annotation schemes. Combining them creates methodological challenges, but it also allows me to investigate whether the architecture behaves consistently across different domains. Table~\ref{tab:dataset-lit} summarizes the three source datasets on the dimensions that matter for this thesis: label granularity, evidence format, and domain.
+These datasets were created for different purposes and use different annotation schemes. Combining them creates methodological challenges, but it also allows me to investigate whether the architecture behaves consistently across different domains. Table~\ref{tab:dataset-lit} summarizes the four source datasets on the dimensions that matter for this thesis: label granularity, evidence format, and domain.
+
+Automated fact-checking is normally decomposed into claim detection,
+evidence retrieval, evidence assessment, and verdict prediction
+\citep{guo2022survey}. That decomposition is important here because software
+tests of an end-to-end application, predictive evaluation of a proxy, and
+human usefulness of presented evidence are different forms of evidence and
+must not be substituted for one another.
 
 \begin{table}[H]
 \centering
-\caption{Source datasets used to build the frozen benchmark, and their original design choices.}
+\caption{Source datasets and their original task definitions.}
 \label{tab:dataset-lit}
-\small
-\begin{tabularx}{\textwidth}{p{1.6cm}p{2.6cm}p{3.4cm}X}
+\scriptsize
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.15cm}>{\raggedright\arraybackslash}p{3.15cm}>{\raggedright\arraybackslash}p{3.45cm}>{\raggedright\arraybackslash}X}
 \toprule
 Dataset & Domain & Original labels & Evidence format \\
 \midrule
 FEVER & Encyclopaedic (Wikipedia) & SUPPORTS / REFUTES / NOT ENOUGH INFO & Sentence-level, closed corpus \\
 LIAR & Political statements & six-way truthfulness scale & No structured evidence; speaker/context metadata \\
 SciFact & Scientific claims & SUPPORT / CONTRADICT / NEI & Rationale sentences from abstracts \\
-Health-domain (health\_fact) & Health claims & numerical veracity labels & Article-level, heterogeneous sources \\
+PUBHEALTH (\texttt{health\_fact}) & Mixed public-health and general fact-checking claims & Numerical veracity labels & Article-level, heterogeneous sources \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -266,10 +266,19 @@ FacTool treats factuality detection as a modular process in which external tools
 
 This approach is conceptually close to my work because I also avoid relying on a single language model to generate an unsupported verdict. My work differs in emphasis. I focus explicitly on source-credibility rules, persistent evidence storage, caching, service failure, bounded operational demonstrations and projections, and a user-facing misinformation-analysis workflow.
 
-\section{Faithful Factual Correction}
-Zero-shot Faithful Factual Error Correction studies the detection and correction of factual errors without task-specific retraining \citep{huang2023zeroshot}.
+Truth-O-Meter combines web mining, natural-language inference, and
+defeasible-logic argumentation for conflicting sources
+\citep{galitsky2025truthometer}. Its dialectical reasoning is substantially
+richer than the simple typed graph and deterministic rules in Chapter~9.
+Truth-O-Meter's reported numbers are not directly comparable with this thesis:
+the tasks, evidence conditions, label spaces, and evaluation procedures differ.
+Its public repository and tutorial material are useful implementation context,
+but they are not substitutes for the scholarly publication.
 
-Its objective is primarily to correct text while preserving semantic faithfulness. My system instead focuses on open-domain verification, external evidence retrieval, source-trust assessment, and misinformation-risk analysis over free text and URLs.
+\section{Faithful Factual Correction}
+Zero-shot Faithful Factual Error Correction studies the detection and correction of factual errors without task-specific retraining and evaluates correction faithfulness, including human judgments \citep{huang2023zeroshot}.
+
+Its objective is primarily to correct text while preserving semantic faithfulness. My system primarily verifies and classifies; its correction functionality has not received a comparable benchmark or human evaluation.
 
 \section{Retrieval-Augmented AI}
 Retrieval-Augmented Generation demonstrates how external documents can be combined with parametric language models \citep{lewis2020rag}.
@@ -283,6 +292,14 @@ A system may assign high confidence to an incorrect prediction. This is particul
 
 Confidence calibration and selective abstention are therefore important follow-up directions. Chapter~9's audit layer is a rule-based, non-learned form of the same idea: rather than thresholding a scalar confidence score, it routes specific rule violations to distinct non-decisive outcomes. Section~9.7 returns to this connection and its limits.
 
+\section{Leakage and Evaluation Independence}
+Reproducible files are necessary but do not by themselves establish an
+independent evaluation. Leakage can arise through preprocessing, duplicate
+records, model selection, or repeated feedback from a nominal test set and can
+produce overoptimistic conclusions \citep{kapoor2023leakage}. This distinction
+motivates the retrospective overlap audit in Chapter~5 and the decision to
+describe the 5{,}000-claim findings as exploratory.
+
 \section{Multi-Agent Debate}
 Multi-agent debate has been proposed as a method for improving factuality and reasoning by allowing different agents to challenge each other's arguments \citep{du2023debate}.
 
@@ -291,7 +308,7 @@ I implemented an optional live Prover--Skeptic--Judge workflow. However, I do no
 \section{Positioning Summary}
 \begin{table}[H]
 \centering
-\caption{Research positioning of \system\ relative to the six literature threads above.}
+\caption{Research positioning of \system\ relative to the principal literature threads above.}
 \label{tab:positioning}
 \scriptsize
 \newcolumntype{Z}{>{\raggedright\arraybackslash}X}
@@ -438,31 +455,29 @@ I designed \system\ as a nine-stage architecture that separates evidence retriev
 
 \begin{figure}[H]
 \centering
-\resizebox{\linewidth}{!}{%
 \begin{tikzpicture}[
-  node distance=1.6cm and 1.9cm,
-  actor/.style={rectangle,draw,rounded corners,align=center,minimum width=2.6cm,minimum height=.8cm,fill=blue!6},
+  node distance=.45cm,
+  actor/.style={rectangle,draw,rounded corners,align=center,minimum width=2.15cm,minimum height=.95cm,fill=blue!6,font=\small},
   msg/.style={-{Latex[length=2mm]},thick},
   lifeline/.style={dashed,gray}]
-\node[actor] (client) {Client (Next.js)};
-\node[actor,right=of client] (api) {FastAPI \texttt{/analyze}};
-\node[actor,right=of api] (retr) {Retrieval + Cache};
-\node[actor,right=of retr] (cred) {Credibility + Rerank};
-\node[actor,right=of cred] (verd) {Verdict + Debate};
-\node[actor,right=of verd] (db) {SQLite Persistence};
+\node[actor] (client) {Client\\(Next.js)};
+\node[actor,right=of client] (api) {FastAPI\\\texttt{/analyze}};
+\node[actor,right=of api] (retr) {Retrieval\\and Cache};
+\node[actor,right=of retr] (cred) {Credibility\\and Rerank};
+\node[actor,right=of cred] (verd) {Verdict\\and Debate};
+\node[actor,right=of verd] (db) {SQLite\\Persistence};
 \foreach \n in {client,api,retr,cred,verd,db} {
-  \draw[lifeline] (\n.south) -- ++(0,-4.3);
+  \draw[lifeline] (\n.south) -- ++(0,-5.0);
 }
-\draw[msg] ([yshift=-0.5cm]client.south) -- node[above,font=\tiny]{POST claim/URL} ([yshift=-0.5cm]api.south);
-\draw[msg] ([yshift=-1.1cm]api.south) -- node[above,font=\tiny]{query} ([yshift=-1.1cm]retr.south);
-\draw[msg] ([yshift=-1.7cm]retr.south) -- node[above,font=\tiny]{evidence set} ([yshift=-1.7cm]cred.south);
-\draw[msg] ([yshift=-2.3cm]cred.south) -- node[above,font=\tiny]{scored, reranked evidence} ([yshift=-2.3cm]verd.south);
-\draw[msg] ([yshift=-2.9cm]verd.south) -- node[above,font=\tiny]{run record} ([yshift=-2.9cm]db.south);
-\draw[msg] ([yshift=-3.5cm]db.south) -- node[above,font=\tiny]{ack} ([yshift=-3.5cm]verd.south);
-\draw[msg] ([yshift=-3.9cm]verd.south) -- node[above,font=\tiny]{verdict + confidence} ([yshift=-3.9cm]api.south);
-\draw[msg] ([yshift=-4.2cm]api.south) -- node[above,font=\tiny]{response JSON} ([yshift=-4.2cm]client.south);
+\draw[msg] ([yshift=-0.6cm]client.south) -- node[above,font=\small]{claim or URL} ([yshift=-0.6cm]api.south);
+\draw[msg] ([yshift=-1.25cm]api.south) -- node[above,font=\small]{query} ([yshift=-1.25cm]retr.south);
+\draw[msg] ([yshift=-1.9cm]retr.south) -- node[above,font=\small]{evidence} ([yshift=-1.9cm]cred.south);
+\draw[msg] ([yshift=-2.55cm]cred.south) -- node[above,font=\small]{scored evidence} ([yshift=-2.55cm]verd.south);
+\draw[msg] ([yshift=-3.2cm]verd.south) -- node[above,font=\small]{run record} ([yshift=-3.2cm]db.south);
+\draw[msg] ([yshift=-3.85cm]db.south) -- node[above,font=\small]{stored ID} ([yshift=-3.85cm]verd.south);
+\draw[msg] ([yshift=-4.45cm]verd.south) -- node[above,font=\small]{verdict and confidence} ([yshift=-4.45cm]api.south);
+\draw[msg] ([yshift=-4.9cm]api.south) -- node[above,font=\small]{response JSON} ([yshift=-4.9cm]client.south);
 \end{tikzpicture}%
-}
 \caption{Sequence view of a single \texttt{POST /analyze} request, showing component interaction order.}
 \label{fig:sequence}
 \end{figure}
@@ -543,13 +558,13 @@ I combine claim-level outcomes, source credibility, evidence quality, and contex
 The retrieval layer validates URLs before fetching and rejects private, loopback, link-local, and otherwise non-public network destinations, so that user-submitted URLs cannot be used to probe internal infrastructure. This is a deployment necessity as much as a research concern: an open-domain retrieval service that accepts arbitrary URLs is, by construction, exposed to server-side request forgery unless it validates targets before every fetch and every redirect.
 
 \chapter{Dataset and Experimental Design}
-\section{Final Frozen Benchmark}
-I created the final frozen evaluation family by combining claims from FEVER, LIAR, SciFact, and a normalized health-domain dataset. After normalization and exact-duplicate removal, the dataset contains 19{,}983 unique claims, divided into 11{,}986 training claims, 2{,}997 validation claims, and 5{,}000 test claims.
+\section{Historical Exploratory Benchmark}
+I created the evaluation family by combining claims from FEVER, LIAR, SciFact, and the PUBHEALTH \texttt{health\_fact} partition. The archived files contain 11{,}986 training claims, 2{,}997 validation claims, and 5{,}000 test claims. These counts describe records, not fully isolated semantic items.
 
 \section{Dataset Composition}
 \begin{table}[H]
 \centering
-\caption{Final benchmark composition and frozen label harmonization.}
+\caption{Exploratory benchmark composition and label harmonization.}
 \label{tab:composition}
 \small
 \begin{tabularx}{\textwidth}{p{1.6cm}p{1.8cm}p{1.3cm}p{1.1cm}X}
@@ -559,7 +574,7 @@ Slot & Source & Imported & Test & Canonical mapping \\
 FEVER & FEVER v1.0 & 8{,}000 & 1{,}829 & SUPPORTS $\to$ SUPPORTED; REFUTES $\to$ REFUTED; NOT ENOUGH INFO $\to$ NEI \\
 LIAR & LIAR & 6{,}000 & 1{,}490 & true / mostly-true $\to$ SUPPORTED; false / pants-fire $\to$ REFUTED; half-true / barely-true $\to$ NEI \\
 SciFact & SciFact claims & 1{,}200 & 191 & SUPPORT $\to$ SUPPORTED; CONTRADICT $\to$ REFUTED; insufficient evidence $\to$ NEI \\
-Health domain & PUBHEALTH health\_fact & 6{,}000 & 1{,}490 & Source labels mapped to SUPPORTED, REFUTED, and NEI by the frozen normalization script; stored under the legacy \texttt{healthver} compatibility filename. \\
+PUBHEALTH partition & PUBHEALTH health\_fact & 6{,}000 & 1{,}490 & Mixture/unproven labels mapped to NEI by the historical script; stored under the legacy \texttt{healthver} compatibility filename. This is not interpreted as a clean medical-domain subset. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -575,7 +590,26 @@ Health domain & PUBHEALTH health\_fact & 6{,}000 & 1{,}490 & Source labels mappe
 \end{figure}
 
 \section{Split and Leakage Control}
-I normalized claim text before splitting the dataset. I removed exact normalized duplicates and withheld the normalized test claims from the remaining training and validation pool. This reduces direct claim leakage across partitions. Semantically similar or paraphrased claims may still exist; this residual risk is recorded as a limitation because embedding-based overlap analysis was outside the final experimental scope.
+The original builder normalized claim text before splitting, whereas the
+validator initially applied a weaker definition. I unified both paths using
+NFKC normalization, case folding, punctuation removal, and whitespace
+collapse. The resulting audit identified 19 train--validation, 34 train--test,
+and 5 validation--test exact overlaps; 39 distinct test claims were affected.
+I therefore report the original 5{,}000-claim result together with a
+4{,}961-claim sensitivity analysis that excludes every known exact test
+overlap. A separate audit also identified likely near-duplicates. Consequently,
+the numerical findings remain exploratory even though the exact-overlap
+sensitivity result is stable.
+
+\section{Label Semantics and Sensitivity}
+The three-way harmonization changes the target construct. FEVER's NEI means
+that the supplied evidence is insufficient, whereas LIAR's ``half-true'' and
+``barely-true'' and PUBHEALTH's ``mixture'' and ``unproven'' describe different
+forms of partial truth or uncertainty. Mapping all four to NEI conflates
+evidential insufficiency with mixed veracity. The present tables retain the
+historical mapping solely to reproduce the archived experiment. A
+confirmatory redesign should either exclude ambiguous source labels or add a
+MIXED/PARTIAL class, then report both designs as a sensitivity analysis.
 
 \section{Evidence Reproducibility}
 The proxy claims, labels, predictions, and aggregate results are frozen in archived artifacts. The run manifest records SHA-256 hashes of all split and prediction files. The proxy experiment does not retrieve live web evidence. The separate live application does retrieve dynamic web documents; those application demonstrations are not used to produce the 5{,}000-claim proxy metrics.
@@ -597,15 +631,15 @@ I report the metrics formally defined in Chapter~\ref{ch:math}: accuracy, macro-
 
 \chapter{Final Experimental Results}
 \section{Interpretation Policy}
-This chapter reports the final frozen results of the deterministic \proxy. They do not characterize end-to-end execution of the live \system\ application and do not establish state-of-the-art performance. Exact paired analyses are reported, but marginal unadjusted comparisons against simple baselines are not treated as robust superiority after multiple-comparison correction.
+This chapter reports exploratory historical results of the deterministic \proxy. They do not characterize end-to-end execution of the live \system\ application and do not establish state-of-the-art performance. Because model development observed this benchmark and split overlap was found retrospectively, confidence intervals and paired tests are descriptive only; no confirmatory superiority claim is made.
 
 \section{Final Model Performance}
 \begin{table}[H]
 \centering
-\caption{Final descriptive performance on the frozen 5{,}000-claim test set. Every figure was independently re-verified against \texttt{ablation\_study\_report.json} in the project repository.}
+\caption{Exploratory descriptive performance on the historical 5{,}000-claim benchmark. Every figure was re-verified against \texttt{ablation\_study\_report.json}.}
 \label{tab:perf}
 \small
-\begin{tabularx}{\textwidth}{Xp{1.6cm}p{1.6cm}p{2.3cm}p{2.2cm}p{2cm}}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.1cm}>{\raggedright\arraybackslash}p{1.3cm}>{\raggedright\arraybackslash}p{1.3cm}>{\raggedright\arraybackslash}p{2.1cm}>{\raggedright\arraybackslash}p{1.7cm}>{\raggedright\arraybackslash}X}
 \toprule
 System & Accuracy & Macro-F1 & 95\% CI (Sec.~3.2) & Avg. raw score & Raw gap \\
 \midrule
@@ -620,6 +654,41 @@ Sentiment heuristic & 23.78\% & 0.1400 & [22.60, 24.96]\% & 40.31\% & 16.53 pp \
 \bottomrule
 \end{tabularx}
 \end{table}
+
+\section{Exact-Overlap Sensitivity Analysis}
+Table~\ref{tab:decontaminated} compares the archived 5{,}000-claim evaluation
+with the 4{,}961-claim subset obtained after excluding all 39 test claims that
+have an exact normalized match in training or validation. The full proxy's
+accuracy changes from 50.82\% to 50.78\%, a difference of $-0.044$ percentage
+points. Its macro-F1 changes from 0.4384 to 0.4359. The no-debate variant
+remains the highest-scoring proxy configuration. Thus, the known exact
+overlaps do not materially explain the headline result.
+
+\begin{table}[H]
+\centering
+\caption{Sensitivity of selected results to removal of 39 exact normalized test overlaps.}
+\label{tab:decontaminated}
+\small
+\begin{tabularx}{\textwidth}{Xrrrrr}
+\toprule
+System & \multicolumn{2}{c}{Full ($n=5{,}000$)} & \multicolumn{2}{c}{Filtered ($n=4{,}961$)} & $\Delta$ Acc. \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & Accuracy & Macro-F1 & Accuracy & Macro-F1 & (pp) \\
+\midrule
+\proxy\ without debate & 51.34\% & 0.4427 & 51.30\% & 0.4402 & $-0.040$ \\
+Full \proxy & 50.82\% & 0.4384 & 50.78\% & 0.4359 & $-0.044$ \\
+Length heuristic & 49.42\% & 0.3483 & 49.61\% & 0.3486 & $+0.187$ \\
+Majority baseline & 49.26\% & 0.2200 & 49.45\% & 0.2206 & $+0.186$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+This filtering is a robustness check rather than a new untouched test. It
+does not remove all likely near-duplicates, and it does not reverse the fact
+that proxy development was informed by observations on the benchmark. The
+appropriate conclusion is therefore precise: exact normalized overlap has a
+negligible measured effect, while broader evaluation-independence limitations
+remain.
 
 \section{Final Interpretation}
 The full \proxy\ exceeds the majority baseline by 1.56 percentage points in accuracy. Using the macro-F1 definition of Section~3.1, the macro-F1 difference is $0.4384 - 0.2200 = 0.2184$. This suggests that the proxy distributes some correct decisions more evenly across labels than a majority classifier.
@@ -714,7 +783,7 @@ Thus, a shallow property of the input claim captures some regularity in the
 combined benchmark. The full proxy improves on the length heuristic by
 1.40 percentage points in accuracy and by 0.0901 macro-F1. The result warns
 that dataset construction and claim style may introduce exploitable
-shortcuts, while also showing that the evidence-aware pipeline is not merely
+shortcuts, while also showing that the lexical and heuristic proxy is not merely
 reproducing the length rule.
 
 The keyword and sentiment heuristics are substantially weaker. Their
@@ -801,7 +870,7 @@ The domain comparison answers an important research question: there is no
 single uniform effect of the architecture across all benchmark families.
 The value of the proxy's lexical, prior, and arbitration signals depends
 on the claim distribution and on the harmonized benchmark labels. For deployment, this implies that the separate live application must be validated
-performed in the target domain rather than inferred from only the combined
+in the target domain rather than inferred from only the combined
 score.
 
 \subsection{Raw-Score Confidence as a Safety Finding}
@@ -858,7 +927,7 @@ The completed evidence supports four integrated answers. First, an auditable
 open-domain verification pipeline can be implemented as a complete
 full-stack research artifact with persistent evidence, explicit source rules,
 and reproducible evaluation outputs. The thesis demonstrates the application
-through implementation and the audited repository snapshot's 163-test suite, and evaluates the separate
+through implementation and the corrected repository's 164-test suite, and evaluates the separate
 proxy through frozen benchmark artifacts.
 
 Second, the deterministic proxy provides modest observed improvement over
@@ -914,10 +983,22 @@ I therefore design \system\ as a transparent decision-support system. A responsi
 
 \chapter{Limitations and Threats to Validity}
 \section{Construct Validity}
-The four datasets use different label systems. Mapping them into SUPPORTED, REFUTED, and NEI simplifies evaluation but may remove important distinctions. For example, the LIAR labels ``half-true'' and ``barely-true'' may not be equivalent to insufficient evidence.
+The four datasets use different label systems. Mapping LIAR ``half-true'' and
+``barely-true'' and PUBHEALTH ``mixture'' and ``unproven'' to NEI conflates
+partial truth, mixed content, uncertainty, and insufficient evidence. The
+partition labelled ``health'' also contains political and general
+fact-checking claims and is not a clean medical-domain evaluation. Results for
+that partition are descriptive of the source file, not of clinical validity.
 
 \section{Internal Validity}
-The FEVER-aware variant uses a dataset-specific adjustment. I therefore report it as exploratory rather than as a blind model-selection result. The retrieved web evidence is also dynamic and may change over time.
+The 5{,}000-claim benchmark was observed during proxy development: the first
+full run obtained 23.62\% accuracy, after which proxy classification and a
+FEVER-specific adjustment were changed using feedback from the same benchmark.
+The reported 50.82\% full-proxy result is therefore exploratory, not a blind
+test result. Strong normalization also finds 39 test claims with exact
+train/validation matches, plus additional likely near-duplicates. A future
+confirmatory study must freeze implementation choices using training and
+validation data only, then evaluate once on unused official or external data.
 
 \section{Statistical Conclusion Validity}
 The final report includes exact two-sided McNemar tests, paired-bootstrap confidence intervals with seed 42, Holm correction, paired risk differences, and matched-pair odds ratios. The unadjusted full-proxy comparisons against majority and length are marginal ($p=0.0433$ and $p=0.0462$), but neither survives Holm correction. The unadjusted no-debate comparison is $p=0.00955$ and likewise has adjusted $p=0.0573$. These results support bounded interpretation rather than an inferential superiority claim. Residual risks include dataset-label harmonization, multiple exploratory variants, and the absence of an untouched external confirmatory set.
@@ -926,7 +1007,12 @@ The final report includes exact two-sided McNemar tests, paired-bootstrap confid
 The benchmark contains four dataset families, but it does not represent all forms of misinformation, all languages, or all cultural contexts. The present evaluation is English-focused. Future work should test multilingual claims, multimedia misinformation, emerging events, and adversarially written content.
 
 \section{Reproducibility Validity}
-The proxy claims and predictions are frozen, hashed in a run manifest, and regenerated into class, dataset, confusion-matrix, and paired-test reports by a versioned script. Exact replay of the proxy does not require web search. Live-application retrieval remains dynamic and is evaluated separately through software tests and bounded demonstrations; its web documents are not a redistributable corpus.
+The historical proxy claims and predictions are retained and regenerated into
+class, dataset, confusion-matrix, and paired-test reports by a versioned
+script. Text-artifact hashes use canonical LF endings so that Windows and
+Linux checkouts agree. Exact replay does not require web search. The exact
+submission source and PDF must nevertheless be committed together and cited by
+their immutable commit hash before submission.
 
 \section{Operational Validity}
 The latency, throughput, and cost figures are scenario projections, not controlled load-test measurements. They are useful for design analysis but may not generalize across hardware, API providers, geographic regions, model sizes, concurrent traffic, cache-hit rates, or provider pricing. A future benchmark should record repeated warm- and cold-cache runs, median and tail latency, concurrency, failures, timeouts, hardware, and provider request counts.
@@ -936,7 +1022,13 @@ The latency, throughput, and cost figures are scenario projections, not controll
 \section{Status and Scope of This Chapter}
 Chapters~4--8 separate the implemented live application from the deterministic proxy evaluation. This chapter is different in kind: it documents a separate, newer module that implements an idea I list in Chapter~12 as a direction beyond this Master's thesis -- a typed, provenance-preserving evidence graph with a deterministic audit layer, in place of the flat verdict-inference step described in Section~4.7.
 
-I want to state its status precisely, because that precision is the point of including it at all. The module exists as working code on \path{main}, separately from the proxy; the complete backend suite at the audited snapshot passes 163 tests (re-executed and confirmed for this revision); and the module has been probed, at very small scale, with corruption scenarios constructed against its own rule logic (Section~9.6). It has \emph{not} been integrated into, or evaluated against, the 5{,}000-claim benchmark in Chapters~5--6 and should not be read as adding to, replacing, or explaining any number reported there.
+I want to state its status precisely. The module exists as working code on
+branch \path{thesis/reproducibility-corrections}, separately from the proxy;
+the backend suite passes 164 tests in the corrected environment; and the module
+has been probed, at very small scale, with corruption scenarios constructed
+against its own rule logic (Section~9.6). It has \emph{not} been integrated
+into, or evaluated against, the 5{,}000-claim benchmark and should be read as
+preliminary engineering work rather than an established empirical method.
 
 \section{Motivation for the Extension}
 Section~4.7 assigns each claim one of three flat outcomes based on retrieved evidence. This works, but it does not preserve \emph{why} a verdict was reached in a form a reviewer can later interrogate: whether a passage was actually fetched and hashed, whether two supporting sources were truly independent, or whether a numeric claim was checked against a matching number in the evidence. The evidence-graph prototype represents each of these as an explicit, typed, inspectable structure rather than folding them into a single score.
@@ -1025,7 +1117,7 @@ Evidence is clustered using the Jaccard-similarity rule of Section~\ref{sec:jacc
 
 \section{Engineering Verification: What Is and Is Not Demonstrated}
 \subsection{Test Suite}
-The complete backend test suite was re-executed for this revision on the audited repository snapshot: \textbf{163 tests collected, 163 passed, 0 failed}. The graph-specific cases are part of that total. A historical, pre-merge \texttt{main} snapshot contains one fewer integration test and therefore collects 162 tests.
+The complete backend test suite was re-executed for this revision: \textbf{164 tests collected, 164 passed, 0 failed}. This includes the graph-specific cases and a regression test for the unified claim normalizer. Historical audit reports with 162 or 163 tests predate one or both of those additions.
 
 \subsection{Eight-Case Synthetic Seed}
 A frozen eight-case seed, re-executed for this revision, reproduces its previously recorded coverage, selective risk, and false-accept rate (Section~\ref{sec:selective-defs}) exactly: 0.375, 0.6667, and 0.25 respectively. Table~\ref{tab:seed-detail-2} gives the per-case detail.
@@ -1108,26 +1200,28 @@ Source trust & implicit in corpus curation & not central & not central & live: e
 Evidence persistence & benchmark identifiers & framework-dependent & not central & live: run records; proxy: frozen splits, predictions, hashes & + provenance hash per passage \\
 Uncertainty handling & label only & not addressed & not addressed & proxy raw score, explicitly uncalibrated & rule-based forced abstention \\
 Deployment surface & benchmark & research framework & research method & live: full-stack app; proxy: 5k benchmark & code-verified, not benchmarked \\
-Empirical status & established benchmark & self-reported & self-reported & live: 163 tests on audited branch; proxy: frozen evaluation & \textbf{engineering-verified only} \\
+Empirical status & established benchmark & self-reported & self-reported & live: 164 tests on corrected branch; proxy: exploratory evaluation & \textbf{engineering-verified only} \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 \section{What Is Genuinely Novel}
-Three claims are defensible from the artifact and the evidence collected in this thesis:
+The defensible contribution is systems integration, not a claim that any
+individual formula, classifier, or graph rule is methodologically new:
 \begin{enumerate}
-  \item An implemented, explicit, formula-based domain-credibility prior (Section~4.5) that can be inspected and edited without retraining. The proxy uses a simpler category prior, so the 5{,}000-claim result is not cited as end-to-end evidence for live domain scoring.
-  \item A frozen proxy evaluation with aligned claim identifiers, input and prediction hashes, class and dataset metrics, exact paired tests, multiple-comparison correction, and deterministic regeneration. Its negative debate result is scoped to deterministic proxy arbitration; the separate 8.78$\times$ live-debate figure is a scenario projection.
-  \item A verified (if small-scale) demonstration that rule-based, non-learned abstention can outperform a graph-only baseline under one specific corruption pattern (Section~9.6) -- a concrete instantiation of the general abstention literature's argument \citep{wen2024abstention}, rather than a restatement of it.
+  \item An engineering integration of open-web retrieval, an explicit formula-based domain-credibility prior, evidence presentation, persistence, optional local-model arbitration, and reproducibility artifacts.
+  \item A transparent exploratory record with aligned claim identifiers, canonical line-ending-independent hashes, class and dataset metrics, exact paired tests, multiple-comparison correction, and deterministic regeneration.
+  \item A preliminary graph-auditor prototype that demonstrates one designed abstention behavior on a small synthetic probe. This is future-work evidence, not a new validated empirical method.
 \end{enumerate}
 
 \section{What Must Not Be Claimed}
 The present evidence does not establish that \system\ outperforms FEVER, SciFact, FacTool, or correction systems on their native evaluations. It does not establish that the credibility formula's weights are correct, only that they are inspectable. It does not establish that the Chapter~9 prototype improves the evaluated pipeline, since the two have never been run on the same data. Maintaining these boundaries strengthens rather than weakens the thesis, because the contribution becomes precise and falsifiable.
 
-\chapter{Study Closure and Recommendations}
-The Master's study is complete within the scope declared in Chapters~1 and~5.
-The following items are not missing thesis results; they are recommendations
-for a subsequent publication-grade extension:
+\chapter{Limitations and Research Recommendations}
+This thesis presents a complete engineering study with an exploratory
+effectiveness evaluation. The following recommendations define the work
+needed to progress from the present auditable prototype to a confirmatory,
+publication-scale evaluation:
 \begin{enumerate}
   \item Verify dataset versions, licences, and original label meanings.
   \item Recheck the health-domain label mapping.
@@ -1154,19 +1248,19 @@ for a subsequent publication-grade extension:
 \toprule Stage & Main activity & Status \\
 \midrule
 \endhead
-Data verification & Frozen claims, normalized splits, duplicate removal, and dataset composition are documented. & Completed in scope \\
-Statistical analysis & Wilson intervals, exact paired tests, bootstrap intervals, Holm correction, risk differences, and matched odds ratios are reported. & Completed in scope \\
+Data verification & The split audit and 4{,}961-claim exact-overlap sensitivity analysis are documented. & Completed \\
+Statistical analysis & Wilson intervals, paired tests, Holm correction, and sensitivity results are reported with exploratory interpretation. & Completed \\
 Calibration & The correctly scaled raw-score diagnostic is reported; probability calibration awaits class-probability vectors. & Finding completed \\
 Ablation analysis & The reported full, debate-free, and exploratory variants are frozen and interpreted. & Completed in scope \\
-Reproducibility & Claims, predictions, reports, manifests, code paths, and run metadata are documented. & Completed in scope \\
+Reproducibility & Claims, predictions, reports, manifests, code paths, run metadata, and the audited repository snapshot are documented. & Completed \\
 Operational analysis & Latency inputs, throughput, debate overhead, cache savings, and cost are explicitly reported as scenarios; load testing remains future work. & Completed as projection \\
-Evidence-graph scoping & The prototype is a separate, tested contribution and is not merged into the 5,000-claim results. & Final decision \\
+Evidence-graph scoping & The prototype is a separate, tested contribution and is not merged into the 5{,}000-claim results. & Completed \\
 Final writing & Results, limitations, novelty, recommendations, appendices, and acknowledgements are integrated. & Completed \\
 \bottomrule
 \end{longtable}
 
 \section{Final Reading of the Results}
-The completed results support five conclusions. First, the deterministic proxy
+The exploratory results support five bounded observations. First, the deterministic proxy
 has modest raw advantages over the majority and length baselines, but neither
 comparison survives Holm correction and neither evaluates the live application.
 Second, the debate-free configuration produces the best observed result,
@@ -1200,11 +1294,15 @@ The following directions emerge naturally from my current work:
 The Master's thesis produced an implemented and tested end-to-end platform, evaluated its separate deterministic proxy, and delivered a verified first implementation of the evidence-graph direction. Doctoral or follow-up publication research could investigate the deeper scientific questions behind this platform, particularly how trustworthy AI systems can combine learned representations, symbolic constraints, multi-agent reasoning, and explicit uncertainty.
 
 \chapter{Conclusion}
-I designed and implemented \system\ as an auditable and deployment-oriented architecture for open-domain fact verification. The completed work includes a functional nine-stage architecture; a working full-stack implementation; explicit source-credibility reasoning; a versioned deterministic proxy evaluation; frozen model and baseline comparisons; per-class and per-dataset analysis; operational scenario projections; documented limitations and recommendations; a formal mathematical framework for every reported metric (Chapter~3); and an independently verified evidence-graph prototype, reported with an explicit account of what it does and does not demonstrate (Chapter~9).
+I designed and implemented \system\ as an auditable and deployment-oriented prototype for open-domain fact verification. The work includes a functional nine-stage architecture; a working full-stack implementation; explicit source-credibility reasoning; an exploratory deterministic proxy evaluation; per-class and per-dataset analysis; operational scenario projections; documented limitations; and a preliminary evidence-graph prototype.
 
 The final proxy results show modest raw differences over simple baselines that do not survive Holm correction, a substantial raw-score confidence gap, and no benefit from always-on deterministic arbitration on the frozen benchmark. These findings are useful precisely because they identify scientific boundaries without hiding negative results. The live application's operational value is supported separately by implementation, software tests, and bounded demonstrations rather than by the proxy accuracy figures.
 
-The completed contribution is therefore not merely another classifier. It is a transparent, reproducible, uncertainty-aware, and deployment-conscious fact-verification framework in which evidence, source trust, model behaviour, and operational trade-offs can be inspected. Its novelty lies in the combination of explicit source reasoning, full-stack persistence and auditability, quantified deployment trade-offs, and a separately verified provenance-constrained graph auditor. The thesis closes with a defensible result: \system\ is a completed and evaluated Master's research artifact whose principal contribution is trustworthy integration rather than a claim of state-of-the-art predictive accuracy.
+The defensible contribution is a transparent, deployment-conscious
+fact-verification prototype in which evidence, source trust, model behaviour,
+and operational trade-offs can be inspected. Its value lies in engineering
+integration and honest negative findings, not state-of-the-art predictive
+accuracy or a validated new reasoning method.
 
 \appendix
 \chapter{Evidence Graph: Schema and Audit Rules}
@@ -1230,6 +1328,8 @@ Source independence & decisive passages are correlated or duplicated & \texttt{H
 \end{longtable}
 
 \chapter{Test Evidence (Prototype Module)}
+The test evidence in this appendix is part of the audited repository snapshot
+identified in the Research and Reproducibility Statement.
 \begin{longtable}{p{4cm}p{10cm}}
 \caption{Test coverage for the Chapter~9 prototype.}\\
 \toprule Test surface & Verified behavior \\
@@ -1246,7 +1346,7 @@ Robustness runner & frozen scenario replay, explicit missing evidence, duplicate
 Security & private and loopback URL rejection before evidence fetch \\
 \bottomrule
 \end{longtable}
-Re-verified for this revision by executing \texttt{python -m pytest services/api/tests -q} from the repository root with Python 3.10.0: 163 tests collected, 163 passed, 0 failed, with three warning records. A fresh rerun on 29 July 2026 reproduced the same counts. The 162-test result obtained from the historical pre-merge \texttt{main} snapshot is expected: commit \texttt{72ad99c} adds one recent-results integration test included in the final thesis repository. Warning totals are environment-sensitive unless the hash-pinned dependency lock is used.
+Re-verified on 31 July 2026 by executing \texttt{python -m pytest services/api/tests -q} from the repository root: 164 tests collected, 164 passed, 0 failed, with six warning records in the current Windows environment. Historical 162- and 163-test records predate later regression tests. Warning totals and timing are environment-sensitive.
 
 \chapter{Extended Corruption Probe: Construction Script and Raw Output}
 \section{Construction Script}
@@ -1376,14 +1476,14 @@ audited repository snapshot. The authoritative machine-readable outputs are stor
 under \texttt{data/benchmarks/results\_5000/}.
 
 \section{Repository Snapshot and Artifact Availability}
-Every path in this appendix is relative to the repository root. The complete
-set is tracked on \path{main}: support scripts, dependency specifications,
-generated statistics, and the audit report. The final audit report records
-source commit \texttt{a6bbafc}, the clean tracked snapshot executed before the
-generated report itself was committed. No release tag is asserted.
+Every path in this appendix is relative to the repository root. The revised
+set is tracked on branch \path{thesis/reproducibility-corrections}, not
+\texttt{main}. Historical audit commit \texttt{a6bbafc} predates this
+correction; the exact submission commit must include this source and its
+matching PDF. No release tag is asserted.
 
 \begin{longtable}{p{5.1cm}p{7.7cm}}
-\caption{Verified thesis-support artifacts on \texttt{main}.}\\
+\caption{Thesis-support artifacts on the correction branch.}\\
 \toprule Artifact & Repository-relative path \\
 \midrule
 \endfirsthead
@@ -1394,6 +1494,8 @@ Reproducibility audit & \path{data/benchmarks/results_5000/reproducibility_audit
 Statistics generator & \path{services/api/Scripts/run_thesis_statistics.py} \\
 Artifact validator & \path{services/api/Scripts/validate_thesis_artifacts.py} \\
 Manifest builder & \path{services/api/Scripts/build_thesis_run_manifest.py} \\
+Exact-overlap sensitivity report & \path{data/benchmarks/results_5000/sensitivity_analysis_report.json} \\
+Exact-overlap sensitivity table & \path{data/benchmarks/results_5000/sensitivity_analysis_metrics.csv} \\
 Cache validator & \path{services/api/Scripts/validate_cache.py} \\
 Operational projection & \path{services/api/Scripts/run_operational_projection.py} \\
 Direct dependencies & \path{services/api/requirements.in} \\
@@ -1417,9 +1519,11 @@ and matched-pair odds ratios.
 \safeinputlisting[language=Python]{services/api/Scripts/run_thesis_statistics.py}
 
 \section{Frozen-Artifact Validator}
-The validator rejects missing manifest fields, split overlap, prediction-count
-errors, claim-ID mismatch, hash mismatch, and generated reports that differ
-from the frozen statistics.
+The validator rejects missing manifest fields, claim-ID overlap,
+prediction-count errors, claim-ID mismatch, hash mismatch, undeclared
+normalized overlap, and generated reports that differ from the archived
+statistics. Its \texttt{--require-disjoint} mode rejects any normalized
+cross-split overlap for a future confirmatory set.
 \safeinputlisting[language=Python]{services/api/Scripts/validate_thesis_artifacts.py}
 
 \section{Run-Manifest Builder}
@@ -1473,7 +1577,7 @@ Atomic claim & A single, independently verifiable factual statement produced by 
 Credibility prior & The explicit, rule-based domain score defined in Section~\ref{sec:cred-def}, used before any learned scoring is applied. \\
 Debate overhead & The latency multiplier introduced by enabling the optional Prover--Skeptic--Judge workflow (Section~3.7). \\
 Evidence graph & The typed node/edge structure used by the Chapter~9 prototype to represent claims, passages, and their argumentative relations. \\
-Frozen benchmark & A fixed, versioned test split whose claims, labels, prediction records, and hashes do not change between evaluation runs. \\
+Archived benchmark & A fixed, versioned historical split and prediction record. Archival stability does not imply that the set was untouched during development or free of leakage. \\
 Independence cluster & A set of evidence items linked by shared domain or high textual similarity (Section~\ref{sec:jaccard-def}), treated as one corroborating source rather than several. \\
 NEI & ``Not Enough Information'' -- the verdict returned when available evidence does not support a decisive SUPPORTED or REFUTED outcome. \\
 Provenance & The recorded origin of a piece of evidence: URL, content hash, retrieval timestamp, and retrieval status. \\
@@ -1512,11 +1616,14 @@ $A(G)$ & The audit function mapping a graph to $\{\mathrm{PROCEED},\mathrm{NEI},
 \bibitem{wang2017liar} W. Y. Wang, ``Liar, Liar Pants on Fire: A New Benchmark Dataset for Fake News Detection,'' in \emph{Proc. ACL}, 2017, pp. 422--426.
 \bibitem{wadden2020fact} D. Wadden, S. Lin, K. Lo, L. L. Wang, M. van Zuylen, A. Cohan, and H. Hajishirzi, ``Fact or Fiction: Verifying Scientific Claims,'' in \emph{Proc. EMNLP}, 2020.
 \bibitem{chern2023factool} I.-C. Chern, S. Chern, S. Chen, W. Yuan, K. Feng, C. Zhou, J. He, G. Neubig, and P. Liu, ``FacTool: Factuality Detection in Generative AI -- A Tool-Augmented Framework for Multi-Task and Multi-Domain Scenarios,'' \emph{arXiv:2307.13528}, 2023.
-\bibitem{huang2023zeroshot} K.-H. Huang, H. P. Chan, and H. Ji, ``Zero-shot Faithful Factual Error Correction,'' \emph{arXiv:2305.07982}, 2023.
+\bibitem{huang2023zeroshot} K.-H. Huang, H. P. Chan, and H. Ji, ``Zero-shot Faithful Factual Error Correction,'' in \emph{Proc. 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)}, 2023, pp. 5660--5676, doi: 10.18653/v1/2023.acl-long.311.
+\bibitem{galitsky2025truthometer} B. Galitsky, ``Truth-O-Meter: Collaborating with LLM in Fighting Its Hallucinations,'' in \emph{Interdependent Human-Machine Teams: The Path to Autonomy}, 2025, pp. 175--210, doi: 10.1016/B978-0-443-29246-0.00004-3.
 \bibitem{lewis2020rag} P. Lewis, E. Perez, A. Piktus, F. Petroni, V. Karpukhin, N. Goyal, H. Küttler, M. Lewis, W.-T. Yih, T. Rocktäschel, S. Riedel, and D. Kiela, ``Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks,'' in \emph{Advances in Neural Information Processing Systems}, 2020.
 \bibitem{guo2017calibration} C. Guo, G. Pleiss, Y. Sun, and K. Q. Weinberger, ``On Calibration of Modern Neural Networks,'' in \emph{Proc. ICML}, 2017.
 \bibitem{wen2024abstention} B. Wen et al., ``Know Your Limits: A Survey of Abstention in Large Language Models,'' \emph{arXiv:2407.18418}, 2024.
 \bibitem{du2023debate} Y. Du et al., ``Improving Factuality and Reasoning in Language Models through Multi-Agent Debate,'' \emph{arXiv:2305.14325}, 2023.
+\bibitem{guo2022survey} Z. Guo, M. Schlichtkrull, and A. Vlachos, ``A Survey on Automated Fact-Checking,'' \emph{Transactions of the Association for Computational Linguistics}, vol. 10, pp. 178--206, 2022, doi: 10.1162/tacl\_a\_00454.
+\bibitem{kapoor2023leakage} S. Kapoor and A. Narayanan, ``Leakage and the Reproducibility Crisis in Machine-Learning-Based Science,'' \emph{Patterns}, vol. 4, no. 9, 2023.
 \end{thebibliography}
 
 \chapter*{Ringraziamenti}

@@ -5,6 +5,8 @@ Ensures deterministic train/test splits with stratification.
 """
 
 import json
+import re
+import unicodedata
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass, asdict
 from pathlib import Path
@@ -45,6 +47,19 @@ def normalize_label(label: str) -> str:
         return mapped
 
     raise ValueError(f"Unsupported label: {label}")
+
+
+def normalize_claim_text(text: str) -> str:
+    """Return the canonical text key used for deduplication and split checks.
+
+    Unicode compatibility normalization is applied before case folding.
+    Punctuation is converted to spaces and whitespace is collapsed, including
+    a final strip after punctuation removal.
+    """
+    normalized = unicodedata.normalize("NFKC", str(text or "")).casefold()
+    normalized = re.sub(r"[^\w\s]", " ", normalized, flags=re.UNICODE)
+    normalized = re.sub(r"_+", " ", normalized)
+    return re.sub(r"\s+", " ", normalized).strip()
 
 
 @dataclass
@@ -141,7 +156,7 @@ class DatasetManager:
                 errors.append(f"{row_ref}: duplicate claim id '{claim_id}'")
             seen_ids.add(claim_id)
 
-            claim_text = str(claim.get("claim", "")).strip().lower()
+            claim_text = normalize_claim_text(str(claim.get("claim", "")))
             if not claim_text:
                 errors.append(f"{row_ref}: empty claim text")
             elif claim_text in seen_claim_text:

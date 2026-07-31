@@ -1,10 +1,21 @@
 {
   "experiment_name": "factvalidator_proxy_5000",
   "evaluation_type": "deterministic_proxy",
-  "git_commit": "4612740da4682542fc1772fdad873ff10fd7ade1",
+  "evidence_status": "exploratory",
+  "confirmatory_claims_permitted": false,
+  "split_isolation": {
+    "normalization": "NFKC + casefold + punctuation-to-space + whitespace collapse",
+    "known_pairwise_overlap_counts": {
+      "train.json/val.json": 19,
+      "train.json/test.json": 34,
+      "val.json/test.json": 5
+    },
+    "affected_test_claims": 39
+  },
+  "git_commit": "3215600d4bbfb38a775a29cd37894b3344f3f5ce",
   "git_branch": "thesis/reproducibility-corrections",
   "working_tree_dirty": true,
-  "generated_utc": "2026-07-29T00:35:27.842164+00:00",
+  "generated_utc": "2026-07-31T03:22:50.615259+00:00",
   "random_seed": 42,
   "python_version": "3.10.0",
   "platform": "Windows-10-10.0.26200-SP0",
@@ -34,10 +45,11 @@
     "baseline_predictions": "data/benchmarks/results_5000/baseline_comparison_predictions.csv"
   },
   "sha256": {
-    "data/benchmarks/splits_5000/train.json": "dda6afb32527d0cb0b06e4e9dbf18f16f62a7094a4e9f6a3feb4ecb7c8ea53eb",
-    "data/benchmarks/splits_5000/val.json": "f75340491cc83ce6d475dbbd12ba32aed8f10929fe071f914c8ad1bd7447a1e0",
-    "data/benchmarks/splits_5000/test.json": "ce90b5211ca6302aac638e2fd20f2752bd3339adce3cce8bd39451d575ae1f58",
-    "data/benchmarks/results_5000/ablation_study_predictions.csv": "b9da531710e50a552999ae549515ac95acd56c431f2233354d6e9f03895d9cfb",
-    "data/benchmarks/results_5000/baseline_comparison_predictions.csv": "471ff6653359527060f9015c3dc38c8481c99dedae204ce06123023c101c77cb"
-  }
+    "data/benchmarks/splits_5000/train.json": "2c7fda2cf1fe25003440da19fa752fccad7af0a25c67f1574afb6f7ea65c662f",
+    "data/benchmarks/splits_5000/val.json": "8259e56cc5cd2e8f81d112a0d5aab9f8b64cb3ee36f676fd9206739e26eac420",
+    "data/benchmarks/splits_5000/test.json": "2cfd7f1efa6d0588dd9c13426d8901924e52dea754b5b56ebbc7fca6a8ac91a3",
+    "data/benchmarks/results_5000/ablation_study_predictions.csv": "c4e420309fac158826e90c0bd56a894636e88b25ed7bf1a6c4c3da8d88a7fed9",
+    "data/benchmarks/results_5000/baseline_comparison_predictions.csv": "58d8fde5aa79f1384dc8009e3a3dd817abe2d57a2caeab680a2608735965b460"
+  },
+  "sha256_mode": "canonical-lf-bytes"
 }

@@ -16,11 +16,10 @@ RESULT_DIR = REPO_ROOT / "data" / "benchmarks" / "results_5000"
 
 
 def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+    # Repository text artifacts are hashed with canonical LF endings so the
+    # manifest is stable across Windows and Linux checkouts.
+    content = path.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return hashlib.sha256(content).hexdigest()
 
 
 def _git(*args: str) -> str:
@@ -42,16 +41,34 @@ def main() -> int:
         "ablation_predictions": RESULT_DIR / "ablation_study_predictions.csv",
         "baseline_predictions": RESULT_DIR / "baseline_comparison_predictions.csv",
     }
-    for path in [*inputs.values(), *predictions.values()]:
+    analyses = {
+        "sensitivity_report": RESULT_DIR / "sensitivity_analysis_report.json",
+        "sensitivity_metrics": RESULT_DIR / "sensitivity_analysis_metrics.csv",
+        "sensitivity_summary": RESULT_DIR / "sensitivity_analysis_summary.md",
+    }
+    for path in [*inputs.values(), *predictions.values(), *analyses.values()]:
         if not path.is_file():
             raise FileNotFoundError(path)
 
     manifest = {
         "experiment_name": "factvalidator_proxy_5000",
         "evaluation_type": "deterministic_proxy",
+        "evidence_status": "exploratory",
+        "confirmatory_claims_permitted": False,
+        "split_isolation": {
+            "normalization": "NFKC + casefold + punctuation-to-space + whitespace collapse",
+            "known_pairwise_overlap_counts": {
+                "train.json/val.json": 19,
+                "train.json/test.json": 34,
+                "val.json/test.json": 5,
+            },
+            "affected_test_claims": 39,
+        },
         "git_commit": _git("rev-parse", "HEAD"),
         "git_branch": _git("branch", "--show-current"),
-        "working_tree_dirty": bool(_git("status", "--porcelain")),
+        "working_tree_dirty": bool(
+            _git("status", "--porcelain", "--untracked-files=no")
+        ),
         "generated_utc": datetime.now(timezone.utc).isoformat(),
         "random_seed": 42,
         "python_version": platform.python_version(),
@@ -80,10 +97,19 @@ def main() -> int:
             key: str(path.relative_to(REPO_ROOT)).replace("\\", "/")
             for key, path in predictions.items()
         },
+        "sensitivity_analysis": {
+            "known_contaminated_test_claims": 39,
+            "decontaminated_test_claims": 4961,
+            "output_files": {
+                key: str(path.relative_to(REPO_ROOT)).replace("\\", "/")
+                for key, path in analyses.items()
+            },
+        },
         "sha256": {
             str(path.relative_to(REPO_ROOT)).replace("\\", "/"): _sha256(path)
-            for path in [*inputs.values(), *predictions.values()]
+            for path in [*inputs.values(), *predictions.values(), *analyses.values()]
         },
+        "sha256_mode": "canonical-lf-bytes",
     }
     output = RESULT_DIR / "run_manifest.json"
     output.write_text(json.dumps(manifest, indent=2), encoding="utf-8")

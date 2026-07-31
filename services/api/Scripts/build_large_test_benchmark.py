@@ -33,7 +33,6 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import re
 import random
 import sys
 from collections import Counter
@@ -47,7 +46,7 @@ REPO_ROOT = API_ROOT.parents[1]
 if str(API_ROOT) not in sys.path:
     sys.path.insert(0, str(API_ROOT))
 
-from app.dataset import DatasetManager
+from app.dataset import DatasetManager, normalize_claim_text
 
 
 LABEL_ALIASES = {
@@ -105,10 +104,8 @@ def normalize_label(label: str) -> str:
 
 
 def normalize_text(text: str) -> str:
-    low = (text or "").lower().strip()
-    low = re.sub(r"[^a-z0-9\s]", " ", low)
-    low = re.sub(r"\s+", " ", low)
-    return low[:500]
+    """Backward-compatible alias for the shared canonical normalizer."""
+    return normalize_claim_text(text)
 
 
 def _load_json_claims(path: Path, dataset_name: str) -> list[BenchmarkClaim]:

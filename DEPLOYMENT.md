@@ -1,6 +1,9 @@
 # Deployment Guide
 
-This document covers deployment scenarios and best practices for Fact Validator.
+This document distinguishes the implemented local prototype from deployment
+work that remains to be completed. The repository does not currently contain
+API or frontend Dockerfiles, Kubernetes manifests, production monitoring,
+distributed rate limiting, or a production database configuration.
 
 ## Environment Variables
 
@@ -21,7 +24,7 @@ This document covers deployment scenarios and best practices for Fact Validator.
 ### Path Overrides
 - `FACTVALIDATOR_DOMAIN_CACHE` - Credibility score cache path (default: `services/api/data/domain_cache.json`)
 
-## Docker Deployment
+## Optional Infrastructure Containers
 
 ### Quick Start with Docker Compose
 
@@ -30,61 +33,16 @@ This document covers deployment scenarios and best practices for Fact Validator.
 cd infra
 docker compose up -d
 
-# Build and run API
-docker build -t fact-validator-api services/api
-docker run -p 8000:8000 \
-  -e SERPAPI_API_KEY=your_key \
-  -e OLLAMA_ENABLED=true \
-  fact-validator-api
-
-# Build and run frontend
-docker build -t fact-validator-web apps/web
-docker run -p 3000:3000 fact-validator-web
 ```
 
-### Production Dockerfile
+Postgres and Redis are not connected to the application. The implemented
+local run path is documented in `README.md`. Containerizing the API and web
+application is future work and must not be described as a completed deployment.
 
-Create `services/api/Dockerfile`:
+## Illustrative Kubernetes Planning Notes
 
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY app/ ./app
-
-ENV LOG_LEVEL=INFO
-ENV FEATURE_RATE_LIMITING=true
-ENV FEATURE_CACHING=true
-
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
-For frontend, create `apps/web/Dockerfile`:
-
-```dockerfile
-FROM node:20 AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-
-FROM node:20-alpine
-WORKDIR /app
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY package*.json ./
-
-EXPOSE 3000
-CMD ["npm", "start"]
-```
-
-## Kubernetes Deployment
-
-Example Helm values for production deployment (requires customization for your cluster):
+The following values are design notes only. No Helm chart is included, and
+these values are not a tested deployment artifact:
 
 ```yaml
 # values.yaml

@@ -27,10 +27,14 @@ not the live SerpAPI/SentenceTransformer/Ollama application pipeline.
 | full_proxy vs length | 634 | 564 | 0.04616 | 0.21636 | 1.124 |
 | full_proxy vs ablate_debate | 34 | 60 | 0.00955 | 0.05729 | 0.570 |
 
-Unadjusted comparisons against majority and length are marginal and are not
-described as robust superiority after correction for multiple comparisons.
-The no-debate proxy is significantly better than the full proxy in the
-observed paired comparison; always-on proxy debate is therefore not supported.
+No selected comparison is statistically significant after Holm correction.
+The no-debate proxy has the best observed point estimates, but its comparison
+with the full proxy has Holm-adjusted p approximately 0.0573. The result is
+descriptive evidence against always-on proxy debate, not confirmatory proof.
+
+All tests are descriptive and exploratory because proxy development was
+informed by observations on this benchmark and normalized split overlaps
+were identified retrospectively. No confirmatory superiority claim is made.
 
 The confidence output is reported only as a raw-score calibration diagnostic.
 A proper multiclass Brier score requires prob_supported, prob_refuted, and

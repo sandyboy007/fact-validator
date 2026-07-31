@@ -104,13 +104,17 @@ Matricola: D03000048
 \addcontentsline{toc}{chapter}{Research and Reproducibility Statement}
 I confirm that this manuscript presents research that I have carried out as part of my Master's thesis in Data Science at the University of Naples Federico II.
 
-The thesis-support apparatus used for this revision is on the dedicated thesis
-correction branch; it is not represented as being on \texttt{main}. Before
-submission, the exact manuscript source, generated
-tables, figures, dependency lock, and matching PDF must be committed together,
-and that immutable commit hash must be recorded in the submission. The
+The research apparatus underlying this thesis is preserved in the following
+immutable repository snapshot:
+\begin{center}
+\small\texttt{717b7f7f2fcaf700a0d76af9abb32dd5529ede52}
+\end{center}
+This commit is on branch \path{thesis/reproducibility-corrections}. The snapshot contains the
+implementation, datasets, dependency lock, generated statistical artifacts,
+and manuscript source used for the final verification pass. The
 machine-readable benchmark manifest and audit report are stored under
-\path{data/benchmarks/results_5000/}. No Git release tag is claimed.
+\path{data/benchmarks/results_5000/}. The final manuscript source and matching
+PDF are committed together in the subsequent provenance commit.
 
 I designed and implemented the \system\ architecture, prepared the multi-dataset evaluation workflow, executed the experiments reported in this document, and analysed the resulting predictive and operational behaviour.
 
@@ -132,7 +136,7 @@ The exploratory study uses a versioned 5{,}000-claim benchmark assembled from FE
 
 The proxy results also reveal a large raw-score confidence--accuracy gap. Because the stored score is heuristic and not a complete multiclass probability distribution, the result is reported as a raw-score calibration diagnostic rather than probability calibration.
 
-Beyond the evaluated proxy, I implemented a typed, provenance-constrained evidence-graph prototype with a deterministic audit layer. Chapter~9 reports its thesis status: the corrected repository's 164-test backend suite passes and a small corruption-scenario probe demonstrates one concrete mechanism (source-independence clustering) by which it changes a decision relative to a simpler baseline. It remains intentionally separate from the proxy and therefore does not alter the 5{,}000-claim results.
+Beyond the evaluated proxy, I implemented a typed, provenance-constrained evidence-graph prototype with a deterministic audit layer. Chapter~9 reports its thesis status: the audited repository's 164-test backend suite passes and a small corruption-scenario probe demonstrates one concrete mechanism (source-independence clustering) by which it changes a decision relative to a simpler baseline. It remains intentionally separate from the proxy and therefore does not alter the 5{,}000-claim results.
 
 \textbf{Sommario (Italiano).} In questa tesi analizzo come un sistema di verifica automatica dei fatti in dominio aperto possa combinare il recupero di evidenze testuali, un meccanismo esplicito e ispezionabile di stima dell'affidabilit\`a delle fonti, un protocollo di valutazione riproducibile e un'ingegneria orientata al deployment. Ho sviluppato l'applicazione live \system\ e, separatamente, ho valutato il modello deterministico \proxy\ su 5.000 affermazioni tratte da FEVER, LIAR, SciFact e PUBHEALTH. Il proxy completo raggiunge un'accuratezza del 50{,}82\% e un macro-F1 di 0{,}4384; la variante proxy senza arbitraggio deterministico raggiunge il 51{,}34\% e 0{,}4427. L'esperimento non esegue il recupero SerpAPI, il reranking SentenceTransformer o il dibattito Ollama per ogni affermazione.
 
@@ -927,7 +931,7 @@ The completed evidence supports four integrated answers. First, an auditable
 open-domain verification pipeline can be implemented as a complete
 full-stack research artifact with persistent evidence, explicit source rules,
 and reproducible evaluation outputs. The thesis demonstrates the application
-through implementation and the corrected repository's 164-test suite, and evaluates the separate
+through implementation and the audited repository's 164-test suite, and evaluates the separate
 proxy through frozen benchmark artifacts.
 
 Second, the deterministic proxy provides modest observed improvement over
@@ -1010,9 +1014,10 @@ The benchmark contains four dataset families, but it does not represent all form
 The historical proxy claims and predictions are retained and regenerated into
 class, dataset, confusion-matrix, and paired-test reports by a versioned
 script. Text-artifact hashes use canonical LF endings so that Windows and
-Linux checkouts agree. Exact replay does not require web search. The exact
-submission source and PDF must nevertheless be committed together and cited by
-their immutable commit hash before submission.
+Linux checkouts agree. Exact replay does not require web search. The audited
+research snapshot is \texttt{717b7f7}; its full identifier is recorded in the
+Research and Reproducibility Statement. The final manuscript source
+and matching PDF are stored together in the subsequent provenance commit.
 
 \section{Operational Validity}
 The latency, throughput, and cost figures are scenario projections, not controlled load-test measurements. They are useful for design analysis but may not generalize across hardware, API providers, geographic regions, model sizes, concurrent traffic, cache-hit rates, or provider pricing. A future benchmark should record repeated warm- and cold-cache runs, median and tail latency, concurrency, failures, timeouts, hardware, and provider request counts.
@@ -1117,10 +1122,16 @@ Evidence is clustered using the Jaccard-similarity rule of Section~\ref{sec:jacc
 
 \section{Engineering Verification: What Is and Is Not Demonstrated}
 \subsection{Test Suite}
-The complete backend test suite was re-executed for this revision: \textbf{164 tests collected, 164 passed, 0 failed}. This includes the graph-specific cases and a regression test for the unified claim normalizer. Historical audit reports with 162 or 163 tests predate one or both of those additions.
+The complete backend test suite was executed against the audited snapshot:
+\textbf{164 tests collected, 164 passed, 0 failed}. This includes the
+graph-specific cases and a regression test for the unified claim normalizer.
+Historical audit reports with 162 or 163 tests predate one or both additions.
 
 \subsection{Eight-Case Synthetic Seed}
-A frozen eight-case seed, re-executed for this revision, reproduces its previously recorded coverage, selective risk, and false-accept rate (Section~\ref{sec:selective-defs}) exactly: 0.375, 0.6667, and 0.25 respectively. Table~\ref{tab:seed-detail-2} gives the per-case detail.
+A frozen eight-case seed, executed against the audited snapshot, reproduces
+its recorded coverage, selective risk, and false-accept rate
+(Section~\ref{sec:selective-defs}) exactly: 0.375, 0.6667, and 0.25
+respectively. Table~\ref{tab:seed-detail-2} gives the per-case detail.
 
 \begin{table}[H]
 \centering
@@ -1327,9 +1338,13 @@ Source independence & decisive passages are correlated or duplicated & \texttt{H
 \bottomrule
 \end{longtable}
 
+\clearpage
 \chapter{Test Evidence (Prototype Module)}
 The test evidence in this appendix is part of the audited repository snapshot
-identified in the Research and Reproducibility Statement.
+identified in the Research and Reproducibility Statement:
+\begin{center}
+\small\texttt{717b7f7f2fcaf700a0d76af9abb32dd5529ede52}
+\end{center}
 \begin{longtable}{p{4cm}p{10cm}}
 \caption{Test coverage for the Chapter~9 prototype.}\\
 \toprule Test surface & Verified behavior \\
@@ -1420,7 +1435,7 @@ for r in diverge:
 \end{lstlisting}
 
 \section{Raw Console Output}
-\begin{lstlisting}[caption={Unedited console output from the script above, executed against the live repository for this revision.}]
+\begin{lstlisting}[caption={Unedited console output from the script above, executed against the audited repository snapshot.}]
 Clean subset  graph_only: {'coverage': 0.25, 'selective_risk': 0.0, 'false_accept_rate': 0.0}
 Clean subset  audited:    {'coverage': 0.25, 'selective_risk': 0.0, 'false_accept_rate': 0.0}
 Corrupt subset graph_only: {'coverage': 0.25, 'selective_risk': 0.0, 'false_accept_rate': 0.0}
@@ -1476,14 +1491,15 @@ audited repository snapshot. The authoritative machine-readable outputs are stor
 under \texttt{data/benchmarks/results\_5000/}.
 
 \section{Repository Snapshot and Artifact Availability}
-Every path in this appendix is relative to the repository root. The revised
-set is tracked on branch \path{thesis/reproducibility-corrections}, not
-\texttt{main}. Historical audit commit \texttt{a6bbafc} predates this
-correction; the exact submission commit must include this source and its
-matching PDF. No release tag is asserted.
+Every path in this appendix is relative to the repository root and is present
+in audited snapshot \texttt{717b7f7} on branch
+\path{thesis/reproducibility-corrections}; the full identifier is recorded in
+the Research and Reproducibility Statement and Appendix~B. This snapshot supersedes historical
+audit commit \texttt{a6bbafc}. The final manuscript source and matching PDF are
+stored together in the subsequent provenance commit.
 
 \begin{longtable}{p{5.1cm}p{7.7cm}}
-\caption{Thesis-support artifacts on the correction branch.}\\
+\caption{Thesis-support artifacts in the audited repository snapshot.}\\
 \toprule Artifact & Repository-relative path \\
 \midrule
 \endfirsthead

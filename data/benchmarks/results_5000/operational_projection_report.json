@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "generated_utc": "2026-07-29T00:25:56.628014+00:00",
+    "artifact_type": "operational_projection",
+    "measurement_status": "Scenario projection from stated assumptions; not a controlled concurrent load-test measurement."
+  },
+  "assumptions": {
+    "baseline_seconds_per_claim": 8.2,
+    "debate_seconds_per_claim": 72.0,
+    "claims_per_month": 1000,
+    "monthly_usd_without_cache": 77.0,
+    "monthly_usd_with_cache": 22.0
+  },
+  "projections": {
+    "baseline_claims_per_hour": 439.0243902439025,
+    "debate_claims_per_hour": 50.0,
+    "debate_latency_ratio": 8.78048780487805,
+    "monthly_savings_usd": 55.0,
+    "monthly_savings_fraction": 0.7142857142857143
+  },
+  "required_for_measured_claim": [
+    "repeated warm-cache and cold-cache runs",
+    "median, p90, and p95 latency",
+    "declared concurrency",
+    "failure and timeout counts",
+    "hardware and provider request counts"
+  ]
+}

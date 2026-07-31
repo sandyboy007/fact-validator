@@ -1,96 +1,77 @@
-# 5000-Claim Execution and Results (Final)
+# 5,000-Claim FactValidator-Proxy Execution and Results
 
-## What Was Executed
+## Scope
 
-The full external-data to evaluation workflow was executed end-to-end on 2026-07-02.
+The frozen 5,000-claim experiment evaluates a deterministic
+**FactValidator-Proxy**. It combines lexical classification, heuristic
+baseline signals, category-level priors, deterministic arbitration rules, and
+a quality filter.
 
-### 1. External dataset ingestion (automated)
+It does not execute live SerpAPI retrieval, live domain-level credibility
+scoring, SentenceTransformer reranking, or Ollama debate for every claim. The
+Fact Validator live application is an implemented open-web architecture and
+is evaluated separately through software tests and bounded operational
+demonstrations.
 
-Script:
-- `services/api/Scripts/fetch_external_public_benchmarks.py`
+## Data
 
-Generated normalized CSV inputs:
-- `data/benchmarks/external_templates/fever_filled.csv` (8000 rows)
-- `data/benchmarks/external_templates/liar_filled.csv` (6000 rows)
-- `data/benchmarks/external_templates/scifact_filled.csv` (1200 rows)
-- `data/benchmarks/external_templates/healthver_filled.csv` (6000 rows)
+- Train: 11,986 claims
+- Validation: 2,997 claims
+- Test: 5,000 claims
+- Test labels: 2,463 SUPPORTED; 1,371 REFUTED; 1,166 NEI
 
-Note:
-- HealthVer was not directly available via this ingestion route, so `health_fact` was used as a health-domain substitute and normalized into the `healthver_filled.csv` slot for pipeline compatibility.
+The benchmark combines FEVER, LIAR, SciFact, and the PUBHEALTH
+`health_fact` dataset stored under the legacy `healthver` compatibility name.
 
-### 2. 5000 benchmark construction
+## Authoritative predictions
 
-Command path:
-- `services/api/Scripts/run_5000_benchmark_pipeline.py`
+- `data/benchmarks/results_5000/ablation_study_predictions.csv`
+- `data/benchmarks/results_5000/baseline_comparison_predictions.csv`
 
-Output manifest:
-- `data/benchmarks/results/large_benchmark_manifest.json`
+Their SHA-256 hashes and the input split hashes are recorded in
+`data/benchmarks/results_5000/run_manifest.json`.
 
-Result:
-- Retained unique claims: **19983**
-- Test claims: **5000**
-- Train claims: **11986**
-- Validation claims: **2997**
+## Final verified results
 
-Test label distribution:
-- SUPPORTED: 2463
-- REFUTED: 1371
-- NEI: 1166
-
-### 3. Architecture comparison on 5000 split
-
-Command path:
-- `services/api/Scripts/run_benchmark_architecture_suite.py`
-
-Output directory:
-- `data/benchmarks/results_5000/`
-
-Primary summary:
-- `data/benchmarks/results_5000/comparative_analysis_summary.md`
-
-## Corrected 5000 Comparative Results
-
-Generated UTC: `2026-07-02T02:05:16.689296`
-Claims compared: `5000`
-
-| System | Accuracy | 95% CI |
+| System | Accuracy | Macro-F1 |
 |---|---:|---:|
-| length | 0.494 | [0.480, 0.508] |
-| majority | 0.493 | [0.479, 0.506] |
-| ablate_quality_filter | 0.347 | [0.334, 0.360] |
-| random | 0.332 | [0.319, 0.345] |
-| sentiment | 0.238 | [0.226, 0.250] |
-| full_proxy | 0.236 | [0.224, 0.248] |
-| ablate_semantic_rerank | 0.236 | [0.224, 0.248] |
-| ablate_debate | 0.236 | [0.224, 0.248] |
-| keyword | 0.235 | [0.224, 0.247] |
-| ablate_credibility | 0.234 | [0.222, 0.246] |
+| Proxy without debate (`ablate_debate`) | 51.34% | 0.4427 |
+| FEVER-tuned proxy (`tune_fever`) | 50.98% | 0.4421 |
+| Full proxy (`full_proxy`) | 50.82% | 0.4384 |
+| Length heuristic | 49.42% | 0.3483 |
+| Majority baseline | 49.26% | 0.2200 |
+| Random baseline | 33.20% | 0.3240 |
+| Sentiment heuristic | 23.78% | 0.1400 |
+| Keyword heuristic | 23.54% | 0.1364 |
 
-### Full system vs comparators
+The verified full-proxy confusion matrix is:
 
-`full_proxy` differences (percentage points):
+| Gold / Predicted | SUPPORTED | REFUTED | NEI |
+|---|---:|---:|---:|
+| SUPPORTED | 1,776 | 180 | 507 |
+| REFUTED | 678 | 294 | 399 |
+| NEI | 538 | 157 | 471 |
 
-- vs random: -9.58 pp (not significant)
-- vs keyword: +0.08 pp (not significant)
-- vs length: -25.80 pp (not significant)
-- vs sentiment: -0.16 pp (not significant)
-- vs majority: -25.64 pp (not significant)
+## Paired interpretation
 
-Debate lift:
-- Accuracy delta (full - no-debate): +0.00 pp
-- Prediction change rate: 0.011
+The exact two-sided McNemar p-values before multiple-comparison correction are:
 
-## Important methodological note
+- full proxy vs majority: 0.0433;
+- full proxy vs length: 0.0462;
+- full proxy vs no-debate proxy: 0.00955.
 
-A large-n overflow bug in `run_comparative_analysis.py` sign-test computation was fixed (log-space implementation), and the 5000 reports were regenerated after the fix.
+The first two comparisons are marginal and are not described as robust
+superiority after Holm correction. Removing deterministic proxy debate
+improves accuracy from 50.82% to 51.34%, a difference of 0.52 percentage
+points in favour of no debate.
 
-A claim-id alignment bug (missing `id` in generated split claims) was also fixed in the 5000 benchmark builder and loaders before re-running metrics.
+## Reproduction
 
-## Publication-safe interpretation
+```bash
+python services/api/Scripts/build_thesis_run_manifest.py
+python services/api/Scripts/run_thesis_statistics.py
+```
 
-- The 5000-sample benchmark is now available and reproducibly generated.
-- On this benchmark, the current `full_proxy` architecture does **not** outperform the strongest baselines (`length`/`majority`) by accuracy.
-- This supports a defensible publication framing around:
-  1. reproducible benchmark pipeline,
-  2. transparent architecture and ablation protocol,
-  3. honest reporting of comparative performance and limitations.
+The generated statistical report, confusion matrix, class metrics, dataset
+metrics, paired tests, and summary are stored in
+`data/benchmarks/results_5000/`.

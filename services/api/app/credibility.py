@@ -124,8 +124,18 @@ class CredibilityScore:
     reasons: Dict[str, str]
 
 
+_OFFLINE_TLD_EXTRACT = tldextract.TLDExtract(
+    cache_dir=None,
+    suffix_list_urls=(),
+    fallback_to_snapshot=True,
+)
+
+
 def base_domain(domain: str) -> str:
-    ext = tldextract.extract(domain or "")
+    # Use the bundled public-suffix snapshot. Network refreshes during import
+    # made offline tests non-deterministic and could deadlock on a shared cache
+    # lock. Updating the snapshot is an explicit dependency-maintenance task.
+    ext = _OFFLINE_TLD_EXTRACT(domain or "")
     if not ext.domain or not ext.suffix:
         return (domain or "").lower()
     return f"{ext.domain}.{ext.suffix}".lower()

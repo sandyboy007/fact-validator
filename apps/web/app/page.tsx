@@ -91,12 +91,14 @@ type AnalyzeResponse = {
 
 type RunRow = {
   id: number | string;
+  created_utc?: string;
   time_utc?: string;
   timestamp_utc?: string;
   input_type?: string;
   type?: string;
   domain?: string;
   url?: string;
+  text_preview?: string;
 };
 
 type ComparativeRankingRow = {
@@ -2181,6 +2183,7 @@ export default function Page() {
                         <th className="px-4 py-3 text-left text-xs font-semibold">#</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold">Time</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold">Type</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold">Input</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold">Domain</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold">Action</th>
                       </tr>
@@ -2188,23 +2191,40 @@ export default function Page() {
                     <tbody>
                       {runs.map((r, i) => (
                         <tr key={`${r.id}_${i}`} className="border-t border-slate-700/50 hover:bg-slate-900/50 transition">
-                          <td className="px-4 py-3 text-slate-200">{r.id}</td>
-                          <td className="px-4 py-3 text-xs text-slate-400 font-mono">{fmtDateTime(r.time_utc || r.timestamp_utc)}</td>
+                          <td className="px-4 py-3">
+                            <a
+                              className="text-cyan-300 hover:text-cyan-200 transition"
+                              href={`/run/${r.id}`}
+                              title={`View saved result ${r.id}`}
+                            >
+                              {r.id}
+                            </a>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-slate-400 font-mono">{fmtDateTime(r.created_utc || r.time_utc || r.timestamp_utc)}</td>
                           <td className="px-4 py-3 text-slate-300">{(r.input_type || r.type || "-").slice(0, 10)}</td>
+                          <td className="px-4 py-3 text-slate-200 max-w-[360px] truncate" title={r.text_preview || r.url || ""}>
+                            {r.text_preview || r.url || "-"}
+                          </td>
                           <td className="px-4 py-3 text-slate-300 max-w-[150px] truncate">{r.domain || safeHostFromUrl(r.url) || "-"}</td>
                           <td className="px-4 py-3">
-                            {r.url ? (
+                            <div className="flex items-center gap-2">
                               <a
-                                className="text-xs px-2 py-1.5 rounded-lg border border-slate-300/20 text-slate-200 hover:border-cyan-300/40 transition"
-                                href={r.url}
-                                target="_blank"
-                                rel="noreferrer"
+                                className="text-xs px-2 py-1.5 rounded-lg border border-cyan-300/30 text-cyan-200 hover:border-cyan-300/60 transition"
+                                href={`/run/${r.id}`}
                               >
-                                Open
+                                View result
                               </a>
-                            ) : (
-                              "-"
-                            )}
+                              {r.url && (
+                                <a
+                                  className="text-xs px-2 py-1.5 rounded-lg border border-slate-300/20 text-slate-200 hover:border-cyan-300/40 transition"
+                                  href={r.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  Source
+                                </a>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}

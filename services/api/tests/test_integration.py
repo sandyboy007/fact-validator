@@ -238,6 +238,32 @@ async def test_dashboard_summary_endpoint():
 
 
 @pytest.mark.asyncio
+async def test_runs_endpoint_includes_saved_input_summary():
+    """Recent-results clients need the stored preview and creation time, not only a run ID."""
+    saved_runs = [
+        {
+            "id": 502,
+            "created_utc": "2026-07-24T09:00:00Z",
+            "input_type": "text",
+            "text_preview": "The Earth orbits the Sun.",
+            "url": None,
+            "domain": None,
+            "mode": "snapshot",
+            "verifier": "baseline",
+        }
+    ]
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        with patch("app.main.list_runs", return_value=saved_runs):
+            response = await client.get("/runs?limit=10")
+
+    assert response.status_code == 200
+    item = response.json()["items"][0]
+    assert item["created_utc"] == "2026-07-24T09:00:00Z"
+    assert item["text_preview"] == "The Earth orbits the Sun."
+
+
+@pytest.mark.asyncio
 async def test_evaluation_endpoints_available():
     """Evaluation endpoints used by analyst UI should be reachable."""
     expected_keys = {

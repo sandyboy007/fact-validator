@@ -18,7 +18,6 @@ from hashlib import sha256
 import httpx
 import trafilatura
 from dotenv import load_dotenv
-import tldextract
 
 # Load environment variables before importing modules that evaluate env at import time.
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
@@ -32,6 +31,7 @@ from app.analysis_features import (
     enrich_evidence,
     normalize_claim_key,
 )
+from app.credibility import base_domain as credibility_base_domain
 from app.credibility import score_domain_rubric
 from app.reflective import reflective_analysis, generate_faithful_correction
 from app.semantic_retrieval import semantic_rerank
@@ -303,10 +303,7 @@ def domain_from_any_url(url: str) -> str:
 
 
 def base_domain(domain: str) -> str:
-    ext = tldextract.extract(domain or "")
-    if not ext.domain or not ext.suffix:
-        return (domain or "").lower()
-    return f"{ext.domain}.{ext.suffix}".lower()
+    return credibility_base_domain(domain)
 
 
 def is_blocked_domain(domain: str) -> bool:

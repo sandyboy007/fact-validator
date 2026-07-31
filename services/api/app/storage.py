@@ -91,7 +91,7 @@ def list_runs(limit: int = 50) -> List[Dict[str, Any]]:
         con.row_factory = sqlite3.Row
         rows = con.execute(
             """
-            SELECT id, created_utc, input_type, url, domain, mode, verifier
+            SELECT id, created_utc, input_type, url, text_preview, domain, mode, verifier
             FROM runs
             ORDER BY id DESC
             LIMIT ?

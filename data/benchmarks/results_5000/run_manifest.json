@@ -1,0 +1,67 @@
+{
+  "experiment_name": "factvalidator_proxy_5000",
+  "evaluation_type": "deterministic_proxy",
+  "evidence_status": "exploratory",
+  "confirmatory_claims_permitted": false,
+  "split_isolation": {
+    "normalization": "NFKC + casefold + punctuation-to-space + whitespace collapse",
+    "known_pairwise_overlap_counts": {
+      "train.json/val.json": 19,
+      "train.json/test.json": 34,
+      "val.json/test.json": 5
+    },
+    "affected_test_claims": 39
+  },
+  "git_commit": "717b7f7f2fcaf700a0d76af9abb32dd5529ede52",
+  "git_branch": "thesis/reproducibility-corrections",
+  "working_tree_dirty": true,
+  "generated_utc": "2026-07-31T03:55:24.962815+00:00",
+  "random_seed": 42,
+  "python_version": "3.10.0",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "train_claims": 11986,
+  "validation_claims": 2997,
+  "test_claims": 5000,
+  "proxy_components": {
+    "lexical_model": true,
+    "category_priors": true,
+    "heuristic_semantic_signals": true,
+    "deterministic_debate_rule": true,
+    "quality_filter": true
+  },
+  "live_components_not_executed": [
+    "SerpAPI retrieval",
+    "live domain credibility scoring",
+    "SentenceTransformer reranking",
+    "Ollama debate"
+  ],
+  "input_files": {
+    "train": "data/benchmarks/splits_5000/train.json",
+    "validation": "data/benchmarks/splits_5000/val.json",
+    "test": "data/benchmarks/splits_5000/test.json"
+  },
+  "prediction_files": {
+    "ablation_predictions": "data/benchmarks/results_5000/ablation_study_predictions.csv",
+    "baseline_predictions": "data/benchmarks/results_5000/baseline_comparison_predictions.csv"
+  },
+  "sensitivity_analysis": {
+    "known_contaminated_test_claims": 39,
+    "decontaminated_test_claims": 4961,
+    "output_files": {
+      "sensitivity_report": "data/benchmarks/results_5000/sensitivity_analysis_report.json",
+      "sensitivity_metrics": "data/benchmarks/results_5000/sensitivity_analysis_metrics.csv",
+      "sensitivity_summary": "data/benchmarks/results_5000/sensitivity_analysis_summary.md"
+    }
+  },
+  "sha256": {
+    "data/benchmarks/splits_5000/train.json": "2c7fda2cf1fe25003440da19fa752fccad7af0a25c67f1574afb6f7ea65c662f",
+    "data/benchmarks/splits_5000/val.json": "8259e56cc5cd2e8f81d112a0d5aab9f8b64cb3ee36f676fd9206739e26eac420",
+    "data/benchmarks/splits_5000/test.json": "2cfd7f1efa6d0588dd9c13426d8901924e52dea754b5b56ebbc7fca6a8ac91a3",
+    "data/benchmarks/results_5000/ablation_study_predictions.csv": "c4e420309fac158826e90c0bd56a894636e88b25ed7bf1a6c4c3da8d88a7fed9",
+    "data/benchmarks/results_5000/baseline_comparison_predictions.csv": "58d8fde5aa79f1384dc8009e3a3dd817abe2d57a2caeab680a2608735965b460",
+    "data/benchmarks/results_5000/sensitivity_analysis_report.json": "9ba0abb09f52836881b3ec62803a15414bbc3a3ba062e60317eaed256806b2f3",
+    "data/benchmarks/results_5000/sensitivity_analysis_metrics.csv": "651aff5486d6840fec0751cb4228b24a71e87bafabfb0b03c4d6043dc640a42d",
+    "data/benchmarks/results_5000/sensitivity_analysis_summary.md": "f3d8d4c3f39d817c3926b090ed98bee51b3562d1e38726ea564462e7f66954e8"
+  },
+  "sha256_mode": "canonical-lf-bytes"
+}

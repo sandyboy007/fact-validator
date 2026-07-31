@@ -1,0 +1,10 @@
+{
+  "ts": 0,
+  "results": [
+    {
+      "title": "Sanitized example evidence result",
+      "link": "https://example.org/evidence",
+      "snippet": "Example only; runtime evidence cache files are generated locally."
+    }
+  ]
+}

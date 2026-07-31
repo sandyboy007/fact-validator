@@ -50,6 +50,22 @@ Fact Validator takes a **URL or free text** as input and performs the following 
 6. **Legacy heuristic score** — retained in API exports for backwards compatibility only; it is not a calibrated probability and is not shown as a decision score in the interface.
 7. **Persistent storage** — every run is written to a local SQLite database; past results are browsable and exportable.
 
+### Live application versus thesis proxy
+
+The repository contains two related but distinct evaluation surfaces:
+
+- **Fact Validator live application:** the implemented open-web system
+  described above.
+- **FactValidator-Proxy:** the deterministic model evaluated on the frozen
+  5,000-claim thesis benchmark.
+
+The 5,000-claim experiment combines lexical classification, category-level
+priors, heuristic semantic signals, deterministic arbitration rules, and a
+quality filter. It does **not** execute live SerpAPI retrieval, live
+domain-level credibility scoring, SentenceTransformer reranking, or Ollama
+debate for every test claim. Benchmark results are therefore labelled proxy
+results throughout the final thesis package.
+
 ---
 
 ## Frontend Experience
@@ -181,8 +197,9 @@ fact-validator/
 │       │   ├── opensources.json   # OpenSources domain-label snapshot
 │       │   └── iffy_index.json    # Iffy Index domain snapshot
 │       ├── tests/
-│       │   └── test_smoke.py   # 34 unit/smoke tests (no I/O)
-│       └── requirements.txt
+│       │   └── test_*.py    # Backend unit, integration, and research tests
+│       ├── requirements.in  # Direct Python dependencies
+│       └── requirements.lock # Hash-pinned resolved environment
 ├── infra/
 │   └── docker-compose.yml      # Optional Postgres + Redis services
 ├── data/                       # SQLite DB written here at runtime
@@ -248,8 +265,8 @@ python -m venv .venv
 # macOS / Linux
 source .venv/bin/activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install the hash-pinned environment (Python 3.10)
+pip install --require-hashes -r requirements.lock
 
 # Start the development server (hot-reload enabled)
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
@@ -280,7 +297,7 @@ The UI will be available at **http://localhost:3000**.
 
 ---
 
-## Docker Setup
+## Optional Infrastructure Containers
 
 The `docker-compose.yml` in `infra/` provides optional Postgres and Redis containers (reserved for future persistence layers):
 
@@ -294,7 +311,9 @@ docker compose up -d
 | `postgres` | 5432 | Optional relational DB (future) |
 | `redis` | 6379 | Optional cache layer (future) |
 
-> The app currently uses SQLite and does not require Docker to run.
+> The application does not connect to these containers. It currently uses
+> SQLite and an in-process/file cache. They are development placeholders, not
+> evidence of a containerized application deployment.
 
 ---
 
@@ -421,8 +440,8 @@ cd services/api
 .venv\Scripts\activate        # Windows
 source .venv/bin/activate     # macOS / Linux
 
-# Install test dependencies (already in requirements.txt for dev)
-pip install pytest
+# Install the reproducible backend environment
+pip install --require-hashes -r requirements.lock
 
 # Run the full suite
 pytest tests/ -v
@@ -435,25 +454,40 @@ pip install pytest-cov
 pytest tests/ --cov=app --cov-report=term-missing
 ```
 
-**Current coverage:** 34 smoke tests across:
+Recorded correction-branch verification (Python 3.10.0):
 
-| Module | Tests |
-|---|---|
-| `credibility.py` | `base_domain`, `score_domain_rubric` (12 cases) |
-| `main.py` | `baseline_verdict`, `estimate_misinformation_likelihood`, `compute_overlap`, `extract_claim_candidates`, `heuristic_claim_score` (22 cases) |
+```text
+$ pytest --collect-only -q
+164 tests collected
+$ pytest services/api/tests -q
+164 passed
+```
+
+Warning counts and timing vary with the local environment. On 31 July 2026,
+the current Windows environment reproduced 164 passed with 6 warnings in
+77.15 seconds. The machine-readable historical record is stored in
+`data/benchmarks/results_5000/reproducibility_audit_report.json`.
 
 ---
 
 ## CI / CD
 
-Every push to **`main`** triggers two parallel GitHub Actions jobs defined in [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+The workflow is configured for pushes and pull requests targeting **`main`**.
+At the time of this thesis revision, the manuscript correction branch had not
+yet been merged into `main`; repository claims therefore identify the exact
+branch and commit rather than implying that `main` contains them.
+defined in [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
 
 | Job | Runner | Steps |
 |---|---|---|
-| `api-test` | `ubuntu-latest` / Python 3.11 | Install deps → Ruff lint → `pytest tests/ -v` |
+| `api-test` | `ubuntu-latest` / Python 3.10 | Install locked dependencies, lint, and run backend tests |
+| `thesis-artifacts` | `ubuntu-latest` / Python 3.10 | Regenerate statistics and validate frozen thesis artifacts |
 | `web-build` | `ubuntu-latest` / Node 20 | `npm ci` → ESLint → `tsc --noEmit` → `next build` |
 
-The pipeline only runs on pushes to `main` (not on PRs or other branches). Badge status is shown at the top of this README.
+The pipeline validates backend tests, the web build, and the frozen thesis
+artifacts. The thesis job regenerates the statistics and fails when split
+isolation, prediction alignment, hashes, required manifest fields, or committed
+reports differ.
 
 ---
 

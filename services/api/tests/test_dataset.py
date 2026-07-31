@@ -7,7 +7,7 @@ import tempfile
 import json
 from pathlib import Path
 from app.dataset import DatasetManager, create_standard_split
-from app.dataset import normalize_label
+from app.dataset import normalize_claim_text, normalize_label
 
 
 class TestDatasetManager:
@@ -150,6 +150,11 @@ class TestDatasetQuality:
         assert normalize_label("False") == "REFUTED"
         assert normalize_label("Insufficient evidence") == "NEI"
         assert normalize_label("Mixed / disputed") == "NEI"
+
+    def test_claim_normalization_removes_punctuation_and_trailing_space(self):
+        assert normalize_claim_text("  The claim?!  ") == "the claim"
+        assert normalize_claim_text("THE---CLAIM") == "the claim"
+        assert normalize_claim_text("Ａ claim") == "a claim"
 
     def test_validate_dataset_quality_ok(self, tmp_path):
         """Validation should pass for well-formed dataset."""

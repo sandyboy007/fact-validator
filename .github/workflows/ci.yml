@@ -1,10 +1,10 @@
 name: CI
 
-# Run on every push to main only
 on:
   push:
-    branches:
-      - main
+    branches: [main, thesis/reproducibility-corrections]
+  pull_request:
+    branches: [main]
 
 jobs:
   # ────────────────────────────────────────────────────────────────────────────
@@ -24,15 +24,14 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.10"
           cache: pip
-          cache-dependency-path: services/api/requirements.txt
+          cache-dependency-path: services/api/requirements.lock
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio
+          pip install --require-hashes -r requirements.lock
 
       - name: Lint with Ruff (non-blocking)
         run: |
@@ -45,6 +44,45 @@ jobs:
           SERPAPI_API_KEY: ""
           OLLAMA_BASE_URL: "http://127.0.0.1:11434"
         run: pytest tests/ -v --tb=short
+
+  thesis-artifacts:
+    name: Thesis artifact validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+          cache-dependency-path: services/api/requirements.lock
+
+      - name: Install locked dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --require-hashes -r services/api/requirements.lock
+
+      - name: Regenerate statistical artifacts
+        run: python services/api/Scripts/run_thesis_statistics.py
+
+      - name: Validate split, predictions, manifest, and reports
+        run: python services/api/Scripts/validate_thesis_artifacts.py
+
+      - name: Require committed reports to match regeneration
+        run: |
+          git diff --exit-code -- \
+            data/benchmarks/results_5000/statistics_report.json \
+            data/benchmarks/results_5000/confusion_matrix_full_proxy.csv \
+            data/benchmarks/results_5000/per_class_metrics.csv \
+            data/benchmarks/results_5000/per_dataset_metrics.csv \
+            data/benchmarks/results_5000/paired_tests.csv \
+            data/benchmarks/results_5000/statistics_summary.md \
+            data/benchmarks/results_5000/sensitivity_analysis_report.json \
+            data/benchmarks/results_5000/sensitivity_analysis_metrics.csv \
+            data/benchmarks/results_5000/sensitivity_analysis_summary.md
 
   # ────────────────────────────────────────────────────────────────────────────
   # Job 2: Next.js frontend — install, lint, type-check, production build

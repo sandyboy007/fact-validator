@@ -14,7 +14,7 @@
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
 
-\title{Fact Validator: A Transparent and Deployment-Ready Fact-Checking Architecture with Auditable Credibility Scoring, Tool-Augmented Evidence Retrieval, and Versioned 5000-Claim Evaluation}
+\title{Fact Validator: A Transparent Fact-Checking Architecture with Auditable Credibility Scoring and a Versioned 5000-Claim Proxy Evaluation}
 
 \author{\IEEEauthorblockN{Author One, Author Two, Author Three}
 \IEEEauthorblockA{Department of Computer Engineering\\
@@ -27,7 +27,7 @@ author1@example.com, author2@example.com, author3@example.com}}
 \maketitle
 
 \begin{abstract}
-Fact Validator is an end-to-end fact-checking architecture for misinformation risk assessment over free text and URL-derived content. The system decomposes input into claims, retrieves web evidence, applies an auditable domain-credibility prior, semantically reranks evidence, and aggregates claim-level verdicts into a final misinformation likelihood score. In contrast to purely model-centric factuality studies, this work contributes a deployment-ready research artifact with caching, persistence, health-aware fallbacks, and reproducible reporting. We evaluate the system on a frozen 5000-claim benchmark assembled from FEVER, LIAR, SciFact, and a normalized health-domain benchmark. On this versioned run, the default full pipeline reaches 50.82\% accuracy, exceeding the majority baseline by 1.56 percentage points and a length heuristic by 1.40 percentage points; the best frozen variant reaches 51.34\% without the debate layer, while the best tuned deployment-oriented variant reaches 50.98\%. Caching reduces estimated monthly evidence-retrieval cost by 71.43\%. Relative to Zero-shot Faithful Factual Error Correction and FacTool, the core novelty is not a universal claim of superior factuality, but a stronger integration of source-aware transparency, operational accountability, and deployment realism.
+Fact Validator is an end-to-end fact-checking architecture for misinformation risk assessment over free text and URL-derived content. The live application decomposes input into claims, retrieves web evidence, applies an auditable domain-credibility prior, semantically reranks evidence, and aggregates claim-level verdicts into a final misinformation likelihood score. The repository also contains a separate deterministic FactValidator-Proxy evaluated on a frozen 5000-claim benchmark assembled from FEVER, LIAR, SciFact, and the PUBHEALTH \texttt{health\_fact} dataset. The proxy combines lexical classification, category-level priors, heuristic semantic signals, deterministic arbitration, and a quality filter; it does not execute SerpAPI, live domain scoring, SentenceTransformer reranking, or Ollama debate for every test claim. The full proxy reaches 50.82\% accuracy and 0.4384 macro-F1, while the no-debate proxy reaches the best observed result of 51.34\% and 0.4427. The contribution is a deployment-ready, auditable research artifact and transparent proxy evaluation rather than a claim of state-of-the-art predictive performance.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -40,7 +40,10 @@ Automated fact checking is useful only if it can do more than emit a label. A pr
 
 Fact Validator was built around that gap. The project combines evidence retrieval, explicit source credibility scoring, optional debate arbitration, sentiment-aware risk adjustment, and persistent run storage in a full-stack application. The work is therefore positioned as a systems-and-methodology contribution: it aims to show how a fact-checking architecture can be made transparent, auditable, and operational at the same time.
 
-This paper makes three bounded claims. First, Fact Validator provides a reproducible architecture for source-aware claim verification and misinformation likelihood scoring. Second, the repository contains a versioned 5000-claim evaluation pipeline that shows modest descriptive improvements over simple baselines in one frozen run. Third, the strongest contribution of the project remains architectural and methodological rather than a claim of state-of-the-art task performance.
+This paper makes three bounded claims. First, Fact Validator provides a reproducible architecture for source-aware claim verification and misinformation likelihood scoring. Second, the repository contains a versioned 5000-claim deterministic proxy evaluation with frozen predictions and paired statistical artifacts. Third, the strongest contribution remains architectural and methodological rather than a claim of state-of-the-art task performance.
+
+\subsection{Evaluation Boundary}
+The live application and benchmark proxy are related but distinct artifacts. The live application implements SerpAPI retrieval, auditable domain-level credibility scoring, SentenceTransformer reranking, persistence, caching, and optional Ollama debate. The 5000-claim experiment evaluates \texttt{full\_proxy}; its components are deterministic approximations suitable for frozen, repeatable comparison. No live-application component is claimed to have executed for every benchmark item.
 
 \section{Related Work and Positioning}
 
@@ -125,15 +128,15 @@ where $b(d)$ adds bonuses for recognized high-trust domains and $p(d)$ applies p
 
 \subsection{Operational Layer}
 
-Caching is treated as a first-class research variable rather than an implementation detail. The system memoizes normalized claims with a 24-hour TTL and stores previous analyses for reproducibility. Structured persistence and fallback behavior are part of the contribution because they make large comparative runs feasible and auditable.
+Caching is treated as a first-class architectural variable rather than an implementation detail. The live system memoizes normalized claims with a 24-hour TTL and stores previous analyses. The reported 71.43\% cost reduction is a scenario projection based on declared assumptions, not a controlled concurrent load-test measurement.
 
 \section{Evaluation Protocol}
 
 \subsection{Benchmark Family}
 
-The strongest frozen evaluation surface in the repository is the versioned 5000-claim benchmark recorded in the 2026-07-02 result family. The benchmark is assembled from FEVER \cite{thorne2018fever}, LIAR \cite{wang2017liar}, SciFact \cite{wadden2020fact}, and a normalized health-domain dataset used in the healthver slot of the pipeline. The test split contains 5000 claims, with 11986 training claims and 2997 validation claims.
+The strongest frozen evaluation surface in the repository is the versioned 5000-claim proxy benchmark recorded in the 2026-07-02 result family. The benchmark is assembled from FEVER \cite{thorne2018fever}, LIAR \cite{wang2017liar}, SciFact \cite{wadden2020fact}, and the PUBHEALTH \texttt{health\_fact} dataset stored under a legacy healthver compatibility name. The test split contains 5000 claims, with 11986 training claims and 2997 validation claims.
 
-More precisely, the healthver slot was populated with the \texttt{health\_fact} dataset rather than the original HealthVer release. The import pipeline sampled 8000 FEVER v1.0 claims, 6000 LIAR claims, 1200 SciFact claims, and 6000 \texttt{health\_fact} claims, then deduplicated normalized claim text to retain 19983 unique claims before splitting. Exact textual duplicates were excluded across train, validation, and test partitions by withholding all normalized test claims from the remaining pool.
+More precisely, the legacy healthver compatibility slot was populated with the PUBHEALTH \texttt{health\_fact} dataset rather than the original HealthVer release. The import pipeline sampled 8000 FEVER v1.0 claims, 6000 LIAR claims, 1200 SciFact claims, and 6000 \texttt{health\_fact} claims, then deduplicated normalized claim text to retain 19983 unique claims before splitting. Exact textual duplicates were excluded across train, validation, and test partitions by withholding all normalized test claims from the remaining pool.
 
 \begin{table}[htbp]
 \centering
@@ -149,7 +152,7 @@ Slot & Upstream source & Imported & Test $n$ & Canonical label mapping \\
 FEVER & FEVER v1.0 & 8000 & 1829 & SUPPORTS $\rightarrow$ SUPPORTED; REFUTES $\rightarrow$ REFUTED; NOT ENOUGH INFO $\rightarrow$ NEI \\
 LIAR & LIAR & 6000 & 1490 & true, mostly-true $\rightarrow$ SUPPORTED; false, pants-fire $\rightarrow$ REFUTED; half-true, barely-true $\rightarrow$ NEI \\
 SciFact & SciFact claims & 1200 & 191 & SUPPORT $\rightarrow$ SUPPORTED; CONTRADICT $\rightarrow$ REFUTED; empty label $\rightarrow$ NEI \\
-healthver slot & health\_fact substitute & 6000 & 1490 & 2 $\rightarrow$ SUPPORTED; 0 $\rightarrow$ REFUTED; 1 and 3 $\rightarrow$ NEI \\
+Legacy healthver compatibility slot & PUBHEALTH health\_fact & 6000 & 1490 & 2 $\rightarrow$ SUPPORTED; 0 $\rightarrow$ REFUTED; 1 and 3 $\rightarrow$ NEI \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
@@ -164,9 +167,9 @@ Claims and labels are frozen in the archived split files and result artifacts. R
 To avoid mixing incompatible result families, this paper reports only the frozen 5000-claim outputs. We focus on:
 
 \begin{itemize}
-  \item \textbf{Full Fact Validator} (internal artifact name: \texttt{full\_proxy}),
-  \item \textbf{FEVER-aware exploratory variant} (internal artifact name: \texttt{tune\_fever}),
-  \item \textbf{Fact Validator without debate} (internal artifact name: \texttt{ablate\_debate}),
+  \item \textbf{Full FactValidator-Proxy} (artifact name: \texttt{full\_proxy}),
+  \item \textbf{FEVER-aware exploratory proxy} (artifact name: \texttt{tune\_fever}),
+  \item \textbf{Proxy without deterministic debate} (artifact name: \texttt{ablate\_debate}),
   \item simple baselines: majority, length, random, keyword, and sentiment.
 \end{itemize}
 
@@ -174,7 +177,7 @@ The FEVER-aware exploratory variant applies a fixed post-hoc margin adjustment t
 
 \subsection{Metrics}
 
-We report accuracy, macro-F1, average confidence, a simple confidence-accuracy gap, per-dataset deltas, and operational metrics for latency, throughput, and cost. In this paper version, paired significance tests are not reported; the comparisons are descriptive rather than inferential.
+We report accuracy, macro-F1, Wilson accuracy intervals, a raw-score confidence diagnostic, per-dataset results, and operational scenario projections for latency, throughput, and cost. Exact two-sided McNemar tests, paired-bootstrap intervals with seed 42, Holm-adjusted p-values, paired risk differences, and matched-pair odds ratios are computed from aligned claim-level predictions. Because the proxy stores only one heuristic score rather than three class probabilities, no probability calibration or multiclass Brier score is claimed.
 
 \section{Results}
 
@@ -189,11 +192,11 @@ Table~\ref{tab:main} summarizes the main benchmark results.
 \begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{lrrrrr}
 \toprule
-System & Accuracy & Macro-F1 & 95\% CI & Avg. Confidence & Conf.-Acc. Gap \\
+System & Accuracy & Macro-F1 & 95\% Wilson CI & Avg. raw score & Raw-score gap \\
 \midrule
-Fact Validator without debate & 0.5134 & 0.4427 & [0.4995, 0.5273] & 88.37 & 0.3703 \\
-FEVER-aware exploratory variant & 0.5098 & 0.4421 & [0.4959, 0.5237] & 88.53 & 0.3755 \\
-Full Fact Validator & 0.5082 & 0.4384 & [0.4943, 0.5221] & 88.31 & 0.3749 \\
+Proxy without deterministic debate & 0.5134 & 0.4427 & [0.4995, 0.5273] & 88.37 & 0.3703 \\
+FEVER-aware exploratory proxy & 0.5098 & 0.4421 & [0.4959, 0.5237] & 88.53 & 0.3755 \\
+Full FactValidator-Proxy & 0.5082 & 0.4384 & [0.4943, 0.5221] & 88.31 & 0.3749 \\
 Length heuristic & 0.4942 & 0.3483 & [0.4803, 0.5081] & 48.83 & 0.0059 \\
 Majority baseline & 0.4926 & 0.2200 & [0.4787, 0.5065] & 50.00 & 0.0074 \\
 Random baseline & 0.3320 & 0.3240 & [0.3189, 0.3451] & 50.00 & 0.1680 \\
@@ -204,11 +207,11 @@ Sentiment heuristic & 0.2378 & 0.1400 & [0.2260, 0.2496] & 40.31 & 0.1653 \\
 \end{adjustbox}
 \end{table}
 
-The most important descriptive pattern is the performance of the full pipeline against the strongest simple baselines. In the frozen strict-validation snapshot, the full system exceeds the majority baseline by 1.56 percentage points and the length heuristic by 1.40 percentage points. No paired significance claim is made here because the paper does not report McNemar statistics, paired bootstrap intervals for the delta, or other inferential tests. The best observed variant in this frozen run is the debate-free ablation at 51.34\%, suggesting that debate should be treated as a selective inspection mechanism rather than as a universal default.
+The full proxy exceeds the majority baseline by 1.56 percentage points and the length heuristic by 1.40 percentage points. Exact two-sided McNemar tests give unadjusted p-values of 0.0433 and 0.0462 respectively; these marginal comparisons are not described as robust superiority after Holm correction. The no-debate proxy reaches 51.34\%, 0.52 points above the full proxy, with an unadjusted exact paired p-value of 0.00955. This result concerns deterministic proxy arbitration and does not establish the effect of live Ollama debate.
 
 \begin{table}[htbp]
 \centering
-\caption{Per-dataset comparison for the default full pipeline from the strict-validation snapshot.}
+\caption{Per-dataset comparison for the full deterministic proxy.}
 \label{tab:dataset}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -226,7 +229,7 @@ SciFact & 191 & 0.4817 & 0.4136 & 0.4084 & +0.0681 \\
 \end{adjustbox}
 \end{table}
 
-The per-dataset view matters more than the aggregate alone. The current system is strongest on SciFact and health-domain claims, positive on LIAR, and slightly negative on FEVER. That pattern supports a calibrated publication argument: the architecture is helpful for mixed-source, source-sensitive verification, but it still has distribution-specific weaknesses.
+The per-dataset view matters more than the aggregate alone. The proxy's largest descriptive margins occur on SciFact and health-domain claims; it is positive on LIAR and slightly negative on FEVER. This pattern demonstrates distribution-specific behavior, not the effectiveness of live retrieval or source scoring, because those components were not executed for every proxy item.
 
 \section{Comparison to the Two Reference Papers}
 
@@ -260,7 +263,7 @@ The repository supports four publishable contributions.
 \begin{enumerate}
   \item \textbf{Auditable source credibility as a first-class prior.} The system models source trust explicitly rather than burying it inside a learned verifier.
   \item \textbf{A full-stack fact-checking artifact.} The contribution is not only an algorithm but a working architecture spanning ingestion, verification, storage, and presentation.
-  \item \textbf{Operational metrics in the evaluation loop.} The paper reports cost and latency alongside prediction quality, which is often omitted in fact-checking papers.
+  \item \textbf{Operational projections alongside evaluation.} The paper reports clearly separated cost and latency scenarios alongside proxy prediction quality, which is often omitted in fact-checking papers.
   \item \textbf{Versioned comparative benchmarking.} The project contains a reproducible external benchmark pipeline and stored run artifacts suitable for follow-up validation.
 \end{enumerate}
 
@@ -272,11 +275,11 @@ The comparison to the two reference papers should therefore be read as complemen
 
 \section{Limitations}
 
-The strongest limitation is calibration. The full system is accurate enough to edge simple baselines on the frozen 5000-claim run, but its average confidence remains much higher than its observed accuracy. That means the system is useful as a decision-support pipeline, not as an unchecked automated adjudicator. Debate mode is another limitation: it adds complexity without helping the frozen benchmark when enabled by default. Finally, the health-domain portion of the benchmark uses a normalized substitute route, which should be documented carefully in any submission.
+The strongest statistical limitation is the proxy's raw confidence diagnostic. Its average heuristic score is much higher than observed accuracy, but the score is not a multiclass probability and no proper Brier score is claimed. The proxy result therefore supports decision-support use, not unchecked automated adjudication. Deterministic proxy debate is another limitation: it adds complexity without helping the frozen benchmark. The effect of live Ollama debate remains a separate empirical question.
 
 \section{Conclusion}
 
-Fact Validator is best positioned as a transparent systems contribution for practical misinformation analysis. On the frozen 5000-claim benchmark family, the architecture delivers a modest observed edge over simple baselines while preserving evidence traceability and reproducibility. The broader scientific contribution is architectural: auditable source-trust modeling, persistent evidence workflows, and cost-aware deployment under realistic constraints. Relative to Zero-shot Faithful Factual Error Correction and FacTool, the project is most novel in how it operationalizes factuality research into a deployable and inspectable verification stack. Future work should focus on calibration improvements, evidence freezing for exact replay, broader external validation, and paired inferential testing for benchmark deltas.
+Fact Validator is best positioned as a transparent systems contribution for practical misinformation analysis. On the frozen 5000-claim benchmark, the deterministic proxy delivers modest raw differences over simple baselines, but the majority and length comparisons do not survive Holm correction. The broader contribution is architectural: auditable source-trust modeling, persistent evidence workflows, a reproducible proxy evaluation, and cost-aware deployment scenarios. Relative to Zero-shot Faithful Factual Error Correction and FacTool, the project is most novel in how it operationalizes factuality research into a deployable and inspectable verification stack. Future work should store class-probability vectors, freeze a licensed evidence corpus, evaluate the live system on an external benchmark, and measure operational behavior through repeated controlled load tests.
 
 \begin{thebibliography}{99}
 

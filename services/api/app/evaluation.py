@@ -175,10 +175,19 @@ class EvaluationMetricsCalculator:
             if data["confidences"]:
                 avg_confidence = sum(data["confidences"]) / len(data["confidences"])
                 avg_accuracy = sum(data["corrects"]) / len(data["corrects"])
+                avg_confidence_probability = avg_confidence / 100.0
                 calibration[f"bin_{bin_idx}"] = {
                     "avg_confidence": avg_confidence,
                     "avg_accuracy": avg_accuracy,
-                    "calibration_gap": abs(avg_confidence - avg_accuracy)
+                    "raw_score_calibration_diagnostic": abs(
+                        avg_confidence_probability - avg_accuracy
+                    ),
+                    # Backwards-compatible key. This is a raw-score diagnostic,
+                    # not probability calibration: the proxy stores one
+                    # heuristic confidence score, not a multiclass distribution.
+                    "calibration_gap": abs(
+                        avg_confidence_probability - avg_accuracy
+                    ),
                 }
         
         return calibration
